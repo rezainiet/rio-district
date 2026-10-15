@@ -12,8 +12,10 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import { refuseInProduction } from "./lib/guard";
 
 async function main() {
+  refuseInProduction("La base MongoDB locale de développement");
   const dbPath = path.resolve(process.cwd(), ".data/mongo");
   mkdirSync(dbPath, { recursive: true });
   const port = Number(process.env.LOCAL_MONGO_PORT ?? 27017);

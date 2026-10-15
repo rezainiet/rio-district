@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { errorJson, json } from "@/lib/http";
 import { getPaymentProvider } from "@/lib/payments";
 import { applyPaymentEvent } from "@/lib/payments/apply";
+import { log } from "@/lib/log";
 
 /**
  * Provider webhook endpoint. Inactive (501) until a provider adapter is
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/payments/we
     await applyPaymentEvent(event);
     return json({ received: true });
   } catch (err) {
-    console.error("[payments webhook]", err);
+    log.error("payments.webhook_rejected", { provider, err });
     return errorJson(400, "Webhook invalide.");
   }
 }

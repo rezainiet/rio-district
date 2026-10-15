@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { fieldErrors } from "./validation";
 import { getAdmin, type AdminIdentity } from "./auth";
+import { log } from "./log";
 
 export function json<T>(data: T, init?: number | ResponseInit) {
   return NextResponse.json(data, typeof init === "number" ? { status: init } : init);
@@ -29,8 +30,17 @@ export async function parseBody<T>(req: NextRequest, schema: ZodType<T>) {
   return { ok: true as const, data: result.data };
 }
 
+/**
+ * Client IP for rate limiting. Behind nginx, X-Real-IP is set from the TCP
+ * connection ($remote_addr) and cannot be forged by the client, whereas the
+ * first X-Forwarded-For entry can. Fallback: the last X-Forwarded-For hop,
+ * which is the one appended by our own proxy.
+ */
 export function clientIp(req: NextRequest) {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const real = req.headers.get("x-real-ip")?.trim();
+  if (real) return real;
+  const hops = req.headers.get("x-forwarded-for")?.split(",").map((h) => h.trim()).filter(Boolean);
+  return hops?.at(-1) || "unknown";
 }
 
 /**
@@ -60,7 +70,7 @@ export function adminRoute<C>(
       return await handler(req, ctx, admin);
     } catch (err) {
       if (err instanceof ZodError) return errorJson(422, "Données invalides.", { fields: fieldErrors(err) });
-      console.error("[admin api]", err);
+      log.error("admin.api_error", { path: req.nextUrl.pathname, method: req.method, by: admin.email, err });
       return errorJson(500, "Erreur serveur.");
     }
   };

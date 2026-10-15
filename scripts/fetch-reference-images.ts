@@ -2,9 +2,10 @@
  * Downloads the reference product photographs listed in
  * scripts/data/reference-images.json into public/products/reference/.
  *
- * Refuses to run unless the manifest records an authorization
- * (authorization.authorized = true, confirmedBy, confirmedAt) AND the
- * command is run with --confirm. Files are stored byte-for-byte (no
+ * Refuses to run unless the manifest records at least a verbal confirmation
+ * (authorization.verbalConfirmation) or a written authorization, AND the
+ * command is run with --confirm. Warns while the written authorization is
+ * still pending. Files are stored byte-for-byte (no
  * re-encoding, no upscaling); next/image resizes them per viewport.
  *
  *   npm run images:fetch -- --confirm
@@ -14,7 +15,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 type Manifest = {
-  authorization: { authorized: boolean; confirmedBy: string | null; confirmedAt: string | null; scope: string };
+  authorization: {
+    status: string;
+    verbalConfirmation: { by: string; on: string } | null;
+    writtenAuthorization: { document: string; signedBy: string; date: string } | null;
+    scope: string;
+  };
   targetDir: string;
   products: Record<string, { swatchHex: string | null; images: { file: string; view: string; alt: string; source: string }[] }>;
 };
@@ -37,13 +43,16 @@ function webpSize(b: Buffer) {
 async function main() {
   const manifest: Manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
   const auth = manifest.authorization;
-  if (!auth.authorized || !auth.confirmedBy || !auth.confirmedAt || !process.argv.includes("--confirm")) {
+  if ((!auth.verbalConfirmation && !auth.writtenAuthorization) || !process.argv.includes("--confirm")) {
     console.error(
-      "✗ Téléchargement refusé : l'autorisation n'est pas enregistrée.\n" +
-        "  Renseigne authorization.authorized/confirmedBy/confirmedAt dans scripts/data/reference-images.json,\n" +
+      "✗ Téléchargement refusé : aucune autorisation enregistrée.\n" +
+        "  Renseigne authorization.verbalConfirmation ou writtenAuthorization dans scripts/data/reference-images.json,\n" +
         "  puis relance avec --confirm.",
     );
     process.exit(1);
+  }
+  if (!auth.writtenAuthorization) {
+    console.warn("! Autorisation écrite du client en attente : usage limité à la recette / préproduction.");
   }
 
   const dir = path.resolve(manifest.targetDir);

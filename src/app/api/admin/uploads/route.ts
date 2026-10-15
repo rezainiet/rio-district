@@ -2,6 +2,8 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { adminRoute, errorJson, json } from "@/lib/http";
+import { log } from "@/lib/log";
+import { UPLOAD_DIR, UPLOAD_URL_PREFIX } from "@/lib/uploads";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -16,10 +18,11 @@ function sniff(buf: Buffer): string | null {
 }
 
 /**
- * Stores uploads in /public/uploads. Fine for a single server or local use;
- * on serverless hosting (Vercel…) replace with object storage (S3, R2, Cloudinary).
+ * Stores uploads in UPLOAD_DIR (persistent, outside the release directory).
+ * Fine for a single VPS; for several servers or serverless hosting, replace
+ * with object storage (S3, R2, Cloudinary).
  */
-export const POST = adminRoute(async (req) => {
+export const POST = adminRoute(async (req, _ctx, admin) => {
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return errorJson(400, "Aucun fichier reçu.");
@@ -29,9 +32,9 @@ export const POST = adminRoute(async (req) => {
   const ext = sniff(buf);
   if (!ext) return errorJson(415, "Format non pris en charge (JPG, PNG, WebP, AVIF).");
 
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
+  await mkdir(UPLOAD_DIR, { recursive: true });
   const name = `${Date.now().toString(36)}-${randomBytes(6).toString("hex")}.${ext}`;
-  await writeFile(path.join(dir, name), buf);
-  return json({ ok: true, url: `/uploads/${name}` }, 201);
+  await writeFile(path.join(UPLOAD_DIR, name), buf);
+  log.info("upload.created", { file: name, bytes: buf.length, by: admin.email });
+  return json({ ok: true, url: `${UPLOAD_URL_PREFIX}/${name}` }, 201);
 });

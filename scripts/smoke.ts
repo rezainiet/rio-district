@@ -16,6 +16,7 @@ config();
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
+import { refuseInProduction } from "./lib/guard";
 import { Product } from "../src/models/Product";
 import { Order } from "../src/models/Order";
 import { Settings } from "../src/models/misc";
@@ -46,6 +47,8 @@ async function check(name: string, fn: () => Promise<void>) {
 }
 
 async function main() {
+  // Creates test orders and temporarily changes stock/settings: never against production.
+  refuseInProduction("Le smoke test");
   await mongoose.connect(process.env.MONGODB_URI!);
   const noir = await Product.findOne({ slug: "veste-bresil-noir" });
   const vert = await Product.findOne({ slug: "veste-bresil-vert" });
@@ -83,6 +86,44 @@ async function main() {
       const order = await Order.findOne({ idempotencyKey: key });
       assert.equal(order!.paymentStatus, "awaiting_payment_setup");
       assert.equal(order!.status, "pending_confirmation");
+    });
+
+    await check("orders are created unpaid and cannot become paid from outside", async () => {
+      const r = await post("/api/orders", {
+        idempotencyKey: randomUUID(),
+        lines: single("XL"),
+        customer,
+        paymentStatus: "paid",
+        status: "confirmed",
+      });
+      assert.equal(r.status, 201);
+      assert.equal(r.data.order.paymentStatus, "awaiting_payment_setup");
+      const order = await Order.findOne({ number: r.data.order.number }).lean();
+      assert.equal(order!.paymentStatus, "awaiting_payment_setup");
+      assert.equal(order!.status, "pending_confirmation");
+      assert.equal(order!.payment?.paidAt ?? null, null);
+      assert.equal(order!.payment?.provider ?? null, null);
+
+      // No provider is configured: the webhook cannot mark anything paid.
+      const hook = await fetch(`${BASE}/api/payments/webhook/stripe`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ type: "succeeded", orderNumber: order!.number }),
+      });
+      assert.equal(hook.status, 501);
+      assert.equal((await Order.findById(order!._id).lean())!.paymentStatus, "awaiting_payment_setup");
+
+      // The customer's confirmation page states it plainly.
+      const page = await fetch(`${BASE}/commande/confirmation/${order!.publicToken}`).then((x) => x.text());
+      assert.ok(page.includes("Non payée"), "confirmation page must say the order is unpaid");
+
+      // Admin endpoints need a session.
+      const adminPatch = await fetch(`${BASE}/api/admin/orders/${order!._id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ action: "payment", paymentStatus: "paid" }),
+      });
+      assert.equal(adminPatch.status, 401);
     });
 
     await check("concurrent orders cannot oversell the last unit", async () => {

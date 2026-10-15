@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { orderRequestSchema } from "@/lib/validation";
 import { clientIp, errorJson, json, parseBody, rateLimit, sameOrigin } from "@/lib/http";
 import { createOrderRequest, OrderError } from "@/lib/orders";
+import { log } from "@/lib/log";
 
 /**
  * Creates an UNPAID order request. Prices, discounts and totals are
@@ -24,6 +25,12 @@ export async function POST(req: NextRequest) {
       ip,
       userAgent: req.headers.get("user-agent") ?? undefined,
     });
+    log.info(duplicate ? "order.duplicate_submission" : "order.created", {
+      number: order.number,
+      totalCents: order.totalCents,
+      items: order.itemsCount,
+      paymentStatus: order.paymentStatus,
+    });
     return json(
       {
         ok: true,
@@ -40,10 +47,11 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     if (err instanceof OrderError) {
+      log.warn("order.rejected", { code: err.code, reason: err.message });
       const status = err.code === "closed" ? 403 : 409;
       return errorJson(status, err.message, { code: err.code, details: err.details });
     }
-    console.error("[orders]", err);
+    log.error("order.create_failed", { err });
     return errorJson(500, "Une erreur est survenue. Ta demande n'a pas été enregistrée, réessaie.");
   }
 }

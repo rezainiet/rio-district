@@ -2,8 +2,9 @@
  * Seeds the database with the initial catalogue, store settings, the
  * (unpublished) testimonials taken from the reference, and an admin account.
  *
- *   npm run seed            → inserts what is missing, never overwrites
- *   npm run seed -- --reset → also overwrites the 6 initial products & settings
+ *   npm run seed            → inserts what is missing, never overwrites (safe in production)
+ *   npm run seed -- --reset → also overwrites the 6 initial products & settings.
+ *                             Refused in production and whenever any order exists.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
@@ -19,6 +20,8 @@ import { Category } from "../src/models/Category";
 import { AdminUser, Settings, Testimonial } from "../src/models/misc";
 import { DEFAULT_SETTINGS } from "../src/lib/defaults";
 import { SIZES } from "../src/lib/sizes";
+import { Order } from "../src/models/Order";
+import { isProductionTarget } from "./lib/guard";
 
 const RESET = process.argv.includes("--reset");
 
@@ -45,7 +48,23 @@ async function main() {
   if (!uri) throw new Error("MONGODB_URI manquant (.env.local).");
   await mongoose.connect(uri);
   console.log("→ Connecté à MongoDB");
-  await Promise.all([Product.syncIndexes(), Category.syncIndexes(), Settings.syncIndexes(), AdminUser.syncIndexes(), Testimonial.syncIndexes()]);
+
+  if (RESET) {
+    const orders = await Order.estimatedDocumentCount();
+    if (isProductionTarget() || orders > 0) {
+      console.error(
+        `✗ --reset refusé : ${isProductionTarget() ? "environnement de production" : `${orders} commande(s) en base`}. ` +
+          "Modifie les produits et réglages depuis l'admin. Rien n'a été modifié.",
+      );
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+  }
+
+  // createIndexes only adds missing indexes; it never drops existing ones.
+  await Promise.all(
+    [Product, Category, Settings, AdminUser, Testimonial, Order].map((model) => (model as typeof Product).createIndexes()),
+  );
 
   const category = await Category.findOneAndUpdate(
     { slug: "vestes" },
@@ -59,7 +78,8 @@ async function main() {
   // the generated illustrations, so a --reset never brings the placeholders back.
   const manifest = JSON.parse(readFileSync(path.resolve("scripts/data/reference-images.json"), "utf8"));
   const photosFor = (slug: string) => {
-    const entry = manifest.authorization?.authorized ? manifest.products?.[slug] : null;
+    const auth = manifest.authorization ?? {};
+    const entry = auth.verbalConfirmation || auth.writtenAuthorization ? manifest.products?.[slug] : null;
     if (!entry?.images?.length) return null;
     const files = entry.images as { file: string; alt: string }[];
     if (!files.every((im) => existsSync(path.resolve(manifest.targetDir, im.file)))) return null;

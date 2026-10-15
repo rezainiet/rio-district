@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
   // Keeps review screenshots free of the dev-mode badge.
   devIndicators: false,
   async headers() {
+    const production = process.env.NODE_ENV === "production";
     return [
       {
         source: "/:path*",
@@ -37,11 +38,27 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+          // Baseline policy that does not interfere with Next's inline runtime scripts.
+          // A nonce-based script-src is a possible later hardening step.
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+          },
+          // HTTPS is mandatory in production (admin cookies are Secure); browsers ignore HSTS over plain HTTP.
+          ...(production ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
         ],
       },
       {
         source: "/admin/:path*",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
+      {
+        source: "/api/admin/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
       },
     ];
   },

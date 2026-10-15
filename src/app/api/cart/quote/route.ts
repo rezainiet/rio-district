@@ -3,6 +3,7 @@ import { z } from "zod";
 import { cartLineSchema } from "@/lib/validation";
 import { errorJson, json, parseBody } from "@/lib/http";
 import { quoteCart } from "@/lib/orders";
+import { log } from "@/lib/log";
 
 const schema = z.object({ lines: z.array(cartLineSchema).max(20) });
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     const quote = await quoteCart(body.data.lines);
     return json({ ok: true, quote });
   } catch (err) {
-    console.error("[quote]", err);
+    log.error("cart.quote_failed", { err });
     return errorJson(500, "Impossible de calculer le total pour le moment.");
   }
 }

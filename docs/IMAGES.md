@@ -3,11 +3,14 @@
 ## État actuel (16/10/2026)
 
 Les illustrations SVG provisoires ont été remplacées par les photos de kaltshop.club.
-**Autorisation** : confirmée le 16/10/2026 par le prestataire, au nom du client. Elle couvre la
-réutilisation des photos et le droit de vendre les articles avec les marques tierces visibles
-dessus (Nike, CBF, Itaú, Vivo). Elle est enregistrée dans
-`scripts/data/reference-images.json` et `public/products/reference/SOURCES.json` (source,
-dimensions, poids, SHA-256, date de récupération de chaque fichier).
+**Autorisation : en attente d'un accord écrit.** Le 16/10/2026, le prestataire a confirmé
+verbalement, au nom du client, la réutilisation des photos et le droit de vendre les articles avec
+les marques tierces visibles dessus (Nike, CBF, Itaú, Vivo). **Aucune autorisation écrite du
+client n'est au dossier.** Les photos sont donc utilisables en recette / préproduction, mais ne
+doivent pas être considérées comme licenciées pour une mise en ligne publique tant que
+`authorization.writtenAuthorization` (document, signataire, date) n'est pas renseigné dans
+`scripts/data/reference-images.json` et `public/products/reference/SOURCES.json`. Ces deux fichiers
+indiquent aussi, pour chaque photo : source, dimensions, poids, SHA-256 et date de récupération.
 
 | Produit | Fichier servi par l'app | Source d'origine | Taille | Vues |
 |---|---|---|---|---|

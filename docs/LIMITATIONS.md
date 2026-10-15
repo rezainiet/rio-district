@@ -2,7 +2,7 @@
 
 ## Contenus à fournir / valider (bloquants pour une mise en ligne réelle)
 
-1. **Photos produits.** Les photos de kaltshop.club sont en place (autorisation confirmée le 16/10/2026, voir
+1. **Photos produits.** Les photos de kaltshop.club sont en place, **autorisation écrite du client en attente** (voir
    `docs/IMAGES.md`). La référence ne fournit qu'une vue de face par coloris : le client doit encore fournir le
    dos et un détail pour chaque coloris.
 2. **Avis clients.** Les 6 avis du site de référence sont importés **non publiés** et non
@@ -27,8 +27,8 @@
 - **E-mails transactionnels** (confirmation client, alerte admin) non envoyés : aucun service
   d'e-mail fourni. Point d'accroche naturel : après `createOrderRequest` dans
   `src/app/api/orders/route.ts`.
-- **Téléversement d'images** sur disque local (`public/uploads`) : à remplacer par un stockage
-  objet sur un hébergement serverless.
+- **Téléversement d'images** sur le disque du serveur (`UPLOAD_DIR`, persistant hors release) :
+  adapté à un VPS unique ; à remplacer par un stockage objet en cas de plusieurs serveurs.
 - **Limiteur de fréquence** en mémoire (par instance).
 - **Un seul rôle admin** effectif (`owner`) ; le champ `role` est prêt pour des rôles restreints.
 - **Lighthouse** non exécuté dans cet environnement ; optimisations appliquées : `next/image`

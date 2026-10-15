@@ -28,7 +28,9 @@ stocke les données dans `.data/mongo`. Pour un vrai serveur ou Atlas, renseigne
 
 | Variable | Rôle |
 |---|---|
+| `APP_ENV` | `production` sur le serveur : bloque les scripts de test/démo et `seed --reset` |
 | `MONGODB_URI` | Connexion MongoDB (obligatoire). Jamais exposée au navigateur. |
+| `UPLOAD_DIR` | Dossier persistant des images téléversées (obligatoire en production) |
 | `NEXT_PUBLIC_SITE_URL` | URL publique (SEO, Open Graph, sitemap). |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Compte admin créé par `npm run seed` (mot de passe ≥ 10 caractères). |
 | `IMAGE_REMOTE_HOSTS` | Domaines d'images distantes autorisés (ex. un CDN), séparés par des virgules. |
@@ -126,22 +128,21 @@ Règles clés :
 
 ## Déploiement
 
-1. Base MongoDB Atlas (ou autre) → `MONGODB_URI`.
-2. Variables d'environnement de production (`NEXT_PUBLIC_SITE_URL` en https).
-3. `npm run build && npm start` (Node) ou hébergeur Next.js.
-4. `npm run seed` une fois contre la base de production, puis changer le mot de passe admin.
-5. **Images téléversées** : stockées dans `public/uploads/`, adapté à un serveur unique avec
-   disque persistant. Sur un hébergement serverless (Vercel…), remplacer
-   `src/app/api/admin/uploads/route.ts` par un stockage objet (S3, R2, Cloudinary) et
-   ajouter le domaine à `IMAGE_REMOTE_HOSTS`.
-6. Le limiteur de fréquence est en mémoire (par processus) : utiliser Redis/Upstash si plusieurs
-   instances.
+Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) : bloquants avant ouverture publique, checklist VPS
+(MongoDB authentifié, `.env.local` partagé, `UPLOAD_DIR` persistant, systemd, nginx + TLS,
+sauvegardes) et modèles dans `deploy/`. Points clés :
+
+- `NEXT_PUBLIC_SITE_URL` (https) est figé au moment de `npm run build`.
+- En production, l'application refuse de démarrer sans `MONGODB_URI`, sans URL https ou sans `UPLOAD_DIR`.
+- `APP_ENV=production` bloque `seed --reset`, `demo:orders`, `test:smoke` et `db:local`.
+- Une seule instance (limiteur de débit en mémoire).
 
 ## Documents
 
 - [docs/AUDIT.md](docs/AUDIT.md) — audit du site de référence, fonctionnalités confirmées / non inspectables, direction visuelle
 - [docs/QA.md](docs/QA.md) — résultats des tests fonctionnels
 - [docs/VISUAL-AUDIT.md](docs/VISUAL-AUDIT.md) — comparaison visuelle avec la référence, affinages, captures avant/après
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — checklist VPS, sécurité, sauvegardes, bloquants
 - [docs/PAYMENTS.md](docs/PAYMENTS.md) — passation pour l'intégration du paiement
 - [docs/IMAGES.md](docs/IMAGES.md) — photos produits : sources, autorisation, migration, remplacement
 - [docs/LIMITATIONS.md](docs/LIMITATIONS.md) — limites connues et contenus à fournir par le client

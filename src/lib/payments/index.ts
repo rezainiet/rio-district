@@ -1,4 +1,5 @@
 import "server-only";
+import { log } from "../log";
 
 /**
  * Payment integration seam.
@@ -49,7 +50,7 @@ export function getPaymentProvider(): PaymentProvider | null {
   const id = (process.env.PAYMENT_PROVIDER ?? "").trim();
   if (!id) return null;
   // Intentionally empty until the client chooses and tests a provider.
-  console.warn(`[payments] PAYMENT_PROVIDER="${id}" est défini mais aucun adaptateur n'est implémenté.`);
+  log.warn("payments.provider_not_implemented", { provider: id });
   return null;
 }
 

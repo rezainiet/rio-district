@@ -72,6 +72,12 @@ export function OrderActions({
                   disabled={busy}
                   onClick={async () => {
                     if (s === "cancelled" && !confirm("Annuler cette commande ? Le stock réservé sera libéré.")) return;
+                    if (
+                      s === "fulfilled" &&
+                      paymentStatus !== "paid" &&
+                      !confirm("Cette commande n'est pas marquée « Payée ». L'expédier quand même ?")
+                    )
+                      return;
                     if (await patch({ action: "status", status: s, message: statusMessage || undefined })) setStatusMessage("");
                   }}
                 >

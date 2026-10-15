@@ -1,10 +1,14 @@
 {
   "$comment": "Mapping of the six initial products to the reference store's photographs. Audited 2026-10-15: each reference product page exposes exactly one photo (front view on mannequin, 1200x1200 WebP). No back, detail or alternate views exist on the reference site. Files are only fetched once 'authorization.authorized' is true. Swatch colours for vert, jaune and bleu were sampled from the photos so the colour dots match the jackets.",
   "authorization": {
-    "authorized": true,
-    "confirmedBy": "Client, confirmation transmise par le prestataire (session de développement)",
-    "confirmedAt": "2026-10-16",
-    "scope": "Reuse of the kaltshop.club product photographs, and the right to sell the depicted items including any third-party marks visible on them."
+    "status": "pending-written-authorization",
+    "verbalConfirmation": {
+      "by": "Prestataire (agence), au nom du client, dans la session de développement",
+      "on": "2026-10-16"
+    },
+    "writtenAuthorization": null,
+    "scope": "Réutilisation des photos produits de kaltshop.club et droit de vendre les articles photographiés, y compris les marques tierces visibles (Nike, CBF, Itaú, Vivo).",
+    "note": "Aucune autorisation écrite du client n'est au dossier. Ne pas considérer ces photos comme licenciées tant que writtenAuthorization n'est pas renseigné (document, date, signataire)."
   },
   "targetDir": "public/products/reference",
   "products": {

@@ -11,6 +11,7 @@ config({ path: ".env.local", quiet: true });
 
 import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
+import { refuseInProduction } from "./lib/guard";
 
 const BASE = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
 const DEMO_EMAIL = /@demo\.kalt\.test$/;
@@ -25,6 +26,8 @@ async function main() {
     console.log(`✓ ${res.deletedCount} commande(s) de démonstration supprimée(s)`);
     return;
   }
+
+  refuseInProduction("La création de commandes de démonstration");
 
   const products = await db.collection("products").find({}, { projection: { slug: 1 } }).toArray();
   const id = (c: string) => String(products.find((p) => p.slug === `veste-bresil-${c}`)!._id);

@@ -23,7 +23,7 @@ import mongoose from "mongoose";
 
 type Img = { url: string; alt: string; kind: "photo" | "placeholder" };
 type Manifest = {
-  authorization: { authorized: boolean };
+  authorization: { verbalConfirmation: unknown; writtenAuthorization: unknown };
   targetDir: string;
   products: Record<string, { swatchHex: string | null; images: { file: string; alt: string }[] }>;
 };
@@ -61,8 +61,13 @@ async function main() {
     return;
   }
 
-  if (!manifest.authorization.authorized) {
-    console.log("! Autorisation non enregistrée dans le manifeste : simulation uniquement.\n");
+  const { verbalConfirmation, writtenAuthorization } = manifest.authorization;
+  if (!verbalConfirmation && !writtenAuthorization) {
+    console.log("✗ Aucune autorisation enregistrée dans le manifeste : migration refusée.");
+    return;
+  }
+  if (!writtenAuthorization) {
+    console.log("! Autorisation écrite du client en attente (voir docs/IMAGES.md).\n");
   }
 
   let planned = 0;

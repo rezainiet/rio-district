@@ -1,9 +1,13 @@
 {
   "authorization": {
-    "authorized": true,
-    "confirmedBy": "Client, confirmation transmise par le prestataire (session de développement)",
-    "confirmedAt": "2026-10-16",
-    "scope": "Reuse of the kaltshop.club product photographs, and the right to sell the depicted items including any third-party marks visible on them."
+    "status": "pending-written-authorization",
+    "verbalConfirmation": {
+      "by": "Prestataire (agence), au nom du client, dans la session de développement",
+      "on": "2026-10-16"
+    },
+    "writtenAuthorization": null,
+    "scope": "Réutilisation des photos produits de kaltshop.club et droit de vendre les articles photographiés, y compris les marques tierces visibles (Nike, CBF, Itaú, Vivo).",
+    "note": "Aucune autorisation écrite du client n'est au dossier. Ne pas considérer ces photos comme licenciées tant que writtenAuthorization n'est pas renseigné (document, date, signataire)."
   },
   "files": {
     "veste-bresil-vert-face.webp": {
