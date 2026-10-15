@@ -6,21 +6,41 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx scripts/seed.ts",
+    "db:local": "tsx scripts/local-mongo.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:smoke": "tsx scripts/smoke.ts",
+    "screenshots": "tsx scripts/screenshots.ts",
+    "demo:orders": "tsx scripts/demo-orders.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "mongoose": "^9.11.2",
+    "motion": "^14.3.0",
     "next": "16.4.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hook-form": "^7.90.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^18.0.8",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
+    "mongodb-memory-server": "^11.3.0",
+    "playwright-core": "^1.64.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
