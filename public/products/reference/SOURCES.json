@@ -1,0 +1,70 @@
+{
+  "authorization": {
+    "authorized": true,
+    "confirmedBy": "Client, confirmation transmise par le prestataire (session de développement)",
+    "confirmedAt": "2026-10-16",
+    "scope": "Reuse of the kaltshop.club product photographs, and the right to sell the depicted items including any third-party marks visible on them."
+  },
+  "files": {
+    "veste-bresil-vert-face.webp": {
+      "product": "veste-bresil-vert",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-3.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 53646,
+      "sha256": "a4b039c34c815726d062693443e11a8ddf97030d4c0765b7dd8dedea76704f12",
+      "fetchedAt": "2026-10-15T18:58:11.850Z"
+    },
+    "veste-bresil-rose-face.webp": {
+      "product": "veste-bresil-rose",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-5.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 51878,
+      "sha256": "843111119c13b4e0aa20bc4add5797b6858f617fdca37615fae74c2e1f7c14ab",
+      "fetchedAt": "2026-10-15T18:58:11.875Z"
+    },
+    "veste-bresil-noir-face.webp": {
+      "product": "veste-bresil-noir",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-1.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 44812,
+      "sha256": "24dc6c99ee07e7166e6bb77637b9a7f46040dca1c21ea5a521f61f81b9dc2396",
+      "fetchedAt": "2026-10-15T18:58:11.908Z"
+    },
+    "veste-bresil-blanc-face.webp": {
+      "product": "veste-bresil-blanc",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-2.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 43802,
+      "sha256": "22908f9a72abaddb876256654a09311fa244642f6b59cc71ec374501cd53ce76",
+      "fetchedAt": "2026-10-15T18:58:11.935Z"
+    },
+    "veste-bresil-bleu-face.webp": {
+      "product": "veste-bresil-bleu",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-4.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 55960,
+      "sha256": "23366279fad6afbe2e7c950f9a6fc4d7f846f8d8afeda851c7b5439864c7d9d4",
+      "fetchedAt": "2026-10-15T18:58:11.963Z"
+    },
+    "veste-bresil-jaune-face.webp": {
+      "product": "veste-bresil-jaune",
+      "view": "face",
+      "source": "https://www.kaltshop.club/products/sanziro-6.webp",
+      "width": 1200,
+      "height": 1200,
+      "bytes": 52806,
+      "sha256": "92b6631d55d8f187f48f8588c1b2b75fe22a673700ac8294cbf36a4863a764df",
+      "fetchedAt": "2026-10-15T18:58:11.990Z"
+    }
+  }
+}

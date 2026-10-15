@@ -9,6 +9,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config();
 
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
@@ -53,15 +54,31 @@ async function main() {
   );
 
   const outDir = path.resolve("public/products");
+
+  // Authorized photographs (see scripts/data/reference-images.json) take precedence over
+  // the generated illustrations, so a --reset never brings the placeholders back.
+  const manifest = JSON.parse(readFileSync(path.resolve("scripts/data/reference-images.json"), "utf8"));
+  const photosFor = (slug: string) => {
+    const entry = manifest.authorization?.authorized ? manifest.products?.[slug] : null;
+    if (!entry?.images?.length) return null;
+    const files = entry.images as { file: string; alt: string }[];
+    if (!files.every((im) => existsSync(path.resolve(manifest.targetDir, im.file)))) return null;
+    const prefix = "/" + path.posix.relative("public", String(manifest.targetDir).replace(/\\/g, "/"));
+    return {
+      hex: (entry.swatchHex as string | null) ?? null,
+      images: files.map((im) => ({ url: `${prefix}/${im.file}`, alt: im.alt, kind: "photo" as const })),
+    };
+  };
   for (const [i, c] of COLORS.entries()) {
     const slug = `veste-bresil-${c.slug}`;
     const imgs = writePlaceholders(slug, c.name, c.swatch, outDir);
+    const photos = photosFor(slug);
     const doc = {
       name: `Veste Brésil ${c.name}`,
       slug,
       category: category._id,
       group: "veste-bresil",
-      color: { name: c.name, hex: c.hex },
+      color: { name: c.name, hex: photos?.hex ?? c.hex },
       tagline: "Coupe-vent léger aux couleurs du Brésil.",
       description:
         "Coupe-vent léger aux couleurs du Brésil, coupe ample et fermeture zippée. La pièce qui habille une tenue sans l'alourdir.",
@@ -70,7 +87,7 @@ async function main() {
       care: "",
       priceCents: 1999,
       compareAtCents: null,
-      images: imgs.map((im) => ({
+      images: photos?.images ?? imgs.map((im) => ({
         url: `/products/${im.file}`,
         alt: `Veste Brésil ${c.name} — ${im.alt} (illustration provisoire)`,
         kind: "placeholder" as const,

@@ -14,7 +14,9 @@
     "test": "tsx --test tests/*.test.ts",
     "test:smoke": "tsx scripts/smoke.ts",
     "screenshots": "tsx scripts/screenshots.ts",
-    "demo:orders": "tsx scripts/demo-orders.ts"
+    "demo:orders": "tsx scripts/demo-orders.ts",
+    "images:fetch": "tsx scripts/fetch-reference-images.ts",
+    "images:migrate": "tsx scripts/migrate-product-images.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

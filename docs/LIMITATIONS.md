@@ -2,11 +2,9 @@
 
 ## Contenus à fournir / valider (bloquants pour une mise en ligne réelle)
 
-1. **Photos produits sous licence.** Les visuels actuels sont des illustrations SVG originales,
-   marquées « Visuel provisoire » sur l'image et sous la galerie. Les photos du site de référence
-   n'ont pas été reprises : elles montrent des **marques tierces (écusson CBF, Nike, Itaú)**.
-   Le client doit confirmer qu'il dispose des droits de commercialisation de ces articles et de
-   leurs visuels. Remplacement : Admin → Produits → Images (décocher « Visuel provisoire »).
+1. **Photos produits.** Les photos de kaltshop.club sont en place (autorisation confirmée le 16/10/2026, voir
+   `docs/IMAGES.md`). La référence ne fournit qu'une vue de face par coloris : le client doit encore fournir le
+   dos et un détail pour chaque coloris.
 2. **Avis clients.** Les 6 avis du site de référence sont importés **non publiés** et non
    « vérifiés ». Ne les publier qu'avec la confirmation qu'ils proviennent de vrais clients.
    Aucune note moyenne ni nombre d'avis n'est inventé.

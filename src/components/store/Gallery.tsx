@@ -47,11 +47,13 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
 
   const current = images[Math.min(active, images.length - 1)];
   const isPlaceholder = images.some((i) => i.kind === "placeholder");
+  // With a single photo, thumbnails and swipe dots add nothing.
+  const multiple = images.length > 1;
 
   return (
-    <div className="md:grid md:grid-cols-[72px_1fr] md:gap-4">
+    <div className={clsx(multiple && "md:grid md:grid-cols-[72px_1fr] md:gap-4")}>
       {/* Thumbnails (desktop) */}
-      <ul className="hidden flex-col gap-3 md:flex" aria-label="Miniatures">
+      <ul className={clsx("hidden flex-col gap-3", multiple && "md:flex")} aria-label="Miniatures">
         {images.map((img, i) => (
           <li key={img.url}>
             <button
@@ -127,7 +129,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
             </button>
           ))}
         </div>
-        <div className="mt-3 flex items-center justify-between md:hidden">
+        <div className={clsx("mt-3 items-center justify-between md:hidden", multiple ? "flex" : "hidden")}>
           <div className="flex gap-1.5" role="tablist" aria-label="Choisir une image">
             {images.map((img, i) => (
               <button

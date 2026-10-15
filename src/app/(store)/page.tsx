@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getActiveProducts, getPublishedTestimonials, getSettings } from "@/lib/catalog";
 import { formatEUR, percentOff } from "@/lib/money";
+import { artClass } from "@/lib/image-fit";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Faq, faqJsonLd } from "@/components/store/Faq";
 import { Testimonials } from "@/components/store/Testimonials";
@@ -99,7 +100,7 @@ export default async function HomePage() {
                         fill
                         priority={i < 3}
                         sizes="(min-width: 768px) 16vw, 33vw"
-                        className="scale-[1.12] object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-[1.18]"
+                        className={`object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] ${artClass(p.images[0], "hero")}`}
                       />
                     )}
                   </span>
@@ -205,7 +206,7 @@ export default async function HomePage() {
                       key={p.id + i}
                       className={`relative aspect-[4/5] w-1/2 overflow-hidden rounded-[var(--radius-md)] bg-studio shadow-[var(--shadow-pop)] ${i === 0 ? "-rotate-3 translate-y-4" : "rotate-3 -ml-6"}`}
                     >
-                      <Image src={p.images[0]?.url ?? ""} alt={p.images[0]?.alt ?? p.name} fill sizes="(min-width: 768px) 25vw, 50vw" className="scale-[1.08] object-cover" />
+                      <Image src={p.images[0]?.url ?? ""} alt={p.images[0]?.alt ?? p.name} fill sizes="(min-width: 768px) 25vw, 50vw" className={`object-cover ${artClass(p.images[0], "pack")}`} />
                     </div>
                   ) : null,
                 )}

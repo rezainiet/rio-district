@@ -65,6 +65,7 @@ révocable). Mots de passe hachés avec bcrypt (coût 12). Connexion limitée en
 | `npm run test:smoke` | Tests de bout en bout HTTP contre un serveur lancé (`npm run dev`) |
 | `npm run lint` / `npm run typecheck` | Qualité |
 | `npm run screenshots -- --set after` | Captures pleine page de l'app lancée (Chrome local) dans `docs/screenshots/<set>/` ; `--reference` capture aussi kaltshop.club |
+| `npm run images:fetch` / `npm run images:migrate` | Photos produits autorisées : téléchargement et migration sûre (voir docs/IMAGES.md) |
 | `npm run demo:orders` | 3 commandes « (DÉMO) » pour revoir l'admin ; `-- --clean` les supprime |
 
 ## Fonctionnalités
@@ -142,4 +143,5 @@ Règles clés :
 - [docs/QA.md](docs/QA.md) — résultats des tests fonctionnels
 - [docs/VISUAL-AUDIT.md](docs/VISUAL-AUDIT.md) — comparaison visuelle avec la référence, affinages, captures avant/après
 - [docs/PAYMENTS.md](docs/PAYMENTS.md) — passation pour l'intégration du paiement
+- [docs/IMAGES.md](docs/IMAGES.md) — photos produits : sources, autorisation, migration, remplacement
 - [docs/LIMITATIONS.md](docs/LIMITATIONS.md) — limites connues et contenus à fournir par le client

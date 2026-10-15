@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { useStore } from "./StoreProvider";
 import { SizeGuide } from "./SizeGuide";
 import { formatEUR, percentOff } from "@/lib/money";
+import { artClass } from "@/lib/image-fit";
 import type { Size, SizeChartRow, SizeRule } from "@/lib/sizes";
 import type { PublicProduct } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -107,7 +108,7 @@ function Swatches({
                 checked ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : "ring-1 ring-line hover:ring-ink/60",
               )}
             >
-              {p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="64px" className="scale-[1.15] object-cover" />}
+              {p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="64px" className={`object-cover ${artClass(p.images[0], "thumb")}`} />}
               <span className="absolute bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full ring-1 ring-black/20" style={{ background: p.color.hex }} aria-hidden />
             </button>
           );
@@ -351,7 +352,7 @@ export function ProductPurchase({
                   <span className="flex shrink-0 -space-x-5" aria-hidden>
                     {o.thumbs.map((t, j) => (
                       <span key={t.id + j} className="relative h-14 w-11 overflow-hidden rounded-[var(--radius-xs)] bg-studio ring-2 ring-[#fbf9f4]">
-                        {t.images[0] && <Image src={t.images[0].url} alt="" fill sizes="44px" className="scale-[1.15] object-cover" />}
+                        {t.images[0] && <Image src={t.images[0].url} alt="" fill sizes="44px" className={`object-cover ${artClass(t.images[0], "thumb")}`} />}
                       </span>
                     ))}
                   </span>
@@ -428,7 +429,7 @@ export function ProductPurchase({
               <div key={i} id={`field-slot${i}`} className="rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] p-4">
                 <div className="flex items-center gap-3">
                   <div className="relative h-14 w-11 shrink-0 overflow-hidden rounded-[var(--radius-xs)] bg-studio">
-                    {p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="44px" className="scale-[1.15] object-cover" />}
+                    {p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="44px" className={`object-cover ${artClass(p.images[0], "thumb")}`} />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="eyebrow text-muted">Veste {i + 1}</p>

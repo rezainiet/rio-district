@@ -1,0 +1,78 @@
+{
+  "$comment": "Mapping of the six initial products to the reference store's photographs. Audited 2026-10-15: each reference product page exposes exactly one photo (front view on mannequin, 1200x1200 WebP). No back, detail or alternate views exist on the reference site. Files are only fetched once 'authorization.authorized' is true. Swatch colours for vert, jaune and bleu were sampled from the photos so the colour dots match the jackets.",
+  "authorization": {
+    "authorized": true,
+    "confirmedBy": "Client, confirmation transmise par le prestataire (session de développement)",
+    "confirmedAt": "2026-10-16",
+    "scope": "Reuse of the kaltshop.club product photographs, and the right to sell the depicted items including any third-party marks visible on them."
+  },
+  "targetDir": "public/products/reference",
+  "products": {
+    "veste-bresil-vert": {
+      "swatchHex": "#9DD0CA",
+      "images": [
+        {
+          "file": "veste-bresil-vert-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Vert, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-3.webp"
+        }
+      ]
+    },
+    "veste-bresil-rose": {
+      "swatchHex": null,
+      "images": [
+        {
+          "file": "veste-bresil-rose-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Rose, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-5.webp"
+        }
+      ]
+    },
+    "veste-bresil-noir": {
+      "swatchHex": null,
+      "images": [
+        {
+          "file": "veste-bresil-noir-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Noir, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-1.webp"
+        }
+      ]
+    },
+    "veste-bresil-blanc": {
+      "swatchHex": null,
+      "images": [
+        {
+          "file": "veste-bresil-blanc-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Blanc, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-2.webp"
+        }
+      ]
+    },
+    "veste-bresil-bleu": {
+      "swatchHex": "#0B4A9E",
+      "images": [
+        {
+          "file": "veste-bresil-bleu-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Bleu, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-4.webp"
+        }
+      ]
+    },
+    "veste-bresil-jaune": {
+      "swatchHex": "#E9E21A",
+      "images": [
+        {
+          "file": "veste-bresil-jaune-face.webp",
+          "view": "face",
+          "alt": "Veste Brésil Jaune, vue de face sur mannequin",
+          "source": "https://www.kaltshop.club/products/sanziro-6.webp"
+        }
+      ]
+    }
+  }
+}

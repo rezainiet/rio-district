@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatEUR } from "@/lib/money";
+import { artClass } from "@/lib/image-fit";
 import type { BundleConfig, PublicProduct } from "@/lib/types";
 import { ArrowRight } from "@/components/ui/icons";
 
@@ -31,7 +32,7 @@ export function ProductCard({
             fill
             priority={priority}
             sizes="(min-width: 1024px) 30vw, 50vw"
-            className="scale-[1.06] object-cover transition-[opacity,transform] duration-700 ease-[var(--ease-out-soft)] group-hover:scale-[1.1]"
+            className={`object-cover transition-[opacity,transform] duration-700 ease-[var(--ease-out-soft)] ${artClass(front, "card")}`}
           />
         )}
         {back && (
@@ -41,7 +42,7 @@ export function ProductCard({
             aria-hidden
             fill
             sizes="(min-width: 1024px) 30vw, 50vw"
-            className="scale-[1.06] object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-md:hidden"
+            className={`object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-md:hidden ${artClass(back, "thumb")}`}
           />
         )}
         {soldOut && (
