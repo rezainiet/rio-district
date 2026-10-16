@@ -8,12 +8,15 @@ export function Footer({
   contactEmail,
   products,
   social,
+  returnsHref,
 }: {
   storeName: string;
   tagline: string;
   contactEmail: string;
   products: PublicProduct[];
   social: { instagram: string; tiktok: string };
+  /** Dedicated Returns & Refunds page, once it exists (concept draft in development). */
+  returnsHref?: string;
 }) {
   const year = new Date().getFullYear();
   // min-h-11 (44px): comfortable touch targets without changing the visual rhythm.
@@ -44,6 +47,7 @@ export function Footer({
           <p className="lab mb-4">Aide</p>
           <ul className="text-sm">
             <li><Link className={linkCls} href="/livraison-retours">Livraison & retours</Link></li>
+            {returnsHref && <li><Link className={linkCls} href={returnsHref}>Retours & remboursements</Link></li>}
             <li><Link className={linkCls} href="/#faq">FAQ</Link></li>
             <li><Link className={linkCls} href="/#contact">Contact</Link></li>
             <li><Link className={linkCls} href="/panier">Panier</Link></li>

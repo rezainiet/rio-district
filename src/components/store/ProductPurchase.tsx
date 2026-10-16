@@ -17,18 +17,21 @@ import { CheckIcon, InfoIcon, ReturnIcon, RulerIcon, TruckIcon } from "@/compone
 type Offer = "single" | "bundle";
 type Slot = { productId: string; size: Size | null };
 
-function SizePicker({
+export function SizePicker({
   product,
   value,
   onChange,
   name,
   error,
+  hideRemaining = false,
 }: {
   product: PublicProduct;
   value: Size | null;
   onChange: (s: Size) => void;
   name: string;
   error?: boolean;
+  /** The product-page concepts show stock in their own status block. */
+  hideRemaining?: boolean;
 }) {
   const selected = product.sizes.find((s) => s.label === value);
   return (
@@ -67,7 +70,7 @@ function SizePicker({
           );
         })}
       </div>
-      {selected?.remaining != null && (
+      {!hideRemaining && selected?.remaining != null && (
         <p className="mt-2 text-xs font-medium text-warning">
           Plus que {selected.remaining} en {selected.label}.
         </p>
@@ -76,7 +79,7 @@ function SizePicker({
   );
 }
 
-function Swatches({
+export function Swatches({
   options,
   value,
   onSelect,

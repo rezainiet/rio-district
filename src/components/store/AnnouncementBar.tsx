@@ -2,7 +2,7 @@
 export function AnnouncementBar({ text }: { text: string }) {
   const parts = text.split("·").map((s) => s.trim()).filter(Boolean);
   return (
-    <div className="border-b border-line">
+    <div className="border-b border-line" data-announcement>
       <p className="container-x flex h-10 items-center justify-center text-center text-[12.5px] tracking-[0.06em] text-muted">
         {parts.map((p, i) => (
           <span key={i} className={i > 0 ? "hidden items-center sm:flex" : "flex items-center"}>

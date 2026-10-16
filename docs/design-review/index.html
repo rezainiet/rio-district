@@ -1,0 +1,262 @@
+<title>Rio District · Fiche produit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: a client-review board — summary, scores, then one row per view with the three concepts side by side. */
+  /* Deliberately single-theme dark: it is the storefront's own Dark Premium identity. */
+  :root {
+    --bg: #0b0b0c;
+    --panel: #131315;
+    --panel-2: #1b1b1e;
+    --ink: #f2eee6;
+    --ink-2: #c9c5bd;
+    --muted: #8e8a82;
+    --line: #2a2a2d;
+    --brass: #c8a96a;
+    --ok: #8fd9ad;
+    --warn: #f2c27a;
+    --display: "Syne", "Arial Black", system-ui, sans-serif;
+    --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .lab { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--brass); }
+  h1, h2, h3 { font-family: var(--display); text-transform: uppercase; text-wrap: balance; margin: 0; letter-spacing: .01em; }
+  h1 { font-size: clamp(28px, 5vw, 52px); line-height: .95; font-weight: 800; margin-top: 12px; }
+  h2 { font-size: clamp(22px, 3vw, 32px); font-weight: 800; line-height: 1; }
+  h3 { font-size: 16px; font-weight: 700; }
+  p { margin: 0; }
+  .lead { color: var(--ink-2); max-width: 68ch; margin-top: 14px; }
+  section { margin-top: 56px; display: grid; gap: 18px; }
+  .note { color: var(--muted); font-size: 13px; }
+  .tag { display: inline-block; border: 1px dashed #7d6a43; color: #d9bf86; border-radius: 999px; padding: 1px 9px; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+
+  /* Verdict */
+  .verdict { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+  .card.rec { border-color: var(--brass); }
+  .card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .num { font-family: var(--display); font-weight: 700; letter-spacing: .2em; color: var(--brass); font-size: 13px; }
+  .score { font-family: var(--display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+  .score small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .card p { color: var(--ink-2); font-size: 14px; }
+  .pill { justify-self: start; background: var(--brass); color: #0b0b0c; font-weight: 700; font-size: 12px; border-radius: 999px; padding: 3px 10px; }
+  .card a { color: var(--ink); }
+
+  /* Scores table */
+  .table { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 11px 14px; text-align: right; border-bottom: 1px solid var(--line); font-size: 14px; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  tbody tr:last-child td { border-bottom: 0; font-weight: 800; font-family: var(--display); font-size: 17px; }
+  td.best { color: var(--brass); font-weight: 700; }
+  .ref { color: var(--muted); }
+
+  /* View switcher */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .tabs button { flex: none; font: 600 13px var(--body); color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; cursor: pointer; min-height: 40px; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tabs button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .col { display: grid; gap: 10px; min-width: 0; }
+  .col h3 span { color: var(--brass); margin-right: 8px; }
+  .shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot.mobile { max-width: 300px; }
+  .shot.full { max-height: 1200px; overflow-y: auto; }
+  .caption { font-size: 13px; color: var(--muted); }
+
+  /* Before / reference */
+  .compare { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .compare figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  .compare figcaption { font-size: 13px; color: var(--ink-2); }
+  .compare figcaption b { display: block; color: var(--ink); font-family: var(--display); text-transform: uppercase; font-size: 13px; letter-spacing: .04em; }
+
+  /* Lists */
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  ul.clean { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.clean li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; color: var(--ink-2); font-size: 14px; }
+  ul.clean li::before { content: ""; width: 8px; height: 8px; border-radius: 99px; margin-top: 7px; background: var(--brass); }
+  ul.clean.bad li::before { background: #e58a7d; }
+  ul.clean.good li::before { background: var(--ok); }
+  ul.clean b { color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .verdict, .board, .two { grid-template-columns: minmax(0, 1fr); }
+    .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .shot.mobile { max-width: 340px; }
+  }
+  @media (prefers-reduced-motion: no-preference) { .tabs button { transition: background-color .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+  <p class="lab">Rio District · revue de design · 16 octobre 2026</p>
+  <h1>Fiche produit : trois concepts à choisir.</h1>
+  <p class="lead">
+    Trois prototypes fonctionnels de la fiche « Veste Brésil Vert », construits dans la boutique avec les vraies données : produits, prix,
+    panier et les 28 avis publiés en production. Ils reprennent toute l'information d'achat de KALT (note, stock, date de livraison, pack,
+    garanties, retours, avis photo, FAQ) sans aucun chiffre inventé. Les éléments marqués <span class="tag">Aperçu</span> sont des exemples
+    pour la revue (campagne fictive, stock simulé) qui ne s'affichent jamais en ligne. Rien n'est publié.
+  </p>
+
+  <section aria-labelledby="choix">
+    <h2 id="choix">Notre recommandation</h2>
+    <div class="verdict">
+      <article class="card rec">
+        <div class="top"><span class="num">CONCEPT 01</span><span class="score">8,6 <small>/ 10</small></span></div>
+        <h3>Trust-First Commerce</h3>
+        <span class="pill">Recommandé</span>
+        <p>L'ordre d'information de KALT, en plus clair : note, stock et date de livraison au-dessus de l'offre, retour 15 jours juste sous le bouton, frise de livraison et trois garanties ensuite.</p>
+        <p class="note">À retravailler : page un peu longue sur mobile.</p>
+      </article>
+      <article class="card">
+        <div class="top"><span class="num">CONCEPT 02</span><span class="score">7,9 <small>/ 10</small></span></div>
+        <h3>Premium Fashion Commerce</h3>
+        <p>Scène éditoriale, panneau d'achat de maison de mode, livraison mise en scène en trois étapes, citation client mise en avant.</p>
+        <p class="note">Le plus beau. Sur mobile, la date de livraison arrive après la photo.</p>
+      </article>
+      <article class="card">
+        <div class="top"><span class="num">CONCEPT 03</span><span class="score">8,5 <small>/ 10</small></span></div>
+        <h3>Mobile Conversion Pro</h3>
+        <p>Pour le visiteur venu d'une publicité : 1 veste / 2 vestes côte à côte, garanties en pastilles, avis en carrousel ; carte d'achat toujours visible sur ordinateur.</p>
+        <p class="note">Le plus rapide au pouce, un peu plus dense.</p>
+      </article>
+    </div>
+    <p class="note">Piste suggérée : le concept 01 avec le choix « 1 veste / 2 vestes » côte à côte du concept 03.</p>
+  </section>
+
+  <section aria-labelledby="comparer">
+    <h2 id="comparer">Les trois concepts côte à côte</h2>
+    <div class="tabs" role="tablist" aria-label="Vue">
+      <button role="tab" id="t-first" aria-selected="true" data-view="first">Premier écran mobile</button>
+      <button role="tab" id="t-desk" aria-selected="false" data-view="desk">Ordinateur</button>
+      <button role="tab" id="t-buy" aria-selected="false" data-view="buy">Sélecteur d'achat</button>
+      <button role="tab" id="t-pack" aria-selected="false" data-view="pack">Pack 2 vestes</button>
+      <button role="tab" id="t-trust" aria-selected="false" data-view="trust">Confiance</button>
+      <button role="tab" id="t-reviews" aria-selected="false" data-view="reviews">Avis</button>
+      <button role="tab" id="t-real" aria-selected="false" data-view="real">Données réelles seules</button>
+      <button role="tab" id="t-fullm" aria-selected="false" data-view="fullm">Page complète mobile</button>
+      <button role="tab" id="t-fulld" aria-selected="false" data-view="fulld">Page complète ordinateur</button>
+    </div>
+    <p class="caption" id="view-caption"></p>
+    <div class="board" id="board" role="tabpanel" aria-labelledby="t-first"></div>
+  </section>
+
+  <section aria-labelledby="avant">
+    <h2 id="avant">Point de départ</h2>
+    <p class="lead" style="margin-top:0">Premier écran à 390 px : la référence KALT, la fiche Rio District en ligne aujourd'hui, et le concept recommandé.</p>
+    <div class="compare">
+      <figure><div class="shot"><img src="reference/mobile-390-veste-vert-0-premier-ecran.jpg" alt="KALT, premier écran mobile" loading="lazy" width="780" height="1688"></div><figcaption><b>KALT</b>Note, stock, date visibles. Chiffres marqués « démo », bouton qui mène à google.com.</figcaption></figure>
+      <figure><div class="shot"><img src="current/prod-390-0-premier-ecran.jpg" alt="Rio District en ligne, premier écran mobile" loading="lazy" width="780" height="1688"></div><figcaption><b>Rio District aujourd'hui</b>La photo occupe l'écran ; ni note, ni stock, ni date avant de défiler.</figcaption></figure>
+      <figure><div class="shot"><img src="screenshots/c01-mobile-390-1-premier-ecran.jpg" alt="Concept 01, premier écran mobile" loading="lazy" width="780" height="1688"></div><figcaption><b>Concept 01</b>Titre, note réelle, prix et stock dès le premier écran (avec le bandeau de revue en plus).</figcaption></figure>
+      <figure><div class="shot"><img src="screenshots/retours-mobile-390.jpg" alt="Page Retours et remboursements" loading="lazy"></div><figcaption><b>Retours & remboursements</b>Nouvelle page : 15 jours, démarche, points « À confirmer ».</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="audit">
+    <h2 id="audit">Ce que l'audit KALT a montré</h2>
+    <div class="two">
+      <div class="card">
+        <h3>Ce que nous reprenons</h3>
+        <ul class="clean good">
+          <li><span><b>Note et nombre d'avis</b> près du titre, cliquables vers les avis.</span></li>
+          <li><span><b>Stock</b> près du prix, sur le stock réel, taille par taille.</span></li>
+          <li><span><b>Date de livraison concrète</b> (« livrée entre le 20 et le 22 octobre »), en jours ouvrés.</span></li>
+          <li><span><b>Pack lisible</b> : −38 %, 15,03 € d'économie, 39,98 € barré.</span></li>
+          <li><span><b>Frise</b> Commande → Expédition → Livraison et <b>trois garanties</b>.</span></li>
+          <li><span><b>Barre d'achat mobile</b> qui suit l'offre choisie.</span></li>
+          <li><span><b>Avis avec photos</b>, emplacement vidéos clients, FAQ.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Ce que nous ne copions pas</h3>
+        <ul class="clean bad">
+          <li><span>« Passer commande » mène à <b>google.com</b> : pas de panier.</span></li>
+          <li><span>Compte à rebours qui <b>repart</b> (08:14 puis 04:09 dix minutes après).</span></li>
+          <li><span>« 4,92 · +323 avis », « 7 articles » : <b>marqués démo</b>.</span></li>
+          <li><span>« Paiement sécurisé et crypté » <b>sans paiement</b>.</span></li>
+          <li><span>Taille <b>XS présélectionnée</b>.</span></li>
+          <li><span>Livraison annoncée un <b>dimanche</b> (jours calendaires).</span></li>
+          <li><span>Aucun e-mail, aucune mention légale, aucune CGV.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="notes">
+    <h2 id="notes">Notation</h2>
+    <div class="table">
+      <table>
+        <thead><tr><th>Critère</th><th>Poids</th><th class="ref">KALT</th><th class="ref">Actuel</th><th>01</th><th>02</th><th>03</th></tr></thead>
+        <tbody>
+          <tr><td>Confiance client</td><td>30 %</td><td class="ref">6,0</td><td class="ref">5,0</td><td class="best">9,0</td><td>8,0</td><td>8,5</td></tr>
+          <tr><td>Clarté de l'information</td><td>25 %</td><td class="ref">8,5</td><td class="ref">6,0</td><td class="best">9,0</td><td>7,5</td><td>8,5</td></tr>
+          <tr><td>Achat sur mobile</td><td>20 %</td><td class="ref">8,0</td><td class="ref">6,0</td><td>8,0</td><td>7,0</td><td class="best">9,5</td></tr>
+          <tr><td>Qualité visuelle premium</td><td>15 %</td><td class="ref">7,5</td><td class="ref">8,0</td><td>7,5</td><td class="best">9,5</td><td>7,5</td></tr>
+          <tr><td>Faisabilité</td><td>10 %</td><td class="ref">—</td><td class="ref">10</td><td class="best">9,5</td><td>8,0</td><td>8,0</td></tr>
+          <tr><td>Total / 10</td><td></td><td class="ref">7,7</td><td class="ref">6,4</td><td class="best">8,6</td><td>7,9</td><td>8,5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">La confiance de KALT est notée bas parce que ses chiffres sont de démonstration et sa commande ne fonctionne pas. Aucun concept ne bat KALT sur tous les points : son premier écran mobile reste plus aéré.</p>
+  </section>
+
+  <section aria-labelledby="valider">
+    <h2 id="valider">À valider avant la mise en ligne</h2>
+    <div class="two">
+      <div class="card">
+        <ul class="clean">
+          <li><span><b>Retours 15 jours</b> : le site affiche encore 14 jours (bandeau, réglages, FAQ, panier).</span></li>
+          <li><span><b>Conditions de retour</b> : emballage, frais de retour, délai de remboursement, échange, colis abîmé, erreur d'article.</span></li>
+          <li><span><b>Expédition</b> : délai réel de préparation, transporteur, heure limite de commande, jours de fermeture.</span></li>
+          <li><span><b>Stock</b> : saisir les quantités réelles par taille pour activer « Plus que N articles ».</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <ul class="clean">
+          <li><span><b>Compte à rebours</b> : seulement pour une offre réellement limitée (le pack à 24,95 € est permanent).</span></li>
+          <li><span><b>Paiement</b> : prestataire et moyens acceptés ; d'ici là, « Rien à payer aujourd'hui ».</span></li>
+          <li><span><b>Service client</b> : délai de réponse, e-mail (sales@riodistrict.store ?).</span></li>
+          <li><span><b>Mentions légales et CGV</b>, <b>vidéos clients</b> autorisées, ton « tu » ou « vous ».</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <p class="note" style="margin-top:48px">Captures réelles prises dans Chrome (390 px, Retina, et 1440 px). Le détail complet de l'audit et la matrice des fonctionnalités sont dans le dossier du projet.</p>
+</div>
+
+<script>
+  const VIEWS = {
+    first: { file: "mobile-390-1-premier-ecran", mobile: true, caption: "Ce que voit un visiteur mobile en arrivant (390 px). Le bandeau « Concept » en haut n'existe que pour la revue." },
+    desk: { file: "desktop-1440-1-premier-ecran", caption: "Premier écran à 1440 px." },
+    buy: { file: "mobile-390-2-selecteur-achat", mobile: true, caption: "Offre, couleur, taille et bouton sur mobile." },
+    pack: { file: "mobile-390-5-pack", mobile: true, caption: "Pack 2 vestes choisi : couleur et taille pour chaque veste, économie visible." },
+    trust: { file: "mobile-390-3-confiance", mobile: true, caption: "Frise de livraison et garanties Livraison / Paiement / Retours." },
+    reviews: { file: "mobile-390-4-avis", mobile: true, caption: "Avis : les 28 avis publiés en production, avec photos." },
+    real: { file: "mobile-390-6-donnees-reelles", mobile: true, caption: "Sans données d'aperçu : pas de compte à rebours (aucune campagne active), « Disponible » au lieu d'une quantité (stock non suivi)." },
+    fullm: { file: "mobile-390-0-page-complete", mobile: true, full: true, caption: "Page entière sur mobile (faire défiler dans chaque capture)." },
+    fulld: { file: "desktop-1440-0-page-complete", full: true, caption: "Page entière sur ordinateur (faire défiler dans chaque capture)." },
+  };
+  const CONCEPTS = [["c01", "01", "Trust-First Commerce"], ["c02", "02", "Premium Fashion"], ["c03", "03", "Mobile Conversion Pro"]];
+  const board = document.getElementById("board");
+  const caption = document.getElementById("view-caption");
+  function show(view) {
+    const v = VIEWS[view];
+    caption.textContent = v.caption;
+    board.innerHTML = CONCEPTS.map(([k, n, name]) =>
+      `<div class="col"><h3><span>${n}</span>${name}</h3><div class="shot${v.mobile ? " mobile" : ""}${v.full ? " full" : ""}"><img src="screenshots/${k}-${v.file}.jpg" alt="Concept ${n}, ${v.caption}" loading="lazy"></div></div>`
+    ).join("");
+    document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.view === view)));
+    board.setAttribute("aria-labelledby", "t-" + view);
+    try { localStorage.setItem("rd-review-view", view); } catch {}
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => show(b.dataset.view)));
+  let start = "first";
+  try { const s = localStorage.getItem("rd-review-view"); if (s && VIEWS[s]) start = s; } catch {}
+  show(start);
+</script>

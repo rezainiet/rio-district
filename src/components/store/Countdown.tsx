@@ -20,7 +20,7 @@ export type CountdownData = {
  * date comes from the database, so reloading never resets it; when it is
  * reached the block disappears. It never changes a price.
  */
-function useRemaining(endsAt: string, serverNow: number) {
+export function useRemaining(endsAt: string, serverNow: number) {
   const end = Date.parse(endsAt);
   const [remaining, setRemaining] = useState(end - serverNow);
   useEffect(() => {

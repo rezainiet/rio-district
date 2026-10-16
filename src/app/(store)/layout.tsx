@@ -8,6 +8,7 @@ import { CartDrawer } from "@/components/store/CartDrawer";
 import { MarketingPopups } from "@/components/store/MarketingPopups";
 import { livePopups } from "@/lib/marketing";
 import { manrope, syne } from "@/lib/store-fonts";
+import { RETURNS_PREVIEW_PATH, designReviewEnabled } from "@/lib/design-review";
 
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
             contactEmail={settings.contactEmail}
             products={products}
             social={settings.social}
+            returnsHref={designReviewEnabled() ? RETURNS_PREVIEW_PATH : undefined}
           />
         </div>
         <CartDrawer />

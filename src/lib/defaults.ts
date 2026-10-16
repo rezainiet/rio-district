@@ -1,5 +1,7 @@
 import { DEFAULT_SIZE_CHART, DEFAULT_SIZE_RULES, type SizeChartRow, type SizeRule } from "./sizes";
 import { DEFAULT_COUNTDOWN, DEFAULT_POPUPS, type CountdownSettings, type PopupSettings } from "./marketing";
+import { DEFAULT_RETURNS_POLICY, type ReturnsPolicy } from "./policies";
+import { DEFAULT_DISPATCH, type DispatchSettings } from "./delivery-plan";
 
 export type FaqItem = { question: string; answer: string };
 
@@ -32,6 +34,10 @@ export type StoreSettings = {
   countdown: CountdownSettings;
   /** Marketing pop-ups (Admin → Promotions). Off until configured. */
   popups: PopupSettings;
+  /** Structured returns policy (draft until approved by the client). */
+  returnsPolicy: ReturnsPolicy;
+  /** Dispatch assumptions behind the delivery dates (draft until confirmed by the client). */
+  dispatch: DispatchSettings;
 };
 
 /**
@@ -106,4 +112,6 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   social: { instagram: "", tiktok: "" },
   countdown: DEFAULT_COUNTDOWN,
   popups: DEFAULT_POPUPS,
+  returnsPolicy: DEFAULT_RETURNS_POLICY,
+  dispatch: DEFAULT_DISPATCH,
 };

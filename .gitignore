@@ -49,3 +49,4 @@ next-env.d.ts
 
 # reference-site captures (third-party imagery, internal review only)
 /docs/screenshots/reference/
+/docs/design-review/reference/
