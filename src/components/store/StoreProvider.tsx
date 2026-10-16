@@ -11,10 +11,14 @@ export type StoreConfig = {
   bundle: BundleConfig;
   shippingCents: number;
   shippingSummary: string;
-  returnsSummary: string;
   acceptingOrders: boolean;
   closedMessage: string;
   paymentNotice: string;
+  /** Return-request window from the returns policy (days after delivery). */
+  returnsWindowDays: number;
+  contactEmail: string;
+  /** Delivery range for an order placed today, e.g. "entre le 20 et le 22 octobre". */
+  deliveryEstimate: string;
 };
 
 type Ctx = {
@@ -31,6 +35,8 @@ type Ctx = {
   clear: () => void;
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
+  /** Last line added from a product page (drives the drawer's confirmation). */
+  lastAdded: { at: number; line: CartLineInput } | null;
 };
 
 const StoreContext = createContext<Ctx | null>(null);
@@ -59,7 +65,8 @@ export function StoreProvider({
 }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpenState] = useState(false);
+  const [lastAdded, setLastAdded] = useState<{ at: number; line: CartLineInput } | null>(null);
 
   // Load persisted cart once on the client.
   useEffect(() => {
@@ -106,6 +113,7 @@ export function StoreProvider({
   );
 
   const add = useCallback((line: CartLineInput) => {
+    setLastAdded({ at: Date.now(), line });
     setLines((prev) => {
       const sig = signature(line);
       const existing = prev.find((l) => signature(l) === sig);
@@ -131,6 +139,12 @@ export function StoreProvider({
 
   const clear = useCallback(() => setLines([]), []);
 
+  // Closing the drawer ends the "just added" confirmation; reopening it later shows the cart only.
+  const setDrawerOpen = useCallback((open: boolean) => {
+    setDrawerOpenState(open);
+    if (!open) setLastAdded(null);
+  }, []);
+
   const value = useMemo(
     () => ({
       config,
@@ -146,8 +160,9 @@ export function StoreProvider({
       clear,
       drawerOpen,
       setDrawerOpen,
+      lastAdded,
     }),
-    [config, products, productMap, lines, quote, hydrated, add, update, remove, setQuantity, clear, drawerOpen],
+    [config, products, productMap, lines, quote, hydrated, add, update, remove, setQuantity, clear, drawerOpen, setDrawerOpen, lastAdded],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

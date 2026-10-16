@@ -15,8 +15,7 @@ export function Footer({
   contactEmail: string;
   products: PublicProduct[];
   social: { instagram: string; tiktok: string };
-  /** Dedicated Returns & Refunds page, once it exists (concept draft in development). */
-  returnsHref?: string;
+  returnsHref: string;
 }) {
   const year = new Date().getFullYear();
   // min-h-11 (44px): comfortable touch targets without changing the visual rhythm.
@@ -24,19 +23,19 @@ export function Footer({
   return (
     <footer className="mt-auto border-t border-line">
       {/* Tablet: the wordmark (no-wrap) gets its own row; four columns from lg, where it fits. */}
-      <div className="container-x grid gap-10 pb-8 pt-16 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+      <div className="container-x grid gap-10 pb-8 pt-12 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <div className="md:col-span-3 lg:col-span-1">
-          <Logo name={storeName} className="whitespace-nowrap text-[28px] sm:text-[34px] lg:text-[40px]" />
-          <p className="mt-3 max-w-sm text-sm text-muted">{tagline}</p>
+          <Logo name={storeName} className="text-[26px] sm:text-[30px] lg:text-[34px]" />
+          <p className="mt-3 max-w-sm text-[15px] text-muted">{tagline}</p>
         </div>
 
         <nav aria-label="Coloris">
-          <p className="lab mb-4">Coloris</p>
-          <ul className="grid grid-cols-2 text-sm md:grid-cols-1">
+          <p className="lab mb-3">Coloris</p>
+          <ul className="grid grid-cols-2 text-[15px] md:grid-cols-1">
             {products.map((p) => (
               <li key={p.id}>
-                <Link href={`/produit/${p.slug}`} className={`${linkCls} inline-flex items-center gap-2`}>
-                  <span className="size-2.5 rounded-full ring-1 ring-white/20" style={{ background: p.color.hex }} aria-hidden />
+                <Link href={`/produit/${p.slug}`} className={`${linkCls} gap-2.5`}>
+                  <span className="size-3 rounded-full ring-1 ring-white/25" style={{ background: p.color.hex }} aria-hidden />
                   {p.color.name || p.name}
                 </Link>
               </li>
@@ -45,26 +44,26 @@ export function Footer({
         </nav>
 
         <nav aria-label="Aide">
-          <p className="lab mb-4">Aide</p>
-          <ul className="text-sm">
-            <li><Link className={linkCls} href="/livraison-retours">Livraison & retours</Link></li>
-            {returnsHref && <li><Link className={linkCls} href={returnsHref}>Retours & remboursements</Link></li>}
-            <li><Link className={linkCls} href="/#faq">FAQ</Link></li>
+          <p className="lab mb-3">Aide</p>
+          <ul className="text-[15px]">
+            <li><Link className={linkCls} href="/livraison-retours">Livraison</Link></li>
+            <li><Link className={linkCls} href={returnsHref}>Retours & remboursements</Link></li>
+            <li><Link className={linkCls} href="/#faq">Questions fréquentes</Link></li>
             <li><Link className={linkCls} href="/#contact">Contact</Link></li>
             <li><Link className={linkCls} href="/panier">Panier</Link></li>
           </ul>
         </nav>
 
         <div>
-          <p className="lab mb-4">Suivre</p>
-          <ul className="text-sm">
+          <p className="lab mb-3">Nous écrire</p>
+          <ul className="text-[15px]">
+            <li><a href={`mailto:${contactEmail}`} className={`${linkCls} break-all`}>{contactEmail}</a></li>
             {social.instagram && <li><a className={linkCls} href={social.instagram} rel="noopener noreferrer" target="_blank">Instagram</a></li>}
             {social.tiktok && <li><a className={linkCls} href={social.tiktok} rel="noopener noreferrer" target="_blank">TikTok</a></li>}
-            <li><a href={`mailto:${contactEmail}`} className={`${linkCls} break-all`}>{contactEmail}</a></li>
           </ul>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-line pt-5 text-[12.5px] text-muted sm:flex-row sm:justify-between md:col-span-3 lg:col-span-4">
+        <div className="flex flex-col gap-2 border-t border-line pt-5 text-[13px] text-muted sm:flex-row sm:justify-between md:col-span-3 lg:col-span-4">
           <p>© {year} {storeName}. Tous droits réservés.</p>
           <p>Prix TTC · Paiement en ligne bientôt disponible</p>
         </div>

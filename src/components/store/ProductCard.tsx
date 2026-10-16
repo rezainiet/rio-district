@@ -4,7 +4,7 @@ import { formatEUR } from "@/lib/money";
 import { artClass } from "@/lib/image-fit";
 import type { BundleConfig, PublicProduct } from "@/lib/types";
 
-/** Dark Premium product card: rounded panel, spotlit square photo, ivory CTA bar on hover. */
+/** Product card: photo, colour, price, pack price and a visible "Choisir" action (no hover-only UI). */
 export function ProductCard({
   product,
   bundle,
@@ -21,7 +21,7 @@ export function ProductCard({
   return (
     <Link
       href={`/produit/${product.slug}`}
-      className="group block overflow-hidden rounded-2xl border border-line bg-paper-2 transition-colors hover:border-brand focus-visible:outline-offset-4"
+      className="tap group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-paper-2 hover:border-line-strong focus-visible:outline-offset-4"
       aria-label={`${product.name}, ${formatEUR(product.priceCents)}${showBundle ? `, ou ${bundle.quantity} pour ${formatEUR(bundle.priceCents)}` : ""}`}
     >
       <div className="shot relative aspect-square">
@@ -32,31 +32,27 @@ export function ProductCard({
             fill
             priority={priority}
             sizes="(min-width: 1024px) 30vw, 50vw"
-            className={`object-cover transition-transform duration-700 ease-[var(--ease-out-soft)] ${artClass(front, "card")}`}
+            className={`object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] ${artClass(front, "card")}`}
           />
         )}
-        {soldOut && (
-          <span className="lab absolute left-4 top-4 z-10 rounded-full bg-paper px-3 py-1.5 text-ink">Épuisé</span>
-        )}
+        {soldOut && <span className="absolute left-3 top-3 z-10 rounded-full bg-paper px-3 py-1.5 text-[13px] font-semibold">Épuisé</span>}
       </div>
 
-      <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{product.color.name}</p>
-          <h3 className="mt-2 font-display text-[15px] font-bold uppercase leading-tight sm:text-xl">{product.name}</h3>
-        </div>
-        <div className="shrink-0 sm:text-right">
-          <p className="text-base font-semibold sm:text-lg">{formatEUR(product.priceCents)}</p>
-          {showBundle && (
-            <p className="mt-1 text-xs text-brand">
-              ou {bundle.quantity} pour {formatEUR(bundle.priceCents)}
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="hidden max-h-0 items-center justify-between overflow-hidden bg-ink px-5 text-sm font-semibold text-paper transition-[max-height,padding] duration-300 group-hover:max-h-14 group-hover:py-3.5 md:flex">
-        <span>Choisir ma taille</span>
-        <span aria-hidden>→</span>
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <p className="flex items-center gap-1.5 text-[13px] font-medium text-ink-2">
+          <span className="size-2.5 rounded-full ring-1 ring-white/25" style={{ background: product.color.hex }} aria-hidden />
+          {product.color.name}
+        </p>
+        <h3 className="display mt-1 text-[19px] uppercase leading-tight sm:text-[22px]">{product.name}</h3>
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+          <span className="price text-[20px]">{formatEUR(product.priceCents)}</span>
+          {showBundle && <span className="text-[13px] text-brand">ou {bundle.quantity} pour {formatEUR(bundle.priceCents)}</span>}
+        </p>
+        <span className="mt-auto pt-3">
+          <span className="flex min-h-11 items-center justify-center rounded-full border border-line-strong text-[14px] font-semibold transition-colors group-hover:border-ink group-hover:bg-ink group-hover:text-paper">
+            {soldOut ? "Voir la fiche" : "Choisir"}
+          </span>
+        </span>
       </div>
     </Link>
   );

@@ -30,10 +30,10 @@ import {
   TrustCards,
   VideoSlot,
   deliveryWords,
-} from "./blocks";
+} from "@/components/store/pdp/blocks";
 import type { Size } from "@/lib/sizes";
-import type { PreviewData } from "./types";
-import { usePurchase, type Offer } from "./usePurchase";
+import type { PreviewData } from "@/components/store/pdp/types";
+import { usePurchase, type Offer } from "@/components/store/pdp/usePurchase";
 
 function Hero({ d }: { d: PreviewData }) {
   const img = d.product.images[0];

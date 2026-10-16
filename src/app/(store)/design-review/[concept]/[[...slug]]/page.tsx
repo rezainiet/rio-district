@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSettings } from "@/lib/catalog";
 import { isSize } from "@/lib/sizes";
 import { DEFAULT_PREVIEW_SLUG, DESIGN_CONCEPTS, designReviewEnabled, loadPreview, type DesignConceptKey } from "@/lib/design-review";
 import { Concept01 } from "@/components/design-review/Concept01";
 import { Concept02 } from "@/components/design-review/Concept02";
 import { Concept03 } from "@/components/design-review/Concept03";
-import { ProposedAnnouncement } from "@/components/design-review/ProposedAnnouncement";
 
 export const metadata: Metadata = { title: "Revue de design — fiche produit", robots: { index: false, follow: false } };
 
@@ -28,7 +26,7 @@ export default async function DesignReviewProduct({ params, searchParams }: Page
   const demo = sp.demo === "1";
   const noReviews = sp.avis === "aucun";
   const productSlug = slug?.[0] ?? DEFAULT_PREVIEW_SLUG;
-  const [d, settings] = await Promise.all([loadPreview(productSlug, { demo, noReviews }), getSettings()]);
+  const d = await loadPreview(productSlug, { demo, noReviews });
   if (!d) notFound();
 
   const View = VIEWS[meta.key];
@@ -39,7 +37,6 @@ export default async function DesignReviewProduct({ params, searchParams }: Page
 
   return (
     <>
-      {settings.announcement.enabled && <ProposedAnnouncement text={settings.announcement.text} windowDays={d.policy.windowDays} />}
       {/* Review banner: makes it obvious this is a concept, not the live page. */}
       <div className="border-b border-line bg-[#121110]">
         <div className="container-x flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2.5 text-xs">

@@ -1,22 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getActiveProducts, getSettings } from "@/lib/catalog";
-import { getStoreReviews } from "@/lib/reviews";
 import { countdownFor } from "@/lib/marketing";
-import { CountdownBand } from "@/components/store/Countdown";
 import { formatEUR } from "@/lib/money";
+import { rangeShort } from "@/lib/delivery-plan";
+import { homeReviews, storeFaq, storePlan } from "@/lib/storefront";
+import { CountdownBand } from "@/components/store/Countdown";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Faq, faqJsonLd } from "@/components/store/Faq";
-import { Reviews } from "@/components/store/Reviews";
-import { ContactForm } from "@/components/store/ContactForm";
+import { HomeReviews } from "@/components/store/HomeReviews";
+import { ContactFormLazy } from "@/components/store/ContactFormLazy";
+import { Stars } from "@/components/store/Stars";
 import { ButtonLink } from "@/components/ui/Button";
+import { MailIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import type { PublicProduct } from "@/lib/types";
 
-/** Spotlit, rounded photo frame used across the Dark Premium homepage. */
+/** Rounded, softly lit product photo used across the homepage. */
 function Shot({ product, className, sizes, priority }: { product?: PublicProduct; className: string; sizes: string; priority?: boolean }) {
   const img = product?.images[0];
   return (
-    <div className={`shot ${className.includes("absolute") ? "" : "relative "}${className}`}>
+    <div className={`shot relative ${className}`}>
       {img && <Image src={img.url} alt={img.alt || product!.name} fill sizes={sizes} priority={priority} className="object-cover" />}
     </div>
   );
@@ -24,127 +27,137 @@ function Shot({ product, className, sizes, priority }: { product?: PublicProduct
 
 export default async function HomePage() {
   const [settings, products] = await Promise.all([getSettings(), getActiveProducts()]);
-  const storeReviews = await getStoreReviews(products);
+  const reviews = await homeReviews(products);
   const countdown = countdownFor(settings.countdown, "home");
+  const plan = storePlan(settings);
   const { bundle } = settings;
-  // Pick a product by colour slug, falling back to position so any catalogue still renders.
   const pick = (slug: string, i: number) => products.find((p) => p.slug.endsWith(`-${slug}`)) ?? products[i % Math.max(1, products.length)];
-  const hero = pick("noir", 0);
   const lead = products[0];
-  const minPrice = products.length ? Math.min(...products.map((p) => p.priceCents)) : 0;
-  const bundleFull = minPrice * bundle.quantity;
+  const unit = products.length ? Math.min(...products.map((p) => p.priceCents)) : 0;
+  const bundleFull = unit * bundle.quantity;
   const bundleSavings = Math.max(0, bundleFull - bundle.priceCents);
-  const showBundle = bundle.enabled && settings.promotion.enabled && products.some((p) => p.bundleEligible);
-  const packHref = hero ? `/produit/${hero.slug}?offre=pack#acheter` : "/#collection";
-
-  const benefits = [
-    { title: "Livraison offerte", text: settings.shipping.summary },
-    { title: "Retours 14 jours", text: settings.returns.summary },
-    { title: "Du XS au 3XL", text: "Guide et simulateur de taille sur chaque fiche" },
-    { title: "Mix & match", text: `${bundle.quantity} couleurs au choix dans un pack` },
+  const showBundle = bundle.enabled && products.some((p) => p.bundleEligible);
+  const packHref = lead ? `/produit/${lead.slug}?offre=pack#acheter` : "/#collection";
+  const faq = storeFaq(settings, plan, unit);
+  const promises = [
+    { icon: TruckIcon, title: settings.shipping.priceCents === 0 ? "Livraison offerte et suivie" : "Livraison suivie", text: `Commandée aujourd'hui, livrée ${rangeShort(plan.deliveryFrom, plan.deliveryTo)}` },
+    { icon: ReturnIcon, title: `Retour sous ${settings.returnsPolicy.windowDays} jours`, text: "Après réception, sur simple demande" },
+    { icon: MailIcon, title: "Rien à payer aujourd'hui", text: "Commande confirmée par e-mail avant tout paiement" },
   ];
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(settings.faq)).replace(/</g, "\\u003c") }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faq)).replace(/</g, "\\u003c") }} />
 
-      {/* ---------- HERO ---------- */}
-      <section aria-labelledby="hero-title" className="relative overflow-hidden">
-        <div className="container-x relative pb-8 pt-4 lg:h-[760px] lg:pb-0 lg:pt-0">
-          <div
-            className="pointer-events-none absolute left-1/2 top-[18%] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[120px] font-extrabold uppercase leading-none tracking-[-0.02em] text-[#161618] lg:top-[46%] lg:text-[300px]"
-            aria-hidden
-          >
-            Brésil
-          </div>
+      {/* ---------- HERO: the whole line-up, the prices and the way in, on the first screen ---------- */}
+      <section aria-labelledby="hero-title" className="container-x grid gap-5 pb-10 pt-4 lg:grid-cols-[5fr_7fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-6 lg:pb-16 lg:pt-12">
+        <div className="lg:col-start-1 lg:self-end">
+          <p className="lab">Collection Brésil · {products.length} coloris · XS → 3XL</p>
+          <h1 id="hero-title" className="display t-hero mt-2 uppercase">
+            La veste <span className="text-brand">Brésil.</span>
+          </h1>
+        </div>
 
-          {hero && (
-            <div className="spotlight relative mx-auto h-[420px] w-full max-w-[600px] lg:absolute lg:bottom-0 lg:left-[55%] lg:top-5 lg:h-auto lg:w-[600px] lg:-translate-x-1/2">
-              <Image
-                src={hero.images[0]?.url ?? ""}
-                alt={hero.images[0]?.alt || hero.name}
-                fill
-                priority
-                sizes="(min-width: 1024px) 600px, 100vw"
-                className="object-cover object-[50%_30%]"
-              />
-            </div>
+        {/* Campaign line-up: the six colourways side by side, each one a way into its page. */}
+        <ul
+          className="relative isolate aspect-[16/10] overflow-hidden rounded-2xl border border-line bg-[radial-gradient(120%_90%_at_50%_100%,#2a2418_0%,#141416_55%,#0f0f11_100%)] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:aspect-[16/11] lg:self-center lg:rounded-3xl"
+          aria-label="Les six coloris"
+        >
+          {products.slice(0, 6).map((p, i, list) => {
+            const n = list.length;
+            const mid = (n - 1) / 2;
+            const dist = Math.abs(i - mid);
+            const left = n > 1 ? (i / (n - 1)) * 60 : 30;
+            return (
+              <li
+                key={p.id}
+                className="absolute w-[40%] transition-transform duration-200 ease-[var(--ease-out-soft)] hover:-translate-y-2 focus-within:-translate-y-2"
+                style={{ left: `${left}%`, bottom: `${2 + (mid - dist) * 3.5}%`, zIndex: Math.round(10 - dist * 2) }}
+              >
+                <Link href={`/produit/${p.slug}`} aria-label={`${p.name}, ${formatEUR(p.priceCents)}`} className="block">
+                  <Shot
+                    product={p}
+                    className="aspect-[4/5] overflow-hidden rounded-xl shadow-[0_24px_40px_-18px_#000] ring-1 ring-black/50 sm:rounded-2xl"
+                    sizes="(min-width: 1024px) 24vw, 40vw"
+                    priority
+                  />
+                </Link>
+              </li>
+            );
+          })}
+          <li className="pointer-events-none absolute inset-x-0 top-0 flex justify-center gap-2.5 pt-3" aria-hidden>
+            {products.slice(0, 6).map((p) => (
+              <span key={p.id} className="size-3 rounded-full ring-1 ring-white/30" style={{ background: p.color.hex }} />
+            ))}
+          </li>
+        </ul>
+
+        <div className="lg:col-start-1 lg:self-start">
+          <p className="max-w-md text-[16px] leading-relaxed text-ink-2">Coupe-vent léger, coupe ample, zip intégral. Celle que tu mets tous les jours.</p>
+          {reviews.summary.count > 0 && (
+            <a href="#avis" className="mt-2 inline-flex min-h-11 items-center gap-2 text-[15px]">
+              <Stars value={reviews.summary.average} size={16} />
+              <span className="font-semibold">{reviews.summary.average.toLocaleString("fr-FR", { minimumFractionDigits: 1 })}</span>
+              <span className="text-ink-2 underline decoration-line-strong underline-offset-4">{reviews.summary.count} avis clients</span>
+            </a>
           )}
-
-          <div className="relative z-10 mt-2 lg:absolute lg:left-10 lg:top-[150px] lg:mt-0 lg:max-w-[400px]">
-            <p className="lab">Collection Brésil — {products.length} coloris</p>
-            <h1 id="hero-title" className="display mt-4 text-[46px] uppercase lg:text-[62px]">
-              La veste de la <span className="text-brand">saison.</span>
-            </h1>
-            <p className="mt-5 text-base text-ink-2">Coupe-vent léger, coupe ample, zip intégral. Du XS au 3XL.</p>
-          </div>
-
-          <a href="#collection" className="absolute bottom-[60px] left-10 hidden text-[13px] text-muted hover:text-ink lg:block">
-            ↓ Faire défiler la collection
-          </a>
-
-          {hero && (
-            <div className="relative z-10 mt-6 rounded-[18px] border border-line bg-paper-2 p-6 lg:absolute lg:bottom-[60px] lg:right-10 lg:mt-0 lg:w-[360px]">
-              <p className="lab">{hero.name}</p>
-              <dl className="mt-2">
-                <div className="flex items-baseline justify-between border-b border-line py-3">
-                  <dt className="text-ink-2">La veste</dt>
-                  <dd className="price text-[30px] leading-none">{formatEUR(hero.priceCents)}</dd>
-                </div>
-                {bundle.enabled && (
-                  <div className="flex items-baseline justify-between border-b border-line py-3">
-                    <dt className="text-ink-2">Les deux, au choix</dt>
-                    <dd className="price text-[30px] leading-none text-brand">{formatEUR(bundle.priceCents)}</dd>
-                  </div>
-                )}
-              </dl>
-              <ul className="my-5 flex gap-3.5" aria-label="Coloris">
-                {products.map((p) => (
-                  <li key={p.id}>
-                    <Link
-                      href={`/produit/${p.slug}`}
-                      aria-label={p.name}
-                      title={p.color.name}
-                      className={`relative block size-[26px] rounded-full after:absolute after:-inset-[7px] after:content-[''] ${p.id === hero.id ? "ring-2 ring-ink ring-offset-2 ring-offset-paper-2" : "ring-1 ring-white/15 hover:ring-white/50"}`}
-                      style={{ background: p.color.hex }}
-                    />
-                  </li>
-                ))}
-              </ul>
-              <ButtonLink href={`/produit/${hero.slug}#acheter`} size="lg" className="w-full">
-                Choisir ma taille →
+          <dl className="mt-3 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-paper-2">
+            <div className="p-4">
+              <dt className="text-sm text-ink-2">La veste</dt>
+              <dd className="price mt-0.5 text-[30px] leading-none">{formatEUR(unit)}</dd>
+            </div>
+            {showBundle && (
+              <div className="border-l border-line bg-[#17140f] p-4">
+                <dt className="text-sm text-ink-2">Les deux, au choix</dt>
+                <dd className="price mt-0.5 text-[30px] leading-none text-brand">{formatEUR(bundle.priceCents)}</dd>
+                {bundleSavings > 0 && <dd className="mt-1 text-[13px] font-semibold text-[#8fd9ad]">{formatEUR(bundleSavings)} d&apos;économie</dd>}
+              </div>
+            )}
+          </dl>
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            <ButtonLink href="#collection" size="lg" className="h-14 w-full">Choisir ma veste</ButtonLink>
+            {showBundle && (
+              <ButtonLink href={packHref} size="lg" variant="ghost" className="h-14 w-full border border-line-strong hover:bg-paper-3">
+                Composer mon pack
               </ButtonLink>
-              {showBundle && (
-                <ButtonLink href={packHref} size="lg" variant="ghost" className="mt-2.5 w-full border border-line-strong hover:bg-paper-3">
-                  Composer mon pack
-                </ButtonLink>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
 
-      {/* ---------- CAMPAIGN COUNTDOWN (only for a real, admin-configured deadline) ---------- */}
+      {/* ---------- PROMISES ---------- */}
+      <section aria-label="Nos engagements" className="border-y border-line bg-paper-2">
+        <ul className="container-x grid gap-4 py-5 sm:grid-cols-3 sm:gap-6">
+          {promises.map(({ icon: Icon, title, text }) => (
+            <li key={title} className="flex items-center gap-3.5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full border border-line-strong text-brand"><Icon width={18} height={18} /></span>
+              <span>
+                <span className="block text-[15px] font-semibold">{title}</span>
+                <span className="block text-sm text-muted">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {countdown && <CountdownBand data={countdown} />}
 
       {/* ---------- COLLECTION ---------- */}
-      <section id="collection" aria-labelledby="collection-title" className="container-x scroll-mt-24 py-20 lg:py-28">
-        <div className="mb-10 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-          <h2 id="collection-title" className="display text-[30px] uppercase sm:text-[48px] lg:text-[64px]">
-            La collection
-          </h2>
-          <p className="lab">{products.length} coloris · une coupe</p>
+      <section id="collection" aria-labelledby="collection-title" className="container-x scroll-mt-20 py-14 lg:py-24">
+        <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end lg:mb-10">
+          <div>
+            <p className="lab">{products.length} coloris · une coupe</p>
+            <h2 id="collection-title" className="display t-section mt-2 uppercase">Trouve la tienne.</h2>
+          </div>
+          {showBundle && <p className="text-[15px] text-ink-2">{formatEUR(unit)} la veste · <span className="text-brand">{formatEUR(bundle.priceCents)} les deux</span></p>}
         </div>
         {products.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-line-strong p-10 text-center text-muted">La collection arrive bientôt.</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 lg:gap-[18px]">
-            {products.map((p, i) => (
+          <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+            {products.map((p) => (
               <li key={p.id}>
-                <ProductCard product={p} bundle={bundle} priority={i < 3} />
+                <ProductCard product={p} bundle={bundle} />
               </li>
             ))}
           </ul>
@@ -153,99 +166,77 @@ export default async function HomePage() {
 
       {/* ---------- PACK ---------- */}
       {showBundle && (
-        <section id="pack" aria-labelledby="pack-title" className="scroll-mt-24 border-y border-line bg-paper-2">
-          {/* Column ratio and type sizes follow Concept 04 (text column ≈ 717 px at 1440). */}
-          <div className="container-x grid items-center gap-12 py-20 lg:grid-cols-[563fr_717fr] lg:gap-20 lg:py-28">
-            <div className="relative mx-auto h-[380px] w-full max-w-[560px] sm:h-[540px]">
-              <Shot product={pick("blanc", 3)} className="absolute left-0 top-0 aspect-[4/5] w-[62%] rounded-[18px] border border-line" sizes="(min-width: 1024px) 28vw, 60vw" />
-              <Shot product={pick("bleu", 4)} className="absolute bottom-0 right-0 aspect-[4/5] w-[62%] rounded-[18px] border border-line shadow-[0_40px_80px_-30px_#000]" sizes="(min-width: 1024px) 28vw, 60vw" />
+        <section id="pack" aria-labelledby="pack-title" className="scroll-mt-20 border-y border-line bg-paper-2">
+          <div className="container-x grid items-center gap-8 py-14 lg:grid-cols-2 lg:gap-16 lg:py-24">
+            <div className="relative mx-auto h-[300px] w-full max-w-[460px] sm:h-[420px]">
+              <Shot product={pick("blanc", 3)} className="absolute left-0 top-0 aspect-[4/5] w-[60%] overflow-hidden rounded-2xl border border-line" sizes="(min-width: 1024px) 26vw, 55vw" />
+              <Shot product={pick("bleu", 4)} className="absolute bottom-0 right-0 aspect-[4/5] w-[60%] overflow-hidden rounded-2xl border border-line shadow-[0_30px_60px_-30px_#000]" sizes="(min-width: 1024px) 26vw, 55vw" />
             </div>
             <div>
               <p className="lab">{bundle.label}</p>
-              <h2 id="pack-title" className="display mt-4 text-[30px] uppercase sm:text-[44px] lg:text-[56px] xl:text-[72px]">
-                {settings.promotion.headline}
-              </h2>
-              <p className="mt-6 max-w-md text-base text-ink-2">{settings.promotion.text}</p>
-              <div className="my-8 flex flex-wrap items-baseline gap-4">
-                <p className="price price-strong text-[52px] leading-none sm:text-[96px]">{formatEUR(bundle.priceCents)}</p>
-                <s className="text-xl text-muted">{formatEUR(bundleFull)}</s>
+              <h2 id="pack-title" className="display t-section mt-2 uppercase">Deux coloris, un seul prix.</h2>
+              <p className="mt-3 max-w-md text-[16px] leading-relaxed text-ink-2">
+                Choisis deux vestes, mêmes coloris ou différents, une taille pour chacune. La remise s&apos;applique automatiquement.
+              </p>
+              <div className="mt-6 grid max-w-md grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-line bg-paper p-4 text-center">
+                <p>
+                  <span className="block text-sm text-muted">2 × {formatEUR(unit)}</span>
+                  <s className="price block text-[22px] text-muted">{formatEUR(bundleFull)}</s>
+                </p>
+                <span className="text-muted" aria-hidden>→</span>
+                <p>
+                  <span className="block text-sm text-ink-2">Le pack</span>
+                  <span className="price block text-[34px] leading-none text-brand">{formatEUR(bundle.priceCents)}</span>
+                </p>
               </div>
-              <ol className="mb-9 grid grid-cols-3 gap-2.5">
-                {["Deux coloris", "Deux tailles", "Ta demande"].map((step, i) => (
-                  <li key={step} className="rounded-xl border border-line p-3.5 text-sm text-ink-2">
-                    <span className="mb-2 block font-display text-[13px] font-bold text-brand">0{i + 1}</span>
-                    {step}
-                  </li>
+              {bundleSavings > 0 && <p className="mt-3 text-[15px] font-semibold text-[#8fd9ad]">Tu économises {formatEUR(bundleSavings)}, soit {formatEUR(Math.round(bundle.priceCents / bundle.quantity))} la veste.</p>}
+              <ButtonLink href={packHref} size="lg" className="mt-6 h-14 w-full sm:w-auto">Composer mon pack</ButtonLink>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- THE JACKET ---------- */}
+      {lead && (
+        <section id="details" aria-labelledby="details-title" className="container-x scroll-mt-20 py-14 lg:py-24">
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
+            <div className="grid grid-cols-2 gap-3">
+              <Shot product={pick("rose", 1)} className="aspect-[4/5] overflow-hidden rounded-2xl" sizes="(min-width: 1024px) 24vw, 50vw" />
+              <Shot product={pick("jaune", 5)} className="mt-8 aspect-[4/5] overflow-hidden rounded-2xl" sizes="(min-width: 1024px) 24vw, 50vw" />
+            </div>
+            <div>
+              <p className="lab">La veste</p>
+              <h2 id="details-title" className="display t-section mt-2 uppercase">Légère. Ample. Zippée.</h2>
+              <p className="mt-3 max-w-lg text-[16px] leading-relaxed text-ink-2">{lead.description}</p>
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {lead.details.map((d) => (
+                  <li key={d} className="rounded-full border border-line-strong px-3.5 py-2 text-[14px] text-ink-2">{d}</li>
                 ))}
-              </ol>
-              <ButtonLink href={packHref} size="lg" className="w-full sm:w-auto">
-                Composer mon pack — {formatEUR(bundleSavings)} d&apos;économie
+              </ul>
+              <ButtonLink href={`/produit/${lead.slug}`} size="lg" variant="ghost" className="mt-6 h-14 w-full border border-line-strong hover:bg-paper-3 sm:w-auto">
+                Voir la fiche et les tailles
               </ButtonLink>
             </div>
           </div>
         </section>
       )}
 
-      {/* ---------- CAMPAIGN / LA VESTE ---------- */}
-      {lead && (
-        <section id="details" aria-labelledby="details-title" className="container-x scroll-mt-24 py-20 lg:py-28">
-          <div className="grid items-end gap-[18px] lg:grid-cols-[4fr_3fr_3fr]">
-            <Shot product={pick("rose", 1)} className="hidden aspect-[4/5] rounded-2xl lg:block" sizes="(min-width: 1024px) 38vw, 100vw" />
-            <div>
-              <p className="lab">La veste</p>
-              <h2 id="details-title" className="display mt-4 text-[44px] uppercase lg:text-[58px]">
-                Légère.
-                <br />
-                Ample.
-                <br />
-                Zippée.
-              </h2>
-              <p className="mt-5 text-ink-2">{lead.description}</p>
-              <ul className="mt-5 flex flex-wrap gap-2">
-                {lead.details.map((d) => (
-                  <li key={d} className="rounded-full border border-line px-3.5 py-2 text-[13px] text-ink-2">
-                    {d}
-                  </li>
-                ))}
-              </ul>
-              <Shot product={pick("vert", 0)} className="mt-8 hidden aspect-[3/4] rounded-2xl lg:block" sizes="28vw" />
-            </div>
-            <Shot product={pick("jaune", 5)} className="hidden aspect-[3/4] rounded-2xl lg:block" sizes="28vw" />
-            <div className="grid grid-cols-2 gap-2.5 lg:hidden">
-              <Shot product={pick("rose", 1)} className="aspect-[4/5] rounded-2xl" sizes="50vw" />
-              <Shot product={pick("jaune", 5)} className="aspect-[4/5] rounded-2xl" sizes="50vw" />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ---------- BENEFITS ---------- */}
-      <section aria-label="Nos engagements" className="container-x">
-        <ul className="grid grid-cols-2 gap-x-[18px] gap-y-8 lg:grid-cols-4">
-          {benefits.map(({ title, text }) => (
-            <li key={title} className="border-t border-brand pt-5">
-              <h3 className="font-display text-base font-bold uppercase lg:text-lg">{title}</h3>
-              <p className="mt-1.5 text-sm text-muted">{text}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <Reviews variant="home" summary={storeReviews.summary} reviews={storeReviews.reviews} />
+      <HomeReviews summary={reviews.summary} reviews={reviews.reviews} previewSource={reviews.source === "manifest"} />
 
       {/* ---------- FAQ + CONTACT ---------- */}
-      <section className="container-x grid gap-[18px] py-20 lg:grid-cols-2 lg:py-28">
-        <Faq items={settings.faq} />
-        <section id="contact" aria-labelledby="contact-title" className="scroll-mt-24 rounded-[18px] border border-line bg-paper-2 p-6 sm:p-10">
-          <p className="lab">Contact</p>
-          <h2 id="contact-title" className="display mb-3 mt-3 text-[24px] uppercase sm:text-[36px] lg:text-[44px]">
-            Une question ?
-          </h2>
-          <p className="mb-6 text-ink-2">
-            Une hésitation sur la taille, une commande, un échange : écris-nous, on te répond au plus vite.
-          </p>
-          <ContactForm />
-        </section>
+      <section className="border-t border-line">
+        <div className="container-x grid gap-5 py-14 lg:grid-cols-[7fr_5fr] lg:gap-8 lg:py-24">
+          <Faq items={faq} />
+          <section id="contact" aria-labelledby="contact-title" className="scroll-mt-20 rounded-2xl border border-line bg-paper-2 p-5 sm:p-8">
+            <p className="lab">Contact</p>
+            <h2 id="contact-title" className="display t-sub mt-2 uppercase">Une question ?</h2>
+            <p className="mb-5 mt-2 text-[15px] leading-relaxed text-ink-2">
+              Taille, commande, retour : écris-nous, on te répond par e-mail. Indique ton numéro de commande si tu en as un.
+            </p>
+            <ContactFormLazy />
+            <p className="mt-4 break-all text-sm text-muted">ou directement : <span className="text-ink-2">{settings.contactEmail}</span></p>
+          </section>
+        </div>
       </section>
     </>
   );

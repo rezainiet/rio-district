@@ -50,3 +50,7 @@ next-env.d.ts
 # reference-site captures (third-party imagery, internal review only)
 /docs/screenshots/reference/
 /docs/design-review/reference/
+
+# Lighthouse raw reports (regenerable; results summarised in docs/storefront-redesign/README.md)
+/docs/storefront-redesign/lighthouse/
+/docs/storefront-redesign/lighthouse-before/

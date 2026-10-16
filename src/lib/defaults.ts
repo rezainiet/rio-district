@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   contactEmail: "contact@kaltshop.club",
   announcement: {
     enabled: true,
-    text: "Livraison offerte et suivie · Retours sous 14 jours · 2 vestes pour 24,95 €",
+    text: "Livraison offerte et suivie · Retour sous 15 jours · 2 vestes pour 24,95 €",
   },
   promotion: {
     enabled: true,
@@ -70,9 +70,9 @@ export const DEFAULT_SETTINGS: StoreSettings = {
     maxDays: 4,
   },
   returns: {
-    summary: "Échange ou retour gratuit sous 14 jours",
+    summary: "Retour possible sous 15 jours après réception",
     details:
-      "Tu as 14 jours après réception pour échanger ou retourner ta veste, gratuitement. Elle doit être non portée, avec ses étiquettes. En cas de doute sur la taille, écris-nous avant de commander.",
+      "Tu disposes de 15 jours après la réception de ta commande pour demander un retour. Contacte notre service client avec ton numéro de commande pour recevoir les instructions. En cas de doute sur la taille, écris-nous avant de commander.",
   },
   orders: {
     acceptingOrders: true,
@@ -94,7 +94,7 @@ export const DEFAULT_SETTINGS: StoreSettings = {
     {
       question: "Puis-je échanger ou retourner ma veste ?",
       answer:
-        "Oui, tu as 14 jours pour l'échanger ou la retourner, gratuitement. En cas de doute sur la taille, écris-nous avant de commander.",
+        "Oui, tu disposes de 15 jours après la réception de ta commande pour demander un retour. Contacte notre service client avec ton numéro de commande pour recevoir les instructions.",
     },
     {
       question: "Comment se passe le paiement ?",

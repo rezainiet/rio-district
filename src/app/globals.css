@@ -157,90 +157,149 @@
 }
 
 /* ============================================================
-   Storefront theme — Dark Premium (Rio District)
+   Storefront theme — Dark Premium (Rio District), v2 mobile-first
    Scoped to the store layout so the admin keeps the light theme.
    Unlayered on purpose: these rules must win over component classes.
+
+   Type    : Archivo condensed (wdth 72, 800) for display + prices — fits
+             product names on one line at 390 px; Manrope for reading;
+             Syne only for the Rio District wordmark.
+   Spacing : 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 (Tailwind 1 · 2 · 3 · 4 · 6 · 8 · 12 · 16).
+   Colour  : near-black stage, three surface levels, ivory ink, brass accent,
+             control borders ≥ 3:1 against the page (WCAG 1.4.11).
    ============================================================ */
 .store-dark {
   --color-paper: #0b0b0c;
-  --color-paper-2: #131315;
-  --color-paper-3: #1b1b1e;
+  --color-paper-2: #141416;
+  --color-paper-3: #1d1d20;
   --color-studio: #101012;
-  --color-ink: #f2eee6;
-  --color-ink-2: #c9c5bd;
-  --color-muted: #8e8a82;
-  --color-line: #2a2a2d;
-  --color-line-strong: #3c3c40;
+  --color-ink: #f4f0e8;
+  --color-ink-2: #cdc9c1;
+  --color-muted: #9c978e;
+  --color-line: #29292c;
+  --color-line-strong: #5f5d64;
   --color-brand: #c8a96a;
   --color-brand-ink: #b39352;
   --color-lime: #c8a96a;
-  --font-display: var(--font-syne), "Arial Black", system-ui, sans-serif;
+  --color-ok: #7fcb9c;
+  --color-low: #eaa74a;
+  --color-danger: #f08a7e;
+  --color-success: #7fcb9c;
+  --color-warning: #eaa74a;
+  --font-display: var(--font-archivo), "Arial Narrow", system-ui, sans-serif;
+  --font-brand: var(--font-syne), "Arial Black", system-ui, sans-serif;
   --font-sans: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
   --btn-radius: 999px;
   --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 18px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
   --field-bg: #17171a;
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
   color-scheme: dark;
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
 }
 html:has(.store-dark),
 html:has(.store-dark) body { background: #0b0b0c; }
 /* Reserve the scrollbar so locking scroll (menu, cart drawer) never shifts the page on desktop. */
-html:has(.store-dark) { scrollbar-gutter: stable; }
+html:has(.store-dark) { scrollbar-gutter: stable; interpolate-size: allow-keywords; }
 
+/* Display: condensed, heavy, uppercase. Word spacing keeps condensed words readable. */
 .store-dark .display {
-  font-variation-settings: normal;
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 72;
   font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 0.95;
+  letter-spacing: 0.002em;
+  word-spacing: 0.04em;
+  line-height: 0.96;
+  text-wrap: balance;
 }
+.store-dark .brand-mark { font-family: var(--font-brand); font-weight: 800; }
 .store-dark .eyebrow {
   font-family: var(--font-sans);
   font-variation-settings: normal;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
 }
 .store-dark .price {
   font-family: var(--font-display);
-  font-variation-settings: normal;
-  font-weight: 700;
+  font-variation-settings: "wdth" 80;
+  font-weight: 750;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
-/* Concept 04 sets the pack price in Syne 800 (wider than the default 700). */
-.store-dark .price-strong { font-weight: 800; }
+.store-dark .price-strong { font-weight: 850; }
 .store-dark .ui-btn {
   font-family: var(--font-sans);
   font-variation-settings: normal;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: none;
-  letter-spacing: 0.03em;
-  font-size: 14px;
+  letter-spacing: 0.01em;
+  font-size: 15px;
 }
 .store-dark .lab {
-  font: 600 11px/1.2 var(--font-sans);
-  letter-spacing: 0.22em;
+  font: 650 12px/1.25 var(--font-sans);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-brand);
 }
-.store-dark .field { color: var(--color-ink); }
-.store-dark .field::placeholder { color: var(--color-muted); }
-.store-dark .field:focus { border-color: var(--color-ink); box-shadow: 0 0 0 3px rgb(200 169 106 / 0.22); }
-.store-dark ::selection { background: var(--color-brand); color: #0b0b0c; }
 
-/* Photos were shot on light grey: deepen them so they sit on the dark stage (concept "shot"). */
+/* Responsive type scale (mobile → desktop). The hero headline is the largest first-screen element. */
+.store-dark .t-hero { font-size: clamp(54px, 15vw, 96px); }
+.store-dark .t-title { font-size: clamp(30px, 8vw, 46px); }
+.store-dark .t-section { font-size: clamp(30px, 7.6vw, 56px); }
+.store-dark .t-sub { font-size: clamp(22px, 5.6vw, 30px); }
+
+.store-dark .field { color: var(--color-ink); border-color: var(--color-line-strong); }
+.store-dark .field::placeholder { color: var(--color-muted); }
+.store-dark .field:focus { border-color: var(--color-ink); box-shadow: 0 0 0 3px rgb(200 169 106 / 0.28); }
+.store-dark .field[aria-invalid="true"] { border-color: var(--color-danger); }
+.store-dark ::selection { background: var(--color-brand); color: #0b0b0c; }
+.store-dark :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+
+/* Accordions open and close smoothly where supported (Chrome 131+); instant elsewhere. */
+.store-dark details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size 0.22s var(--ease-out-soft), content-visibility 0.22s allow-discrete;
+}
+.store-dark details[open]::details-content { block-size: auto; }
+
+/* Selection feedback: a quick press on choice chips. */
+.store-dark .tap { transition: transform 0.12s var(--ease-out-soft), background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; }
+.store-dark .tap:active { transform: scale(0.97); }
+
+@keyframes rd-pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes rd-fade { from { opacity: 0; } to { opacity: 1; } }
+.store-dark .anim-pop { animation: rd-pop 0.24s var(--ease-out-soft) both; }
+.store-dark .anim-fade { animation: rd-fade 0.2s ease-out both; }
+
+/* Cart drawer (CSS only): slide in 240 ms, out 200 ms. */
+@keyframes rd-slide-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes rd-slide-out { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes rd-fade-out { from { opacity: 1; } to { opacity: 0; } }
+.store-dark .drawer-in { animation: rd-slide-in 0.24s var(--ease-out-soft) both; }
+.store-dark .drawer-out { animation: rd-slide-out 0.2s ease-in both; }
+.store-dark .drawer-fade-in { animation: rd-fade 0.2s ease-out both; }
+.store-dark .drawer-fade-out { animation: rd-fade-out 0.2s ease-in both; }
+
+/* Photos were shot on light grey: deepen them slightly so they sit on the dark stage. */
 .store-dark .shot { overflow: hidden; background: var(--color-studio); }
-.store-dark .shot img { filter: brightness(0.82) contrast(1.12) saturate(1.05); }
+.store-dark .shot img { filter: brightness(0.86) contrast(1.1) saturate(1.05); }
 .store-dark .shot::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 35%, transparent 45%, rgb(11 11 12 / 0.75) 100%);
+  background: radial-gradient(120% 90% at 50% 35%, transparent 50%, rgb(11 11 12 / 0.6) 100%);
 }
 .store-dark .spotlight img {
   -webkit-mask-image: radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%);
   mask-image: radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%);
-  filter: brightness(0.82) contrast(1.12);
+  filter: brightness(0.86) contrast(1.1);
 }

@@ -8,7 +8,8 @@ import { CartDrawer } from "@/components/store/CartDrawer";
 import { MarketingPopups } from "@/components/store/MarketingPopups";
 import { livePopups } from "@/lib/marketing";
 import { manrope, syne } from "@/lib/store-fonts";
-import { RETURNS_PREVIEW_PATH, designReviewEnabled } from "@/lib/design-review";
+import { RETURNS_PATH, announcementText, storePlan } from "@/lib/storefront";
+import { rangeLong } from "@/lib/delivery-plan";
 
 
 export const dynamic = "force-dynamic";
@@ -31,10 +32,15 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
     bundle: settings.bundle,
     shippingCents: settings.shipping.priceCents,
     shippingSummary: settings.shipping.summary,
-    returnsSummary: settings.returns.summary,
     acceptingOrders: settings.orders.acceptingOrders,
     closedMessage: settings.orders.closedMessage,
     paymentNotice: settings.orders.paymentNotice,
+    returnsWindowDays: settings.returnsPolicy.windowDays,
+    contactEmail: settings.contactEmail,
+    deliveryEstimate: (() => {
+      const plan = storePlan(settings);
+      return rangeLong(plan.deliveryFrom, plan.deliveryTo);
+    })(),
   };
 
   return (
@@ -49,7 +55,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
         </a>
         <div className="flex min-h-dvh flex-col">
           {settings.announcement.enabled && settings.announcement.text && (
-            <AnnouncementBar text={settings.announcement.text} />
+            <AnnouncementBar text={announcementText(settings)} />
           )}
           <Header />
           <main id="main" className="flex-1">
@@ -61,7 +67,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
             contactEmail={settings.contactEmail}
             products={products}
             social={settings.social}
-            returnsHref={designReviewEnabled() ? RETURNS_PREVIEW_PATH : undefined}
+            returnsHref={RETURNS_PATH}
           />
         </div>
         <CartDrawer />

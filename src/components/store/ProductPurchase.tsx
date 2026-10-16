@@ -40,7 +40,7 @@ export function SizePicker({
         role="radiogroup"
         aria-label={`Taille — ${product.name}`}
         aria-invalid={error || undefined}
-        className="grid grid-cols-7 gap-1.5"
+        className="grid grid-cols-4 gap-2 min-[360px]:grid-cols-7 min-[360px]:gap-1.5"
       >
         {product.sizes.map((s) => {
           const checked = value === s.label;
@@ -48,7 +48,7 @@ export function SizePicker({
             <label
               key={s.label}
               className={clsx(
-                "relative grid h-12 place-items-center rounded-[var(--radius-sm)] border text-[13px] font-semibold transition-colors",
+                "tap relative grid h-12 place-items-center rounded-[var(--radius-sm)] border text-[15px] font-semibold",
                 !s.available && "cursor-not-allowed border-dashed border-line text-muted/60 line-through",
                 s.available && !checked && "border-line-strong bg-paper-2 hover:border-ink",
                 checked && "border-ink bg-ink text-paper",

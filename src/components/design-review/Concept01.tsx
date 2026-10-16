@@ -26,10 +26,10 @@ import {
   SupportCard,
   TrustCards,
   VideoSlot,
-} from "./blocks";
+} from "@/components/store/pdp/blocks";
 import type { Size } from "@/lib/sizes";
-import type { PreviewData } from "./types";
-import { usePurchase, type Offer } from "./usePurchase";
+import type { PreviewData } from "@/components/store/pdp/types";
+import { usePurchase, type Offer } from "@/components/store/pdp/usePurchase";
 
 export function Concept01({ d, basePath, initialOffer, initialSize }: { d: PreviewData; basePath: string; initialOffer: Offer; initialSize: Size | null }) {
   const [p, zoneRef] = usePurchase({ product: d.product, bundleOptions: d.bundleOptions, initialOffer, initialSize, basePath });

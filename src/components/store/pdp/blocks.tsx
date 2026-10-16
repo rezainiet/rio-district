@@ -10,7 +10,7 @@ import { useRemaining, type CountdownData } from "@/components/store/Countdown";
 import { useStore } from "@/components/store/StoreProvider";
 import { SizePicker, Swatches } from "@/components/store/ProductPurchase";
 import { SizeGuide } from "@/components/store/SizeGuide";
-import { ReviewForm } from "@/components/store/ReviewForm";
+import dynamic from "next/dynamic";
 import { Stars } from "@/components/store/Stars";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -26,11 +26,17 @@ import type { PublicProduct } from "@/lib/types";
 import type { PreviewData } from "./types";
 import type { Purchase } from "./usePurchase";
 
+// The review form (and its validation library) loads only when its window opens.
+const ReviewForm = dynamic(() => import("@/components/store/ReviewForm").then((m) => m.ReviewForm));
+
 /* ---------- Small helpers ---------- */
+
+/** "À confirmer" markers and preview tags are for development and client review only. */
+const SHOW_PENDING = process.env.NODE_ENV !== "production";
 
 export function PreviewTag({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span className={clsx("inline-flex max-w-full items-center rounded-full border border-dashed border-[#7d6a43] px-2 py-0.5 text-[11px] font-medium uppercase tracking-[0.1em] text-[#d9bf86]", className)}>
+    <span className={clsx("inline-flex max-w-full items-center rounded-full border border-dashed border-[#7d6a43] px-2 py-0.5 text-[12px] font-medium uppercase tracking-[0.08em] text-[#d9bf86]", className)}>
       {children}
     </span>
   );
@@ -38,6 +44,8 @@ export function PreviewTag({ children, className }: { children: ReactNode; class
 
 /** Renders "texte [point à confirmer]" with the bracketed part as a visible "À confirmer" marker. */
 export function WithPending({ text }: { text: string }) {
+  // Production never states an unconfirmed term: the marker is simply dropped.
+  if (!SHOW_PENDING) return <>{text.replace(/\s*\[[^\]]+\]/g, "")}</>;
   const parts = text.split(/(\[[^\]]+\])/g).filter(Boolean);
   return (
     <>
@@ -180,17 +188,15 @@ export function DeliveryEstimate({ plan, free, variant = "card", className }: { 
   const w = deliveryWords(plan);
   if (variant === "split") {
     return (
-      <div className={clsx("grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl border border-line bg-paper-2 px-4 py-3.5", className)}>
-        <p className="flex items-center gap-3">
-          <span className="size-2.5 shrink-0 rounded-full bg-[#6fbf8f]" aria-hidden />
-          <span>
-            <span className="block text-xs text-muted">Commande aujourd&apos;hui, livrée</span>
-            <span className="block font-semibold">{w.long}</span>
+      <div className={clsx("flex items-center gap-3.5 rounded-2xl border border-line bg-paper-2 px-4 py-3.5", className)}>
+        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#16231b] text-[#8fd9ad]" aria-hidden>
+          <TruckIcon width={20} height={20} />
+        </span>
+        <p className="min-w-0">
+          <span className="block font-semibold leading-snug">Livrée {w.long}</span>
+          <span className="block text-sm leading-snug text-ink-2">
+            Pour une commande aujourd&apos;hui · {free ? "livraison offerte et suivie" : "livraison suivie"}
           </span>
-        </p>
-        <p className="flex items-center gap-2 border-l border-line pl-4 text-sm text-ink-2">
-          <TruckIcon width={18} height={18} className="shrink-0 text-brand" />
-          <span>{free ? <>Livraison<br />offerte et suivie</> : <>Livraison<br />suivie</>}</span>
         </p>
       </div>
     );
@@ -228,7 +234,7 @@ export function DeliveryTimeline({ plan, variant = "card", className }: { plan: 
   const caption = (
     <p className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
       Estimation avant commande, calculée en jours ouvrés (week-ends et jours fériés exclus) — ce n&apos;est pas un suivi de colis.
-      {!plan.confirmed && <PreviewTag>Délais à confirmer</PreviewTag>}
+      {!plan.confirmed && SHOW_PENDING && <PreviewTag>Délais à confirmer</PreviewTag>}
     </p>
   );
   if (variant === "compact") {
@@ -241,7 +247,7 @@ export function DeliveryTimeline({ plan, variant = "card", className }: { plan: 
               <span className={clsx("relative z-10 mx-auto grid size-7 place-items-center rounded-full", i === 0 ? "bg-brand text-paper" : "border border-line-strong bg-paper text-ink")}>
                 <span className="scale-[0.8]"><StepIcon i={i} /></span>
               </span>
-              <span className="mt-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{s.label}</span>
+              <span className="mt-1.5 block text-[12px] font-semibold uppercase tracking-[0.1em] text-muted">{s.label}</span>
               <span className="block text-[13px] font-semibold">{s.date}</span>
             </li>
           ))}
@@ -278,7 +284,7 @@ export function DeliveryTimeline({ plan, variant = "card", className }: { plan: 
             <span className={clsx("relative z-10 mx-auto grid size-10 place-items-center rounded-full", i === 2 ? "bg-brand text-paper" : "border border-line-strong bg-paper-2 text-ink")}>
               <StepIcon i={i} />
             </span>
-            <span className="mt-2.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">{s.label}</span>
+            <span className="mt-2.5 block text-[12px] font-semibold uppercase tracking-[0.1em] text-muted">{s.label}</span>
             <span className="mt-0.5 block text-[13px] font-semibold sm:text-sm">{s.date}</span>
           </li>
         ))}
@@ -452,19 +458,19 @@ export function OfferSelector({ p, d, variant = "cards" }: { p: Purchase; d: Pre
               <label
                 key={o.value}
                 className={clsx(
-                  "relative flex min-h-[104px] flex-col justify-between rounded-2xl border p-3.5 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
+                  "tap relative flex min-h-[104px] flex-col justify-between rounded-2xl border p-3.5 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
                   on ? "border-brand bg-[#17140f] shadow-[inset_0_0_0_1px_var(--color-brand)]" : "border-line-strong bg-paper-2 hover:border-ink",
                 )}
               >
                 {radio(o)}
                 {bundle && p.percent > 0 && (
-                  <span className="absolute -top-2.5 right-3 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-paper">−{p.percent} %</span>
+                  <span className="absolute -top-3 right-3 rounded-full bg-brand px-2.5 py-0.5 text-[13px] font-bold text-paper">−{p.percent} %</span>
                 )}
                 <span className="flex items-center gap-2">
                   <span className={clsx("grid size-[18px] shrink-0 place-items-center rounded-full border", on ? "border-brand bg-brand" : "border-line-strong")} aria-hidden>
                     {on && <span className="size-1.5 rounded-full bg-paper" />}
                   </span>
-                  <span className="text-[13px] font-semibold uppercase tracking-[0.06em]">{bundle ? "2 vestes" : "1 veste"}</span>
+                  <span className="text-[14px] font-semibold uppercase tracking-[0.06em]">{bundle ? "2 vestes" : "1 veste"}</span>
                 </span>
                 <span>
                   <span className="price block text-[26px] leading-none">{o.price}</span>
@@ -538,7 +544,7 @@ export function OfferSelector({ p, d, variant = "cards" }: { p: Purchase; d: Pre
             <label
               key={o.value}
               className={clsx(
-                "relative flex min-h-[76px] items-center gap-3.5 rounded-2xl border px-4 py-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
+                "tap relative flex min-h-[76px] items-center gap-3.5 rounded-2xl border px-4 py-3 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
                 on ? "border-ink bg-paper-3 shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong bg-paper-2 hover:border-ink",
               )}
             >
@@ -559,7 +565,7 @@ export function OfferSelector({ p, d, variant = "cards" }: { p: Purchase; d: Pre
                 {bundle && p.savings > 0 && <span className="block text-xs text-muted line-through">{formatEUR(p.bundleFull)}</span>}
               </span>
               {bundle && p.percent > 0 && (
-                <span className="absolute -top-2.5 right-4 rounded-full bg-ink px-2 py-0.5 text-[11px] font-bold text-paper">−{p.percent} %</span>
+                <span className="absolute -top-3 right-4 rounded-full bg-ink px-2.5 py-0.5 text-[13px] font-bold text-paper">−{p.percent} %</span>
               )}
             </label>
           );
@@ -574,7 +580,7 @@ export function OfferSelector({ p, d, variant = "cards" }: { p: Purchase; d: Pre
 function SizeHeader({ label, value, onGuide }: { label: string; value: Size | null; onGuide: () => void }) {
   return (
     <div className="mb-2.5 flex items-center justify-between gap-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+      <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">
         {label} <span className="text-ink">{value ?? "—"}</span>
       </p>
       <button type="button" onClick={onGuide} className="-my-2 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-medium underline underline-offset-4 hover:text-brand">
@@ -592,7 +598,7 @@ export function Selection({ p, d, compact = false }: { p: Purchase; d: PreviewDa
         <div className={compact ? "space-y-5" : "space-y-6"}>
           {d.siblings.length > 1 && (
             <div>
-              <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+              <p className="mb-2.5 text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">
                 Couleur <span className="text-ink">{d.product.color.name}</span>
               </p>
               <Swatches variant="image" label="Couleur" options={d.siblings} value={d.product.id} onSelect={p.goToColour} />
@@ -614,7 +620,7 @@ export function Selection({ p, d, compact = false }: { p: Purchase; d: PreviewDa
                 <div className="mb-3 flex items-center gap-3">
                   <Thumb p={sp} className="h-12 w-10 shrink-0 rounded-md" />
                   <p className="min-w-0 flex-1">
-                    <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Veste {i + 1}</span>
+                    <span className="block text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Veste {i + 1}</span>
                     <span className="block font-semibold">{sp.color.name}{slot.size ? ` · ${slot.size}` : ""}</span>
                   </p>
                 </div>
@@ -724,7 +730,7 @@ function Distribution({ summary, className }: { summary: RatingSummary; classNam
       {([5, 4, 3, 2, 1] as const).map((n) => {
         const c = summary.distribution[n];
         return (
-          <div key={n} className="grid grid-cols-[30px_1fr_26px] items-center gap-2.5">
+          <div key={n} className="grid grid-cols-[28px_1fr_22px] items-center gap-2">
             <dt className="tabular-nums">{n} ★</dt>
             <dd className="h-1.5 overflow-hidden rounded-full bg-paper-3">
               <span className="block h-full rounded-full bg-brand" style={{ width: `${(c / summary.count) * 100}%` }} />
@@ -740,21 +746,21 @@ function Distribution({ summary, className }: { summary: RatingSummary; classNam
 export function RatingPanel({ summary, className }: { summary: RatingSummary; className?: string }) {
   if (summary.count === 0) return null;
   return (
-    <div className={clsx("flex flex-col gap-5 rounded-2xl border border-line bg-paper-2 p-5 sm:flex-row sm:items-center sm:gap-8", className)}>
+    <div className={clsx("flex items-center gap-5 rounded-2xl border border-line bg-paper-2 p-4 sm:gap-8 sm:p-5", className)}>
       <div>
         <p className="flex items-baseline gap-2">
-          <span className="price price-strong text-[52px] leading-none">{fr1(summary.average)}</span>
+          <span className="price price-strong text-[44px] leading-none sm:text-[52px]">{fr1(summary.average)}</span>
           <span className="text-ink-2">/ 5</span>
         </p>
-        <Stars value={summary.average} size={17} className="mt-2.5" />
-        <p className="mt-1.5 text-sm text-muted">{summary.count} avis publié{summary.count > 1 ? "s" : ""}</p>
+        <Stars value={summary.average} size={15} className="mt-2" />
+        <p className="mt-1 whitespace-nowrap text-sm text-muted">{summary.count} avis publié{summary.count > 1 ? "s" : ""}</p>
       </div>
-      <Distribution summary={summary} className="flex-1 sm:min-w-[220px]" />
+      <Distribution summary={summary} className="min-w-0 flex-1 sm:min-w-[220px]" />
     </div>
   );
 }
 
-function ReviewCard({ r, onPhoto, photoTall = false }: { r: PublicReview; onPhoto: (src: string) => void; photoTall?: boolean }) {
+export function ReviewCard({ r, onPhoto, photoTall = false }: { r: PublicReview; onPhoto: (src: string) => void; photoTall?: boolean }) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-paper-2">
       {r.photos[0] && (
@@ -772,7 +778,7 @@ function ReviewCard({ r, onPhoto, photoTall = false }: { r: PublicReview; onPhot
           <span className="font-semibold">{r.author}</span>
           {r.color && <span className="text-muted">· {r.color}</span>}
           {r.verified && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8fd9ad]">
+            <span className="inline-flex items-center gap-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#8fd9ad]">
               <CheckIcon width={12} height={12} /> Achat vérifié
             </span>
           )}
@@ -929,7 +935,7 @@ export function SupportCard({ d, className }: { d: PreviewData; className?: stri
       <p className="mt-3 text-sm leading-relaxed text-ink-2">
         Notre service client répond par e-mail, avant comme après ta commande (taille, livraison, retour). Indique ton numéro de commande si tu en as un.
       </p>
-      <p className="mt-2 text-sm text-ink-2"><WithPending text="[Délai de réponse et horaires du service client]" /></p>
+      {SHOW_PENDING && <p className="mt-2 text-sm text-ink-2"><WithPending text="[Délai de réponse et horaires du service client]" /></p>}
       <div className="mt-4 flex flex-col gap-2 text-sm">
         <a href={`mailto:${d.contactEmail}`} className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4 hover:text-brand">{d.contactEmail}</a>
         <Link href="/#contact" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-brand">Formulaire de contact</Link>
@@ -937,7 +943,7 @@ export function SupportCard({ d, className }: { d: PreviewData; className?: stri
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-4 text-[13px] text-muted">
         <li><Link href="/livraison-retours" className="inline-flex min-h-11 items-center hover:text-ink">Livraison</Link></li>
         <li><Link href={d.returnsHref} className="inline-flex min-h-11 items-center hover:text-ink">Retours & remboursements</Link></li>
-        <li className="py-3"><WithPending text="[CGV et mentions légales à créer]" /></li>
+        {SHOW_PENDING && <li className="py-3"><WithPending text="[CGV et mentions légales à créer]" /></li>}
       </ul>
     </div>
   );
@@ -949,14 +955,14 @@ export function DetailsAccordion({ product, className, openFirst = true }: { pro
   return (
     <div className={clsx("faq divide-y divide-line border-y border-line", className)}>
       <details open={openFirst} className="group">
-        <summary className="flex min-h-14 list-none items-center justify-between py-4 text-[11px] font-semibold uppercase tracking-[0.18em]">
+        <summary className="flex min-h-14 list-none items-center justify-between py-4 text-[14px] font-semibold uppercase tracking-[0.12em]">
           Description <span className="faq-icon text-xl text-muted transition-transform" aria-hidden>+</span>
         </summary>
         <p className="pb-5 text-[15px] leading-relaxed text-ink-2">{product.description}</p>
       </details>
       {(product.details.length > 0 || product.material) && (
         <details className="group">
-          <summary className="flex min-h-14 list-none items-center justify-between py-4 text-[11px] font-semibold uppercase tracking-[0.18em]">
+          <summary className="flex min-h-14 list-none items-center justify-between py-4 text-[14px] font-semibold uppercase tracking-[0.12em]">
             Détails & entretien <span className="faq-icon text-xl text-muted transition-transform" aria-hidden>+</span>
           </summary>
           <ul className="list-disc space-y-1 pb-5 pl-5 text-[15px] text-ink-2">

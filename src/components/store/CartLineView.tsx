@@ -23,7 +23,6 @@ function ItemEditor({
   size,
   bundleOnly,
   onChange,
-  compact,
 }: {
   label?: string;
   productId: string;
@@ -38,8 +37,8 @@ function ItemEditor({
   const id = `${productId}-${label ?? "item"}`;
 
   return (
-    <div className={clsx("flex flex-wrap items-center gap-2", compact ? "text-xs" : "text-sm")}>
-      {label && <span className="eyebrow w-full text-muted">{label}</span>}
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      {label && <span className="w-full text-[13px] font-semibold uppercase tracking-[0.1em] text-muted">{label}</span>}
       <label className="sr-only" htmlFor={`${id}-color`}>Couleur</label>
       <select
         id={`${id}-color`}
@@ -50,7 +49,7 @@ function ItemEditor({
           const fallback = next?.sizes.find((s) => s.available)?.label ?? size;
           onChange(e.target.value, keep ? size : fallback);
         }}
-        className="h-10 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-2.5 pr-7 text-sm"
+        className="h-11 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-3 pr-8 text-[15px]"
       >
         {!product && <option value={productId}>Indisponible</option>}
         {options.map((p) => (
@@ -64,7 +63,7 @@ function ItemEditor({
         id={`${id}-size`}
         value={size}
         onChange={(e) => onChange(productId, e.target.value as Size)}
-        className="h-10 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-2.5 pr-7 text-sm"
+        className="h-11 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-3 pr-8 text-[15px]"
       >
         {(product?.sizes ?? []).map((s) => (
           <option key={s.label} value={s.label} disabled={!s.available}>
@@ -111,15 +110,15 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
               </Link>
             )}
             {pl && pl.savingsCents > 0 && (
-              <p className="mt-0.5 text-xs font-medium text-brand">Tu économises {formatEUR(pl.savingsCents)}</p>
+              <p className="mt-0.5 text-sm font-medium text-[#8fd9ad]">Tu économises {formatEUR(pl.savingsCents)}</p>
             )}
           </div>
           <div className="text-right">
             {pl ? (
               <>
-                <p className="price text-base">{formatEUR(pl.totalCents)}</p>
+                <p className="price text-lg">{formatEUR(pl.totalCents)}</p>
                 {pl.savingsCents > 0 && (
-                  <p className="text-xs text-muted line-through">{formatEUR(pl.compareAtCents * pl.quantity)}</p>
+                  <p className="text-sm text-muted line-through">{formatEUR(pl.compareAtCents * pl.quantity)}</p>
                 )}
               </>
             ) : (
@@ -156,28 +155,28 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
         </div>
 
         {error && (
-          <p role="alert" className="mt-2 text-xs font-medium text-danger">
+          <p role="alert" className="mt-2 text-sm font-medium text-danger">
             {error}
           </p>
         )}
 
         <div className="mt-3 flex items-center justify-between">
-          <div className="flex h-10 items-center rounded-full border border-line-strong" role="group" aria-label="Quantité">
+          <div className="flex h-11 items-center rounded-full border border-line-strong" role="group" aria-label="Quantité">
             <button
               type="button"
-              className="grid size-10 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
+              className="grid size-11 place-items-center rounded-full hover:bg-paper-3 disabled:opacity-30"
               onClick={() => setQuantity(line.key, line.quantity - 1)}
               disabled={line.quantity <= 1}
               aria-label="Diminuer la quantité"
             >
               <MinusIcon width={14} height={14} />
             </button>
-            <span className="w-7 text-center text-sm tabular-nums" aria-live="polite">
+            <span className="w-7 text-center text-[15px] tabular-nums" aria-live="polite">
               {line.quantity}
             </span>
             <button
               type="button"
-              className="grid size-10 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
+              className="grid size-11 place-items-center rounded-full hover:bg-paper-3 disabled:opacity-30"
               onClick={() => setQuantity(line.key, line.quantity + 1)}
               disabled={line.quantity >= 10}
               aria-label="Augmenter la quantité"
@@ -188,7 +187,7 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
           <button
             type="button"
             onClick={() => remove(line.key)}
-            className="-m-3 p-3 text-xs text-muted underline underline-offset-4 hover:text-ink"
+            className="-m-2 inline-flex min-h-11 items-center p-2 text-sm text-muted underline underline-offset-4 hover:text-ink"
           >
             Retirer
           </button>

@@ -31,10 +31,10 @@ import {
   TrustCards,
   VideoSlot,
   deliveryWords,
-} from "./blocks";
+} from "@/components/store/pdp/blocks";
 import type { Size } from "@/lib/sizes";
-import type { PreviewData } from "./types";
-import { usePurchase, type Offer } from "./usePurchase";
+import type { PreviewData } from "@/components/store/pdp/types";
+import { usePurchase, type Offer } from "@/components/store/pdp/usePurchase";
 
 function Stage({ d, basePath }: { d: PreviewData; basePath: string }) {
   const [zoom, setZoom] = useState(false);

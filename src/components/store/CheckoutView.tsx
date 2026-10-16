@@ -13,7 +13,7 @@ import { checkoutCustomerSchema, COUNTRIES, type CheckoutCustomer } from "@/lib/
 import { formatEUR } from "@/lib/money";
 import type { CartQuote } from "@/lib/types";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { InfoIcon } from "@/components/ui/icons";
+import { CheckIcon, InfoIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 
 const KEY_STORAGE = "rd.checkout.key";
 
@@ -53,13 +53,13 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 flex items-baseline justify-between text-sm font-medium">
+      <label htmlFor={id} className="mb-1.5 flex items-baseline justify-between text-[15px] font-medium">
         {label}
-        {optional && <span className="text-xs font-normal text-muted">Facultatif</span>}
+        {optional && <span className="text-[13px] font-normal text-muted">Facultatif</span>}
       </label>
       {children}
       {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-danger">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm font-medium text-danger">
           {error}
         </p>
       )}
@@ -163,20 +163,20 @@ export function CheckoutView() {
   });
 
   return (
-    <div className="container-x py-10 md:py-16">
-      <nav aria-label="Étapes" className="eyebrow flex items-center gap-2 text-muted">
+    <div className="container-x py-6 md:py-12">
+      <nav aria-label="Étapes" className="eyebrow flex flex-wrap items-center gap-2 text-muted">
         <Link href="/panier" className="hover:text-ink">Panier</Link>
         <span aria-hidden>→</span>
         <span className="text-ink" aria-current="step">Coordonnées</span>
         <span aria-hidden>→</span>
         <span>Confirmation</span>
       </nav>
-      <h1 className="display mt-4 text-[30px] uppercase sm:text-[40px] md:text-[60px]">Commande</h1>
+      <h1 className="display t-title mt-3 uppercase">Finaliser ma commande</h1>
 
-      <div className="mt-6 flex gap-3 rounded-[var(--radius-md)] border border-brand/30 bg-brand/[0.06] p-4 text-sm leading-relaxed text-ink-2">
+      <div className="mt-5 flex gap-3 rounded-[var(--radius-md)] border border-[#4a3f2a] bg-[#17140f] p-4 text-[15px] leading-relaxed text-ink-2">
         <InfoIcon className="mt-0.5 shrink-0 text-brand" />
         <p>
-          <strong className="font-semibold text-ink">Demande de commande, sans paiement en ligne.</strong> {config.paymentNotice}
+          <strong className="font-semibold text-ink">Rien à payer aujourd&apos;hui.</strong> Tu envoies une demande de commande : nous la confirmons par e-mail et t&apos;indiquons comment régler. Aucune donnée bancaire n&apos;est demandée.
         </p>
       </div>
 
@@ -187,28 +187,28 @@ export function CheckoutView() {
         {/* Mobile: the order and its total stay visible before the form. */}
         <details className="faq group mt-6 rounded-[var(--radius-md)] border border-line bg-paper-2 lg:hidden">
           <summary className="flex min-h-14 list-none items-center justify-between gap-3 px-4">
-            <span className="flex items-center gap-2 text-sm font-semibold">
+            <span className="flex items-center gap-2 text-[15px] font-semibold">
               Ta commande · {quote.itemsCount} article{quote.itemsCount > 1 ? "s" : ""}
               <span className="faq-icon text-lg leading-none text-muted transition-transform" aria-hidden>+</span>
             </span>
             <span className="price text-lg">{formatEUR(quote.totalCents)}</span>
           </summary>
-          <ul className="divide-y divide-line border-t border-line px-4 text-sm">
+          <ul className="divide-y divide-line border-t border-line px-4 text-[15px]">
             {quote.lines.map((l, i) => (
               <li key={i} className="flex justify-between gap-3 py-3">
                 <span>
                   <span className="font-semibold">{l.label}</span>
                   {l.quantity > 1 && <span className="text-muted"> × {l.quantity}</span>}
-                  <span className="block text-xs text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</span>
+                  <span className="block text-sm text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</span>
                 </span>
                 <span className="price">{formatEUR(l.totalCents)}</span>
               </li>
             ))}
           </ul>
           {quote.discountCents > 0 && (
-            <p className="border-t border-line px-4 py-2.5 text-xs text-brand">Remise pack incluse : −{formatEUR(quote.discountCents)}</p>
+            <p className="border-t border-line px-4 py-2.5 text-sm text-[#8fd9ad]">Remise pack incluse : −{formatEUR(quote.discountCents)}</p>
           )}
-          <Link href="/panier" className="block border-t border-line px-4 py-3 text-xs underline underline-offset-4">
+          <Link href="/panier" className="flex min-h-11 items-center border-t border-line px-4 text-sm underline underline-offset-4">
             Modifier le panier
           </Link>
         </details>
@@ -218,13 +218,13 @@ export function CheckoutView() {
               <legend className="eyebrow mb-5 text-muted">01 · Tes coordonnées</legend>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field id="co-fullName" label="Nom complet" error={errors.fullName?.message} className="sm:col-span-2">
-                  <input className="field" autoComplete="name" {...fieldProps("fullName")} />
+                  <input className="field" autoComplete="name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("fullName")} />
                 </Field>
                 <Field id="co-email" label="E-mail" error={errors.email?.message}>
-                  <input className="field" type="email" inputMode="email" autoComplete="email" {...fieldProps("email")} />
+                  <input className="field" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" {...fieldProps("email")} />
                 </Field>
                 <Field id="co-phone" label="Téléphone" error={errors.phone?.message}>
-                  <input className="field" type="tel" inputMode="tel" autoComplete="tel" placeholder="Ex. 06 12 34 56 78" {...fieldProps("phone")} />
+                  <input className="field" type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" enterKeyHint="next" {...fieldProps("phone")} />
                 </Field>
               </div>
             </fieldset>
@@ -239,10 +239,10 @@ export function CheckoutView() {
                   <input className="field" autoComplete="address-line2" placeholder="Bâtiment, étage, digicode…" {...fieldProps("address2")} />
                 </Field>
                 <Field id="co-postalCode" label="Code postal" error={errors.postalCode?.message} className="sm:col-span-2">
-                  <input className="field" autoComplete="postal-code" inputMode="numeric" {...fieldProps("postalCode")} />
+                  <input className="field" autoComplete="postal-code" inputMode="numeric" enterKeyHint="next" {...fieldProps("postalCode")} />
                 </Field>
                 <Field id="co-city" label="Ville" error={errors.city?.message} className="sm:col-span-4">
-                  <input className="field" autoComplete="address-level2" {...fieldProps("city")} />
+                  <input className="field" autoComplete="address-level2" autoCapitalize="words" enterKeyHint="next" {...fieldProps("city")} />
                 </Field>
                 <Field id="co-country" label="Pays" error={errors.country?.message} className="sm:col-span-6">
                   <select className="field" autoComplete="country" {...fieldProps("country")}>
@@ -256,7 +256,7 @@ export function CheckoutView() {
                 </Field>
               </div>
             </fieldset>
-            <p className="text-xs leading-relaxed text-muted">
+            <p className="text-sm leading-relaxed text-muted">
               Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire
               n&apos;est demandée.
             </p>
@@ -277,13 +277,13 @@ export function CheckoutView() {
                         </div>
                       ))}
                     </div>
-                    <div className="min-w-0 flex-1 text-sm">
+                    <div className="min-w-0 flex-1 text-[15px]">
                       <p className="font-semibold">
                         {l.label} {l.quantity > 1 && <span className="text-muted">× {l.quantity}</span>}
                       </p>
-                      <p className="text-xs text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</p>
+                      <p className="text-sm text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</p>
                     </div>
-                    <p className="price text-sm">{formatEUR(l.totalCents)}</p>
+                    <p className="price text-base">{formatEUR(l.totalCents)}</p>
                   </li>
                 ))}
               </ul>
@@ -291,7 +291,7 @@ export function CheckoutView() {
                 <CartSummary quote={quote} />
               </div>
               {quoteState === "error" && (
-                <p className="mt-2 text-xs text-warning">Vérification des prix impossible pour l&apos;instant : le total définitif sera calculé à l&apos;envoi.</p>
+                <p className="mt-2 text-sm text-warning">Vérification des prix impossible pour l&apos;instant : le total définitif sera calculé à l&apos;envoi.</p>
               )}
               {cartInvalid && (
                 <p role="alert" className="mt-3 text-sm text-danger">
@@ -304,10 +304,18 @@ export function CheckoutView() {
                   {submitError}
                 </p>
               )}
-              <Button type="submit" size="lg" className="mt-5 w-full" disabled={isSubmitting || cartInvalid}>
+              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || cartInvalid}>
                 {isSubmitting ? "Envoi de ta demande…" : `Envoyer ma demande · ${formatEUR(quote.totalCents)}`}
               </Button>
-              <p className="mt-3 text-center text-xs text-muted">Aucun paiement ne sera prélevé maintenant.</p>
+              <p className="mt-3 text-center text-sm text-muted">Aucun paiement ne sera prélevé maintenant.</p>
+              <div className="mt-5 border-t border-line pt-4">
+                <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Après l&apos;envoi</p>
+                <ol className="mt-3 grid gap-2.5 text-[15px] text-ink-2">
+                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Tu reçois un e-mail qui confirme ta commande et t&apos;indique comment régler.</li>
+                  <li className="flex gap-2.5"><TruckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Expédition suivie, livraison estimée {config.deliveryEstimate}.</li>
+                  <li className="flex gap-2.5"><ReturnIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception.</li>
+                </ol>
+              </div>
             </div>
           </aside>
         </form>

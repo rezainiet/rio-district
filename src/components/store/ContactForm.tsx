@@ -49,9 +49,9 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-2.5">
+    <form onSubmit={onSubmit} noValidate className="grid gap-4">
       <div>
-        <label htmlFor="contact-email" className="sr-only">
+        <label htmlFor="contact-email" className="mb-1.5 block text-[15px] font-medium">
           Ton e-mail
         </label>
         <input
@@ -59,28 +59,28 @@ export function ContactForm() {
           type="email"
           autoComplete="email"
           inputMode="email"
-          className="field rounded-xl border-transparent bg-paper-3"
-          placeholder="Ton e-mail"
+          className="field rounded-xl bg-paper-3"
+          placeholder="prenom@exemple.fr"
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "contact-email-error" : undefined}
           {...register("email")}
         />
-        {errors.email && <p id="contact-email-error" className="mt-1.5 text-xs text-[#f08a7b]">{errors.email.message}</p>}
+        {errors.email && <p id="contact-email-error" className="mt-1.5 text-sm text-danger">{errors.email.message}</p>}
       </div>
       <div>
-        <label htmlFor="contact-message" className="sr-only">
+        <label htmlFor="contact-message" className="mb-1.5 block text-[15px] font-medium">
           Ton message
         </label>
         <textarea
           id="contact-message"
           rows={5}
-          className="field resize-y rounded-xl border-transparent bg-paper-3"
-          placeholder="Ton message"
+          className="field resize-y rounded-xl bg-paper-3"
+          placeholder="Ta question (taille, commande, retour…)"
           aria-invalid={!!errors.message}
           aria-describedby={errors.message ? "contact-message-error" : undefined}
           {...register("message")}
         />
-        {errors.message && <p id="contact-message-error" className="mt-1.5 text-xs text-[#f08a7b]">{errors.message.message}</p>}
+        {errors.message && <p id="contact-message-error" className="mt-1.5 text-sm text-danger">{errors.message.message}</p>}
       </div>
       {/* Honeypot for bots */}
       <div aria-hidden className="absolute -left-[9999px] h-0 overflow-hidden">
@@ -89,9 +89,9 @@ export function ContactForm() {
           <input tabIndex={-1} autoComplete="off" {...register("website")} />
         </label>
       </div>
-      {serverError && <p role="alert" className="text-sm text-[#f08a7b]">{serverError}</p>}
-      <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Envoi…" : "Envoyer"}
+      {serverError && <p role="alert" className="text-sm text-danger">{serverError}</p>}
+      <Button type="submit" size="lg" disabled={isSubmitting} className="h-14 w-full">
+        {isSubmitting ? "Envoi…" : "Envoyer mon message"}
       </Button>
     </form>
   );
