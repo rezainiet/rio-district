@@ -335,7 +335,7 @@ npm run dev
 | Cart / checkout | http://localhost:3000/panier · http://localhost:3000/commande |
 | Returns & refunds | http://localhost:3000/retours-remboursements |
 | Admin login | http://localhost:3000/admin/login |
-| Health check | http://localhost:3000/api/health → `{"ok":true,…}` |
+| Health check | http://localhost:3000/api/health → `{"status":"ok","db":"up",…}` |
 | Design-review previews (dev only) | http://localhost:3000/design-review |
 
 Stop the server with **Ctrl+C** in its terminal (answer `Y` if Windows asks to terminate the batch job).
@@ -367,9 +367,9 @@ Stop `db:local` the same way. Another port: `npx next dev -p 3001`.
 
 | Symptom | Check |
 |---|---|
-| "Identifiants invalides" | Account exists in *this* database? Re-run `admin:create`. Check `MONGODB_URI` points to the database you seeded |
+| "E-mail ou mot de passe incorrect." | Account exists in *this* database? Re-run `admin:create`. Check `MONGODB_URI` points to the database you seeded |
 | Redirected to login after logging in | Cookies blocked for localhost? Use `http://localhost:3000` (not an IP) in dev; in a local production build use `localhost` too |
-| "Trop de tentatives" | Login is rate-limited per IP: wait a few minutes or restart the dev server |
+| "Trop de tentatives. Réessaie dans 15 minutes." | Login allows 8 attempts per IP per 15 minutes (in-memory counter): wait, or restart the dev server |
 | Admin page 500 | MongoDB down — see the terminal running `npm run dev` |
 
 ---
@@ -454,7 +454,7 @@ body), *Application → Local Storage* (`rd.cart.v1` = cart), *Elements → Comp
 ```powershell
 npm run typecheck          # TypeScript errors
 npm run lint               # ESLint
-curl.exe http://localhost:3000/api/health     # server + DB reachable? ({"ok":true,"db":"up"})
+curl.exe http://localhost:3000/api/health     # server + DB reachable? ({"status":"ok","db":"up",…}; 503 + "db":"down" if MongoDB is unreachable)
 ```
 
 | Problem | Likely cause → fix |
