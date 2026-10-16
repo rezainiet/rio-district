@@ -36,7 +36,7 @@ export type StoreSettings = {
  * no payment is processed online yet, so we do not claim "paiement sécurisé".
  */
 export const DEFAULT_SETTINGS: StoreSettings = {
-  storeName: "KALT",
+  storeName: "Rio District",
   tagline: "Vestes Brésil — coupe-vent léger, six coloris.",
   contactEmail: "contact@kaltshop.club",
   announcement: {
@@ -45,8 +45,8 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   },
   promotion: {
     enabled: true,
-    headline: "Une seule couleur, c'est dur de choisir.",
-    text: "Prends-en 2 pour 24,95 € et mélange les couleurs comme tu veux.",
+    headline: "Deux couleurs. Un seul prix.",
+    text: "Mélange les coloris, choisis une taille pour chacune. L'économie s'applique automatiquement.",
     endsAt: null,
   },
   bundle: { enabled: true, quantity: 2, priceCents: 2495, label: "Pack 2 vestes" },

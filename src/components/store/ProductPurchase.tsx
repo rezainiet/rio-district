@@ -47,7 +47,7 @@ function SizePicker({
               className={clsx(
                 "relative grid h-12 place-items-center rounded-[var(--radius-sm)] border text-[13px] font-semibold transition-colors",
                 !s.available && "cursor-not-allowed border-dashed border-line text-muted/60 line-through",
-                s.available && !checked && "border-line-strong bg-[#fbf9f4] hover:border-ink",
+                s.available && !checked && "border-line-strong bg-paper-2 hover:border-ink",
                 checked && "border-ink bg-ink text-paper",
                 error && !checked && s.available && "border-danger/60",
               )}
@@ -282,8 +282,8 @@ export function ProductPurchase({
 
   return (
     <div id="acheter" className="scroll-mt-24">
-      <p className="eyebrow text-muted">{product.group ? "Veste Brésil" : "KALT"} · {product.color.name}</p>
-      <h1 className="display mt-2 text-[48px] sm:text-[56px] lg:text-[64px]">{product.name}</h1>
+      <p className="eyebrow text-xs text-muted">{product.group ? "Veste Brésil" : config.storeName} · {product.color.name}</p>
+      <h1 className="display mt-2 text-[34px] uppercase sm:text-[40px] lg:text-[44px]">{product.name}</h1>
       {product.tagline && <p className="mt-3 text-[15px] text-ink-2">{product.tagline}</p>}
 
       <div className="mt-5 flex items-baseline gap-3">
@@ -304,7 +304,7 @@ export function ProductPurchase({
       {/* ---------- Offer ---------- */}
       {bundleAvailable && (
         <fieldset className="mt-8">
-          <legend className="eyebrow mb-3 text-muted">Choisis ton offre</legend>
+          <legend className="eyebrow mb-3 text-xs text-muted">Choisis ton offre</legend>
           <div className="grid gap-2.5">
             {(
               [
@@ -332,7 +332,7 @@ export function ProductPurchase({
                   key={o.value}
                   className={clsx(
                     "flex min-h-[72px] items-center gap-4 rounded-[var(--radius-md)] border px-4 py-3 transition-colors",
-                    checked ? "border-ink bg-[#fbf9f4] shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong hover:border-ink",
+                    checked ? "border-ink bg-paper-2 shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong hover:border-ink",
                   )}
                 >
                   <input
@@ -351,7 +351,7 @@ export function ProductPurchase({
                   />
                   <span className="flex shrink-0 -space-x-5" aria-hidden>
                     {o.thumbs.map((t, j) => (
-                      <span key={t.id + j} className="relative h-14 w-11 overflow-hidden rounded-[var(--radius-xs)] bg-studio ring-2 ring-[#fbf9f4]">
+                      <span key={t.id + j} className="relative h-14 w-11 overflow-hidden rounded-[var(--radius-xs)] bg-studio ring-2 ring-paper-2">
                         {t.images[0] && <Image src={t.images[0].url} alt="" fill sizes="44px" className={`object-cover ${artClass(t.images[0], "thumb")}`} />}
                       </span>
                     ))}
@@ -365,7 +365,7 @@ export function ProductPurchase({
                   </span>
                   <span className="shrink-0 text-right">
                     {o.value === "bundle" && bundleFull > bundlePrice && (
-                      <span className="eyebrow mb-1 inline-block rounded-full bg-lime px-2 py-0.5 text-[9.5px]">−{percentOff(bundleFull, bundlePrice)} %</span>
+                      <span className="eyebrow mb-1 inline-block rounded-full bg-lime px-2 py-0.5 text-[11px] text-[#121212]">−{percentOff(bundleFull, bundlePrice)} %</span>
                     )}
                     <span className="price block text-xl">{o.price}</span>
                     {o.value === "bundle" && bundleFull > bundlePrice && (
@@ -384,7 +384,7 @@ export function ProductPurchase({
         <div className="mt-8 space-y-7">
           {siblings.length > 1 && (
             <div>
-              <p className="eyebrow mb-3 text-muted">
+              <p className="eyebrow mb-3 text-xs text-muted">
                 Couleur : <span className="text-ink">{product.color.name}</span>
               </p>
               <Swatches
@@ -400,10 +400,10 @@ export function ProductPurchase({
           )}
           <div id="field-single">
             <div className="mb-3 flex items-center justify-between">
-              <p className="eyebrow text-muted">
+              <p className="eyebrow text-xs text-muted">
                 Taille : <span className="text-ink">{size ?? "—"}</span>
               </p>
-              <button type="button" onClick={() => setGuideFor(-1)} className="flex items-center gap-1.5 text-xs font-medium underline underline-offset-4">
+              <button type="button" onClick={() => setGuideFor(-1)} className="-my-3 flex items-center gap-1.5 py-3 text-xs font-medium underline underline-offset-4">
                 <RulerIcon width={16} height={16} /> Trouver ma taille
               </button>
             </div>
@@ -426,18 +426,18 @@ export function ProductPurchase({
           {slots.map((slot, i) => {
             const p = slotProducts[i];
             return (
-              <div key={i} id={`field-slot${i}`} className="rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] p-4">
+              <div key={i} id={`field-slot${i}`} className="rounded-[var(--radius-md)] border border-line bg-paper-2 p-4">
                 <div className="flex items-center gap-3">
                   <div className="relative h-14 w-11 shrink-0 overflow-hidden rounded-[var(--radius-xs)] bg-studio">
                     {p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="44px" className={`object-cover ${artClass(p.images[0], "thumb")}`} />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="eyebrow text-muted">Veste {i + 1}</p>
+                    <p className="eyebrow text-xs text-muted">Veste {i + 1}</p>
                     <p className="font-display text-[15px] font-bold uppercase [font-variation-settings:'wdth'_90]">
                       {p.color.name} · {slot.size ?? "taille ?"}
                     </p>
                   </div>
-                  <button type="button" onClick={() => setGuideFor(i)} className="text-xs font-medium underline underline-offset-4">
+                  <button type="button" onClick={() => setGuideFor(i)} className="-m-3 p-3 text-xs font-medium underline underline-offset-4">
                     Ma taille
                   </button>
                 </div>
@@ -499,11 +499,11 @@ export function ProductPurchase({
             key={step.sub}
             className="relative px-1 before:absolute before:left-[-50%] before:top-[11px] before:h-px before:w-full before:bg-line-strong first:before:hidden"
           >
-            <span className="relative z-10 mx-auto grid size-[22px] place-items-center rounded-full bg-ink text-[10px] font-bold text-paper">
+            <span className="relative z-10 mx-auto grid size-[22px] place-items-center rounded-full bg-ink text-[11px] font-bold text-paper">
               {i + 1}
             </span>
             <span className="mt-2 block text-[13px] font-semibold">{step.title}</span>
-            <span className="block text-[11px] leading-snug text-muted">{step.sub}</span>
+            <span className="block text-xs leading-snug text-muted">{step.sub}</span>
           </li>
         ))}
       </ol>
@@ -517,7 +517,7 @@ export function ProductPurchase({
           {delivery.returns}
         </li>
       </ul>
-      <Link href="/livraison-retours" className="mt-3 inline-block text-xs text-muted underline underline-offset-4 hover:text-ink">
+      <Link href="/livraison-retours" className="inline-block py-3.5 text-xs text-muted underline underline-offset-4 hover:text-ink">
         Conditions de livraison et de retour
       </Link>
 
@@ -553,6 +553,7 @@ export function ProductPurchase({
             <p className="price text-xl">{formatEUR(total)}</p>
           </div>
           <Button
+            className="shrink-0 px-5"
             tabIndex={barHidden ? -1 : 0}
             onClick={() => {
               if (validate()) addToCart();

@@ -38,9 +38,9 @@ export function ContactForm() {
 
   if (status === "sent") {
     return (
-      <div className="rounded-[var(--radius-md)] border border-paper/20 p-6" role="status">
-        <p className="display text-4xl text-lime">Message reçu.</p>
-        <p className="mt-2 text-sm text-paper/75">On te répond par e-mail au plus vite.</p>
+      <div className="rounded-xl border border-line bg-paper-3 p-6" role="status">
+        <p className="display text-3xl uppercase text-brand">Message reçu.</p>
+        <p className="mt-2 text-sm text-ink-2">On te répond par e-mail au plus vite.</p>
         <button type="button" onClick={() => setStatus("idle")} className="mt-4 text-sm underline underline-offset-4">
           Envoyer un autre message
         </button>
@@ -49,9 +49,9 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-4">
+    <form onSubmit={onSubmit} noValidate className="grid gap-2.5">
       <div>
-        <label htmlFor="contact-email" className="eyebrow mb-2 block text-paper/70">
+        <label htmlFor="contact-email" className="sr-only">
           Ton e-mail
         </label>
         <input
@@ -59,28 +59,28 @@ export function ContactForm() {
           type="email"
           autoComplete="email"
           inputMode="email"
-          className="field border-paper/25 bg-white/5 text-paper placeholder:text-paper/40 hover:border-paper/50 focus:border-lime"
-          placeholder="toi@exemple.fr"
+          className="field rounded-xl border-transparent bg-paper-3"
+          placeholder="Ton e-mail"
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "contact-email-error" : undefined}
           {...register("email")}
         />
-        {errors.email && <p id="contact-email-error" className="mt-1.5 text-xs text-[#ffb4a8]">{errors.email.message}</p>}
+        {errors.email && <p id="contact-email-error" className="mt-1.5 text-xs text-[#f08a7b]">{errors.email.message}</p>}
       </div>
       <div>
-        <label htmlFor="contact-message" className="eyebrow mb-2 block text-paper/70">
+        <label htmlFor="contact-message" className="sr-only">
           Ton message
         </label>
         <textarea
           id="contact-message"
           rows={5}
-          className="field resize-y border-paper/25 bg-white/5 text-paper placeholder:text-paper/40 hover:border-paper/50 focus:border-lime"
-          placeholder="Une question sur une taille, une commande, un échange…"
+          className="field resize-y rounded-xl border-transparent bg-paper-3"
+          placeholder="Ton message"
           aria-invalid={!!errors.message}
           aria-describedby={errors.message ? "contact-message-error" : undefined}
           {...register("message")}
         />
-        {errors.message && <p id="contact-message-error" className="mt-1.5 text-xs text-[#ffb4a8]">{errors.message.message}</p>}
+        {errors.message && <p id="contact-message-error" className="mt-1.5 text-xs text-[#f08a7b]">{errors.message.message}</p>}
       </div>
       {/* Honeypot for bots */}
       <div aria-hidden className="absolute -left-[9999px] h-0 overflow-hidden">
@@ -89,8 +89,8 @@ export function ContactForm() {
           <input tabIndex={-1} autoComplete="off" {...register("website")} />
         </label>
       </div>
-      {serverError && <p role="alert" className="text-sm text-[#ffb4a8]">{serverError}</p>}
-      <Button type="submit" variant="lime" size="lg" disabled={isSubmitting} className="w-full sm:w-auto sm:justify-self-start">
+      {serverError && <p role="alert" className="text-sm text-[#f08a7b]">{serverError}</p>}
+      <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
         {isSubmitting ? "Envoi…" : "Envoyer"}
       </Button>
     </form>

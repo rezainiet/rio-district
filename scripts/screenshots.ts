@@ -161,6 +161,44 @@ async function main() {
       await shot(p, `${label}-01-accueil`);
       await p.goto(`${BASE}/produit/veste-bresil-jaune`);
       await shot(p, `${label}-02-fiche-produit`);
+
+      // Bundle selection, then the cart drawer it opens.
+      await p.goto(`${BASE}/produit/veste-bresil-vert?offre=pack`);
+      await p.locator('input[name="size-0"][value="M"]').check({ force: true });
+      await p.locator('[aria-label="Couleur de la veste 2"] [aria-label="Jaune"]').click();
+      await p.locator('input[name="size-1"][value="L"]').check({ force: true });
+      await p.locator("#field-slot0").scrollIntoViewIfNeeded();
+      await p.evaluate(() => window.scrollBy(0, -140));
+      await p.waitForTimeout(300);
+      await shot(p, `${label}-03-selection-pack`, { full: false });
+      await p.evaluate(() => (document.querySelector("#acheter div.mt-8 > button") as HTMLElement).click());
+      await p.waitForTimeout(600);
+      await shot(p, `${label}-04-tiroir-panier`, { full: false });
+      await p.goto(`${BASE}/commande`);
+      await shot(p, `${label}-05-commande`);
+      await p.evaluate(() => localStorage.removeItem("kalt.cart.v1"));
+      await adminLogin(ctx);
+      await p.goto(`${BASE}/admin`);
+      await shot(p, `${label}-06-admin-tableau-de-bord`);
+      await ctx.close();
+    }
+
+    /* ---------------- Real scrolling: sticky bar states on the product page ---------------- */
+    for (const w of [375, 390]) {
+      const ctx = await browser.newContext({ viewport: { width: w, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "fr-FR" });
+      const p = await ctx.newPage();
+      await p.goto(`${BASE}/produit/veste-bresil-vert`, { waitUntil: "networkidle" });
+      const steps: [string, string][] = [
+        ["a-haut-de-page", "0"],
+        ["b-cta-visible", "document.querySelector('#acheter div.mt-8').getBoundingClientRect().top + scrollY - 420"],
+        ["c-apres-cta-barre-visible", "document.querySelector('#acheter div.mt-8').getBoundingClientRect().bottom + scrollY + 200"],
+        ["d-pied-de-page-barre-masquee", "document.documentElement.scrollHeight"],
+      ];
+      for (const [name, expr] of steps) {
+        await p.evaluate(`window.scrollTo({ top: ${expr}, behavior: "instant" })`);
+        await p.waitForTimeout(500);
+        await shot(p, `defilement-${w}-${name}`, { full: false });
+      }
       await ctx.close();
     }
 

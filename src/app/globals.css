@@ -116,7 +116,7 @@
     width: 100%;
     min-height: 48px;
     border: 1px solid var(--color-line-strong);
-    background: #fffdf8;
+    background: var(--field-bg, #fffdf8);
     border-radius: var(--radius-sm);
     padding: 12px 14px;
     font-size: 16px; /* prevents iOS zoom */
@@ -154,4 +154,93 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   Storefront theme — Dark Premium (Rio District)
+   Scoped to the store layout so the admin keeps the light theme.
+   Unlayered on purpose: these rules must win over component classes.
+   ============================================================ */
+.store-dark {
+  --color-paper: #0b0b0c;
+  --color-paper-2: #131315;
+  --color-paper-3: #1b1b1e;
+  --color-studio: #101012;
+  --color-ink: #f2eee6;
+  --color-ink-2: #c9c5bd;
+  --color-muted: #8e8a82;
+  --color-line: #2a2a2d;
+  --color-line-strong: #3c3c40;
+  --color-brand: #c8a96a;
+  --color-brand-ink: #b39352;
+  --color-lime: #c8a96a;
+  --font-display: var(--font-syne), "Arial Black", system-ui, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --btn-radius: 999px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 18px;
+  --field-bg: #17171a;
+  color-scheme: dark;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+html:has(.store-dark),
+html:has(.store-dark) body { background: #0b0b0c; }
+/* Reserve the scrollbar so locking scroll (menu, cart drawer) never shifts the page on desktop. */
+html:has(.store-dark) { scrollbar-gutter: stable; }
+
+.store-dark .display {
+  font-variation-settings: normal;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+.store-dark .eyebrow {
+  font-family: var(--font-sans);
+  font-variation-settings: normal;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+.store-dark .price {
+  font-family: var(--font-display);
+  font-variation-settings: normal;
+  font-weight: 700;
+}
+/* Concept 04 sets the pack price in Syne 800 (wider than the default 700). */
+.store-dark .price-strong { font-weight: 800; }
+.store-dark .ui-btn {
+  font-family: var(--font-sans);
+  font-variation-settings: normal;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.03em;
+  font-size: 14px;
+}
+.store-dark .lab {
+  font: 600 11px/1.2 var(--font-sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+.store-dark .field { color: var(--color-ink); }
+.store-dark .field::placeholder { color: var(--color-muted); }
+.store-dark .field:focus { border-color: var(--color-ink); box-shadow: 0 0 0 3px rgb(200 169 106 / 0.22); }
+.store-dark ::selection { background: var(--color-brand); color: #0b0b0c; }
+
+/* Photos were shot on light grey: deepen them so they sit on the dark stage (concept "shot"). */
+.store-dark .shot { overflow: hidden; background: var(--color-studio); }
+.store-dark .shot img { filter: brightness(0.82) contrast(1.12) saturate(1.05); }
+.store-dark .shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 35%, transparent 45%, rgb(11 11 12 / 0.75) 100%);
+}
+.store-dark .spotlight img {
+  -webkit-mask-image: radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%);
+  mask-image: radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%);
+  filter: brightness(0.82) contrast(1.12);
 }

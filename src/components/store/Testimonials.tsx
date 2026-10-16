@@ -9,13 +9,13 @@ export function Testimonials({ items, title = "Ce qu'ils en disent." }: { items:
     <section id="avis" aria-labelledby="avis-title" className="border-t border-line py-20 md:py-28">
       <div className="container-x">
         <p className="eyebrow text-muted">Avis clients</p>
-        <h2 id="avis-title" className="display mt-3 text-5xl md:text-7xl">{title}</h2>
+        <h2 id="avis-title" className="display mt-3 text-[32px] uppercase md:text-[48px]">{title}</h2>
       </div>
       <ul className="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:px-6 lg:px-10">
         {items.map((t) => (
           <li
             key={t.id}
-            className="flex w-[82%] shrink-0 snap-start flex-col justify-between rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] p-6 sm:w-[360px]"
+            className="flex w-[82%] shrink-0 snap-start flex-col justify-between rounded-[var(--radius-md)] border border-line bg-paper-2 p-6 sm:w-[360px]"
           >
             <div>
               <div className="flex gap-0.5 text-ink" aria-label={`${t.rating} sur 5`}>

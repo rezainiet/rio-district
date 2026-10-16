@@ -11,7 +11,7 @@ export default function StoreError({ error, reset }: { error: Error & { digest?:
   return (
     <div className="container-x py-24 text-center">
       <p className="eyebrow text-muted">Oups</p>
-      <h1 className="display mt-3 text-6xl md:text-8xl">Un souci technique.</h1>
+      <h1 className="display mt-3 text-[30px] uppercase sm:text-[40px] md:text-[60px]">Un souci technique.</h1>
       <p className="mx-auto mt-4 max-w-md text-ink-2">
         La page n&apos;a pas pu se charger. Ton panier est conservé : réessaie dans un instant.
       </p>

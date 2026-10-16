@@ -13,7 +13,17 @@ const NAV = [
   { href: "/admin/reglages", label: "Réglages" },
 ];
 
-export function AdminNav({ email, newMessages, pendingOrders }: { email: string; newMessages: number; pendingOrders: number }) {
+export function AdminNav({
+  storeName,
+  email,
+  newMessages,
+  pendingOrders,
+}: {
+  storeName: string;
+  email: string;
+  newMessages: number;
+  pendingOrders: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const counts: Record<string, number> = { "/admin/messages": newMessages, "/admin/commandes": pendingOrders };
@@ -27,8 +37,9 @@ export function AdminNav({ email, newMessages, pendingOrders }: { email: string;
   return (
     <aside className="border-b border-paper/10 bg-ink text-paper md:fixed md:inset-y-0 md:left-0 md:w-60 md:border-b-0 md:border-r">
       <div className="flex h-14 items-center justify-between px-4 md:h-16 md:px-5">
-        <Link href="/admin" className="display text-3xl [font-variation-settings:'wdth'_62]">
-          KALT<span className="text-lime">.</span> <span className="eyebrow align-middle text-[10px] text-paper/50">admin</span>
+        <Link href="/admin" className="display whitespace-nowrap text-[26px] [font-variation-settings:'wdth'_62]">
+          <span className="uppercase">{storeName}</span>
+          <span className="text-lime">.</span> <span className="eyebrow align-middle text-[10px] text-paper/50">admin</span>
         </Link>
         <button onClick={logout} className="text-xs text-paper/60 underline underline-offset-4 hover:text-paper md:hidden">
           Déconnexion

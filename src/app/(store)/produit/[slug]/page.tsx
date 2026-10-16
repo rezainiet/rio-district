@@ -91,13 +91,13 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </ol>
       </nav>
 
-      <section className="container-x grid gap-8 pb-16 pt-4 md:grid-cols-12 md:gap-10 md:pb-24 md:pt-6 lg:gap-16">
-        <div className="md:col-span-7">
-          <div className="md:sticky md:top-24">
+      <section className="container-x grid gap-8 pb-16 pt-4 lg:grid-cols-12 md:gap-10 md:pb-24 md:pt-6 lg:gap-16">
+        <div className="lg:col-span-7">
+          <div className="md:mx-auto md:max-w-[560px] lg:sticky lg:top-24 lg:max-w-none">
             <Gallery key={product.id} images={product.images} name={product.name} />
           </div>
         </div>
-        <div className="md:col-span-5">
+        <div className="lg:col-span-5">
           <ProductPurchase
             key={product.id}
             product={product}
@@ -118,7 +118,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           <div className="faq mt-10 divide-y divide-line border-y border-line">
             <details open className="group">
               <summary className="flex min-h-14 list-none items-center justify-between py-4">
-                <span className="eyebrow">Description</span>
+                <span className="eyebrow text-xs">Description</span>
                 <span className="faq-icon text-xl transition-transform" aria-hidden>+</span>
               </summary>
               <div className="pb-5 text-[15px] leading-relaxed text-ink-2">
@@ -128,7 +128,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             {product.details.length > 0 && (
               <details className="group">
                 <summary className="flex min-h-14 list-none items-center justify-between py-4">
-                  <span className="eyebrow">Détails</span>
+                  <span className="eyebrow text-xs">Détails</span>
                   <span className="faq-icon text-xl transition-transform" aria-hidden>+</span>
                 </summary>
                 <ul className="list-disc space-y-1 pb-5 pl-5 text-[15px] text-ink-2">
@@ -140,7 +140,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             )}
             <details className="group">
               <summary className="flex min-h-14 list-none items-center justify-between py-4">
-                <span className="eyebrow">Livraison & retours</span>
+                <span className="eyebrow text-xs">Livraison & retours</span>
                 <span className="faq-icon text-xl transition-transform" aria-hidden>+</span>
               </summary>
               <div className="space-y-3 pb-5 text-[15px] leading-relaxed text-ink-2">
@@ -157,9 +157,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       {related.length > 0 && (
         <section aria-labelledby="related-title" className="border-t border-line py-20 md:py-24">
           <div className="container-x">
-            <p className="eyebrow text-muted">Les autres coloris</p>
-            <h2 id="related-title" className="display mt-3 text-5xl md:text-7xl">Complète ton pack.</h2>
-            <ul className="mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">
+            <p className="lab">Les autres coloris</p>
+            <h2 id="related-title" className="display mt-3 text-[32px] uppercase md:text-[48px]">Complète ton pack.</h2>
+            <ul className="mt-10 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
               {related.map((p) => (
                 <li key={p.id}>
                   <ProductCard product={p} bundle={settings.bundle} />
@@ -170,7 +170,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </section>
       )}
 
-      <div className="border-t border-line">
+      <div className="container-x pb-20 md:pb-28">
         <Faq items={settings.faq} id="faq-produit" />
       </div>
     </>

@@ -1,14 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getActiveProducts, getPublishedTestimonials, getSettings } from "@/lib/catalog";
-import { formatEUR, percentOff } from "@/lib/money";
-import { artClass } from "@/lib/image-fit";
+import { formatEUR } from "@/lib/money";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Faq, faqJsonLd } from "@/components/store/Faq";
 import { Testimonials } from "@/components/store/Testimonials";
 import { ContactForm } from "@/components/store/ContactForm";
 import { ButtonLink } from "@/components/ui/Button";
-import { ArrowRight, PaletteIcon, ReturnIcon, RulerIcon, TruckIcon } from "@/components/ui/icons";
+import type { PublicProduct } from "@/lib/types";
+
+/** Spotlit, rounded photo frame used across the Dark Premium homepage. */
+function Shot({ product, className, sizes, priority }: { product?: PublicProduct; className: string; sizes: string; priority?: boolean }) {
+  const img = product?.images[0];
+  return (
+    <div className={`shot ${className.includes("absolute") ? "" : "relative "}${className}`}>
+      {img && <Image src={img.url} alt={img.alt || product!.name} fill sizes={sizes} priority={priority} className="object-cover" />}
+    </div>
+  );
+}
 
 export default async function HomePage() {
   const [settings, products, testimonials] = await Promise.all([
@@ -17,20 +26,21 @@ export default async function HomePage() {
     getPublishedTestimonials(),
   ]);
   const { bundle } = settings;
+  // Pick a product by colour slug, falling back to position so any catalogue still renders.
+  const pick = (slug: string, i: number) => products.find((p) => p.slug.endsWith(`-${slug}`)) ?? products[i % Math.max(1, products.length)];
+  const hero = pick("noir", 0);
   const lead = products[0];
   const minPrice = products.length ? Math.min(...products.map((p) => p.priceCents)) : 0;
   const bundleFull = minPrice * bundle.quantity;
   const bundleSavings = Math.max(0, bundleFull - bundle.priceCents);
   const showBundle = bundle.enabled && settings.promotion.enabled && products.some((p) => p.bundleEligible);
-  const packHref = lead ? `/produit/${lead.slug}?offre=pack#acheter` : "/#collection";
-
-  const hasPlaceholders = products.some((p) => p.images.some((i) => i.kind === "placeholder"));
+  const packHref = hero ? `/produit/${hero.slug}?offre=pack#acheter` : "/#collection";
 
   const benefits = [
-    { icon: TruckIcon, title: "Livraison offerte", text: settings.shipping.summary },
-    { icon: ReturnIcon, title: "Retours 14 jours", text: settings.returns.summary },
-    { icon: RulerIcon, title: "Du XS au 3XL", text: "Guide des tailles et simulateur sur chaque fiche." },
-    { icon: PaletteIcon, title: "Mix & match", text: `${bundle.quantity} couleurs au choix dans un même pack.` },
+    { title: "Livraison offerte", text: settings.shipping.summary },
+    { title: "Retours 14 jours", text: settings.returns.summary },
+    { title: "Du XS au 3XL", text: "Guide et simulateur de taille sur chaque fiche" },
+    { title: "Mix & match", text: `${bundle.quantity} couleurs au choix dans un pack` },
   ];
 
   return (
@@ -41,245 +51,197 @@ export default async function HomePage() {
       />
 
       {/* ---------- HERO ---------- */}
-      <section aria-labelledby="hero-title">
-        <div className="container-x grid gap-6 pt-6 lg:grid-cols-12 lg:items-end lg:gap-x-10 lg:gap-y-10 md:pt-12">
-          <div className="lg:col-span-7">
-            <p className="eyebrow flex items-center gap-2 text-muted">
-              <span className="inline-block h-px w-8 bg-ink" aria-hidden />
-              Collection Brésil · {products.length} coloris
-            </p>
-            <h1 id="hero-title" className="display mt-4 text-[clamp(72px,22vw,132px)] md:text-[clamp(112px,13.5vw,204px)]">
-              Vestes
-              <br />
-              Brésil<span className="text-brand">.</span>
-            </h1>
+      <section aria-labelledby="hero-title" className="relative overflow-hidden">
+        <div className="container-x relative pb-8 pt-4 lg:h-[760px] lg:pb-0 lg:pt-0">
+          <div
+            className="pointer-events-none absolute left-1/2 top-[18%] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[120px] font-extrabold uppercase leading-none tracking-[-0.02em] text-[#161618] lg:top-[46%] lg:text-[300px]"
+            aria-hidden
+          >
+            Brésil
           </div>
-          <div className="order-3 lg:order-none lg:col-span-5 lg:pb-2">
-            <p className="max-w-md text-[17px] leading-relaxed text-ink-2">
-              Coupe-vent léger, coupe ample, zip intégral. Une seule coupe, six couleurs<span className="max-md:hidden"> — et deux vestes au choix pour le prix d&apos;un pack</span>.
-            </p>
-            <dl className="mt-6 grid grid-cols-2 border-y border-line">
-              <div className="py-4 pr-4">
-                <dt className="eyebrow text-muted">La veste</dt>
-                <dd className="price mt-1 text-4xl">{formatEUR(minPrice)}</dd>
-              </div>
-              {bundle.enabled && (
-                <div className="border-l border-line py-4 pl-5">
-                  <dt className="eyebrow text-brand">Les {bundle.quantity}, au choix</dt>
-                  <dd className="price mt-1 text-4xl text-brand">{formatEUR(bundle.priceCents)}</dd>
+
+          {hero && (
+            <div className="spotlight relative mx-auto h-[420px] w-full max-w-[600px] lg:absolute lg:bottom-0 lg:left-[55%] lg:top-5 lg:h-auto lg:w-[600px] lg:-translate-x-1/2">
+              <Image
+                src={hero.images[0]?.url ?? ""}
+                alt={hero.images[0]?.alt || hero.name}
+                fill
+                priority
+                sizes="(min-width: 1024px) 600px, 100vw"
+                className="object-cover object-[50%_30%]"
+              />
+            </div>
+          )}
+
+          <div className="relative z-10 mt-2 lg:absolute lg:left-10 lg:top-[150px] lg:mt-0 lg:max-w-[400px]">
+            <p className="lab">Collection Brésil — {products.length} coloris</p>
+            <h1 id="hero-title" className="display mt-4 text-[46px] uppercase lg:text-[62px]">
+              La veste de la <span className="text-brand">saison.</span>
+            </h1>
+            <p className="mt-5 text-base text-ink-2">Coupe-vent léger, coupe ample, zip intégral. Du XS au 3XL.</p>
+          </div>
+
+          <a href="#collection" className="absolute bottom-[60px] left-10 hidden text-[13px] text-muted hover:text-ink lg:block">
+            ↓ Faire défiler la collection
+          </a>
+
+          {hero && (
+            <div className="relative z-10 mt-6 rounded-[18px] border border-line bg-paper-2 p-6 lg:absolute lg:bottom-[60px] lg:right-10 lg:mt-0 lg:w-[360px]">
+              <p className="lab">{hero.name}</p>
+              <dl className="mt-2">
+                <div className="flex items-baseline justify-between border-b border-line py-3">
+                  <dt className="text-ink-2">La veste</dt>
+                  <dd className="price text-[30px] leading-none">{formatEUR(hero.priceCents)}</dd>
                 </div>
-              )}
-            </dl>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <ButtonLink href="/#collection" size="lg" className="w-full">
-                Choisir ma couleur <ArrowRight width={16} height={16} />
+                {bundle.enabled && (
+                  <div className="flex items-baseline justify-between border-b border-line py-3">
+                    <dt className="text-ink-2">Les deux, au choix</dt>
+                    <dd className="price text-[30px] leading-none text-brand">{formatEUR(bundle.priceCents)}</dd>
+                  </div>
+                )}
+              </dl>
+              <ul className="my-5 flex gap-3.5" aria-label="Coloris">
+                {products.map((p) => (
+                  <li key={p.id}>
+                    <Link
+                      href={`/produit/${p.slug}`}
+                      aria-label={p.name}
+                      title={p.color.name}
+                      className={`relative block size-[26px] rounded-full after:absolute after:-inset-[7px] after:content-[''] ${p.id === hero.id ? "ring-2 ring-ink ring-offset-2 ring-offset-paper-2" : "ring-1 ring-white/15 hover:ring-white/50"}`}
+                      style={{ background: p.color.hex }}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <ButtonLink href={`/produit/${hero.slug}#acheter`} size="lg" className="w-full">
+                Choisir ma taille →
               </ButtonLink>
               {showBundle && (
-                <ButtonLink href={packHref} size="lg" variant="outline" className="w-full">
+                <ButtonLink href={packHref} size="lg" variant="ghost" className="mt-2.5 w-full border border-line-strong hover:bg-paper-3">
                   Composer mon pack
                 </ButtonLink>
               )}
             </div>
-          </div>
-
-          {/* Studio lineup: every colour visible at once, each tile opens its product. */}
-          <div className="order-2 lg:order-none lg:col-span-12">
-          <ul className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-md)] bg-studio md:grid-cols-6" aria-label="Les coloris">
-            {products.slice(0, 6).map((p, i) => (
-              <li key={p.id}>
-                <Link
-                  href={`/produit/${p.slug}`}
-                  className="group block focus-visible:outline-offset-[-4px]"
-                  aria-label={`${p.name}, ${formatEUR(p.priceCents)}`}
-                >
-                  <span className="relative block aspect-[4/5] overflow-hidden">
-                    {p.images[0] && (
-                      <Image
-                        src={p.images[0].url}
-                        alt=""
-                        fill
-                        priority={i < 3}
-                        sizes="(min-width: 768px) 16vw, 33vw"
-                        className={`object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] ${artClass(p.images[0], "hero")}`}
-                      />
-                    )}
-                  </span>
-                  <span className="flex items-baseline justify-between gap-2 px-3 pb-3 md:px-4 md:pb-4">
-                    <span className="eyebrow text-[10px] text-ink">{p.color.name}</span>
-                    <span className="price hidden text-sm text-ink-2 lg:inline">{formatEUR(p.priceCents)}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {hasPlaceholders && (
-            <p className="mt-2 text-xs text-muted">Illustrations provisoires — les photos officielles arrivent bientôt.</p>
           )}
-          </div>
         </div>
-      </section>
-
-      {/* ---------- BENEFITS ---------- */}
-      <section aria-label="Nos engagements" className="mt-12 border-y border-line md:mt-16">
-        <ul className="container-x grid grid-cols-2 gap-x-6 gap-y-7 py-8 md:grid-cols-4 md:py-10">
-          {benefits.map(({ icon: Icon, title, text }) => (
-            <li key={title} className="flex flex-col gap-2 md:flex-row md:gap-4">
-              <Icon className="shrink-0 text-brand" width={24} height={24} />
-              <div>
-                <p className="font-display text-[15px] font-bold uppercase [font-variation-settings:'wdth'_90]">{title}</p>
-                <p className="mt-0.5 text-[13px] leading-snug text-muted">{text}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
       </section>
 
       {/* ---------- COLLECTION ---------- */}
-      <section id="collection" aria-labelledby="collection-title" className="container-x py-16 md:py-28">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <p className="eyebrow text-muted">{products.length} coloris disponibles</p>
-            <h2 id="collection-title" className="display mt-3 text-6xl md:text-7xl lg:text-8xl">
-              Trouve la tienne.
-            </h2>
-          </div>
-          <p className="max-w-sm text-[15px] leading-relaxed text-ink-2">
-            Même coupe, même prix, six humeurs. Chaque coloris a sa fiche — et tu peux en mélanger deux dans un pack.
-          </p>
+      <section id="collection" aria-labelledby="collection-title" className="container-x scroll-mt-24 py-20 lg:py-28">
+        <div className="mb-10 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <h2 id="collection-title" className="display text-[30px] uppercase sm:text-[48px] lg:text-[64px]">
+            La collection
+          </h2>
+          <p className="lab">{products.length} coloris · une coupe</p>
         </div>
-
         {products.length === 0 ? (
-          <p className="mt-12 rounded-[var(--radius-md)] border border-dashed border-line-strong p-10 text-center text-muted">
-            La collection arrive bientôt.
-          </p>
+          <p className="rounded-2xl border border-dashed border-line-strong p-10 text-center text-muted">La collection arrive bientôt.</p>
         ) : (
-          <ul className="mt-12 grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-14">
+          <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 lg:gap-[18px]">
             {products.map((p, i) => (
               <li key={p.id}>
-                <ProductCard product={p} bundle={bundle} priority={i < 2} />
+                <ProductCard product={p} bundle={bundle} priority={i < 3} />
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {/* ---------- BUNDLE ---------- */}
+      {/* ---------- PACK ---------- */}
       {showBundle && (
-        <section id="pack" aria-labelledby="pack-title" className="grain relative overflow-hidden bg-ink text-paper">
-          <div className="container-x grid items-center gap-12 py-16 lg:grid-cols-12 md:py-28">
-            <div className="lg:col-span-6">
-              <p className="eyebrow text-lime">{bundle.label}</p>
-              <h2 id="pack-title" className="display mt-4 text-6xl md:text-7xl lg:text-8xl">
+        <section id="pack" aria-labelledby="pack-title" className="scroll-mt-24 border-y border-line bg-paper-2">
+          {/* Column ratio and type sizes follow Concept 04 (text column ≈ 717 px at 1440). */}
+          <div className="container-x grid items-center gap-12 py-20 lg:grid-cols-[563fr_717fr] lg:gap-20 lg:py-28">
+            <div className="relative mx-auto h-[380px] w-full max-w-[560px] sm:h-[540px]">
+              <Shot product={pick("blanc", 3)} className="absolute left-0 top-0 aspect-[4/5] w-[62%] rounded-[18px] border border-line" sizes="(min-width: 1024px) 28vw, 60vw" />
+              <Shot product={pick("bleu", 4)} className="absolute bottom-0 right-0 aspect-[4/5] w-[62%] rounded-[18px] border border-line shadow-[0_40px_80px_-30px_#000]" sizes="(min-width: 1024px) 28vw, 60vw" />
+            </div>
+            <div>
+              <p className="lab">{bundle.label}</p>
+              <h2 id="pack-title" className="display mt-4 text-[30px] uppercase sm:text-[44px] lg:text-[56px] xl:text-[72px]">
                 {settings.promotion.headline}
               </h2>
-              <p className="mt-6 max-w-md text-[17px] leading-relaxed text-paper/75">{settings.promotion.text}</p>
-
-              <div className="mt-8 flex flex-wrap items-end gap-x-6 gap-y-3">
-                <p className="price text-6xl text-lime md:text-7xl">{formatEUR(bundle.priceCents)}</p>
-                <div className="pb-2">
-                  <p className="text-sm text-paper/50 line-through">{formatEUR(bundleFull)}</p>
-                  <p className="eyebrow text-paper">
-                    −{percentOff(bundleFull, bundle.priceCents)} % · {formatEUR(bundleSavings)} d&apos;économie
-                  </p>
-                </div>
+              <p className="mt-6 max-w-md text-base text-ink-2">{settings.promotion.text}</p>
+              <div className="my-8 flex flex-wrap items-baseline gap-4">
+                <p className="price price-strong text-[52px] leading-none sm:text-[96px]">{formatEUR(bundle.priceCents)}</p>
+                <s className="text-xl text-muted">{formatEUR(bundleFull)}</s>
               </div>
-
-              <ol className="mt-8 grid gap-3 text-sm text-paper/80 sm:grid-cols-3">
-                {["Choisis 2 coloris", "Une taille pour chacune", "Envoie ta demande"].map((step, i) => (
-                  <li key={step} className="flex items-center gap-3 border-t border-paper/15 pt-3">
-                    <span className="eyebrow text-lime">0{i + 1}</span>
+              <ol className="mb-9 grid grid-cols-3 gap-2.5">
+                {["Deux coloris", "Deux tailles", "Ta demande"].map((step, i) => (
+                  <li key={step} className="rounded-xl border border-line p-3.5 text-sm text-ink-2">
+                    <span className="mb-2 block font-display text-[13px] font-bold text-brand">0{i + 1}</span>
                     {step}
                   </li>
                 ))}
               </ol>
-
-              <ButtonLink href={packHref} variant="lime" size="lg" className="mt-10">
-                Composer mon pack <ArrowRight width={16} height={16} />
+              <ButtonLink href={packHref} size="lg" className="w-full sm:w-auto">
+                Composer mon pack — {formatEUR(bundleSavings)} d&apos;économie
               </ButtonLink>
-            </div>
-
-            <div className="relative lg:col-span-6">
-              <div className="mx-auto flex max-w-[340px] items-center justify-center md:max-w-[520px]">
-                {[products[3] ?? products[0], products[4] ?? products[1]].map((p, i) =>
-                  p ? (
-                    <div
-                      key={p.id + i}
-                      className={`relative aspect-[4/5] w-1/2 overflow-hidden rounded-[var(--radius-md)] bg-studio shadow-[var(--shadow-pop)] ${i === 0 ? "-rotate-3 translate-y-4" : "rotate-3 -ml-6"}`}
-                    >
-                      <Image src={p.images[0]?.url ?? ""} alt={p.images[0]?.alt ?? p.name} fill sizes="(min-width: 768px) 25vw, 50vw" className={`object-cover ${artClass(p.images[0], "pack")}`} />
-                    </div>
-                  ) : null,
-                )}
-              </div>
-              <span className="display absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-lime text-5xl text-ink md:size-20" aria-hidden>
-                +
-              </span>
             </div>
           </div>
         </section>
       )}
 
-      {/* ---------- DETAILS / EDITORIAL ---------- */}
+      {/* ---------- CAMPAIGN / LA VESTE ---------- */}
       {lead && (
-        <section id="details" aria-labelledby="details-title" className="container-x py-16 md:py-28">
-          <div className="grid items-center gap-10 lg:grid-cols-12 md:gap-12">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] bg-studio lg:col-span-6 lg:aspect-[4/5]">
-              <Image
-                src={lead.images[2]?.url ?? lead.images[0]?.url ?? ""}
-                alt={lead.images[2]?.alt ?? lead.name}
-                fill
-                sizes="(min-width: 768px) 50vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="lg:col-span-5 lg:col-start-8">
-              <p className="eyebrow text-muted">La veste</p>
-              <h2 id="details-title" className="display mt-3 text-[64px] md:text-7xl lg:text-8xl">
+        <section id="details" aria-labelledby="details-title" className="container-x scroll-mt-24 py-20 lg:py-28">
+          <div className="grid items-end gap-[18px] lg:grid-cols-[4fr_3fr_3fr]">
+            <Shot product={pick("rose", 1)} className="hidden aspect-[4/5] rounded-2xl lg:block" sizes="(min-width: 1024px) 38vw, 100vw" />
+            <div>
+              <p className="lab">La veste</p>
+              <h2 id="details-title" className="display mt-4 text-[44px] uppercase lg:text-[58px]">
                 Légère.
                 <br />
                 Ample.
                 <br />
-                <span className="text-brand">Zippée.</span>
+                Zippée.
               </h2>
-              <p className="mt-6 text-[17px] leading-relaxed text-ink-2">{lead.description}</p>
-              <ul className="mt-8 divide-y divide-line border-y border-line">
-                {lead.details.map((d, i) => (
-                  <li key={d} className="flex items-center gap-5 py-4">
-                    <span className="eyebrow w-6 text-muted">0{i + 1}</span>
-                    <span className="font-display text-lg font-semibold uppercase [font-variation-settings:'wdth'_90]">{d}</span>
+              <p className="mt-5 text-ink-2">{lead.description}</p>
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {lead.details.map((d) => (
+                  <li key={d} className="rounded-full border border-line px-3.5 py-2 text-[13px] text-ink-2">
+                    {d}
                   </li>
                 ))}
               </ul>
-              {lead.material && <p className="mt-6 text-sm text-muted">Composition : {lead.material}</p>}
+              <Shot product={pick("vert", 0)} className="mt-8 hidden aspect-[3/4] rounded-2xl lg:block" sizes="28vw" />
+            </div>
+            <Shot product={pick("jaune", 5)} className="hidden aspect-[3/4] rounded-2xl lg:block" sizes="28vw" />
+            <div className="grid grid-cols-2 gap-2.5 lg:hidden">
+              <Shot product={pick("rose", 1)} className="aspect-[4/5] rounded-2xl" sizes="50vw" />
+              <Shot product={pick("jaune", 5)} className="aspect-[4/5] rounded-2xl" sizes="50vw" />
             </div>
           </div>
         </section>
       )}
 
+      {/* ---------- BENEFITS ---------- */}
+      <section aria-label="Nos engagements" className="container-x">
+        <ul className="grid grid-cols-2 gap-x-[18px] gap-y-8 lg:grid-cols-4">
+          {benefits.map(({ title, text }) => (
+            <li key={title} className="border-t border-brand pt-5">
+              <h3 className="font-display text-base font-bold uppercase lg:text-lg">{title}</h3>
+              <p className="mt-1.5 text-sm text-muted">{text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <Testimonials items={testimonials} />
 
-      <Faq items={settings.faq} />
-
-      {/* ---------- CONTACT ---------- */}
-      <section id="contact" aria-labelledby="contact-title" className="bg-brand text-paper">
-        <div className="container-x grid gap-12 py-20 lg:grid-cols-12 md:py-28">
-          <div className="lg:col-span-5">
-            <p className="eyebrow text-lime">Contact</p>
-            <h2 id="contact-title" className="display mt-3 text-6xl md:text-7xl lg:text-8xl">
-              Une question ?
-            </h2>
-            <p className="mt-6 max-w-sm text-[17px] leading-relaxed text-paper/80">
-              Une hésitation sur la taille, une commande, un échange : laisse-nous ton e-mail et ton message, on te répond
-              au plus vite.
-            </p>
-            <a href={`mailto:${settings.contactEmail}`} className="link-underline mt-6 inline-block text-sm text-paper">
-              {settings.contactEmail}
-            </a>
-          </div>
-          <div className="lg:col-span-6 lg:col-start-7">
-            <ContactForm />
-          </div>
-        </div>
+      {/* ---------- FAQ + CONTACT ---------- */}
+      <section className="container-x grid gap-[18px] py-20 lg:grid-cols-2 lg:py-28">
+        <Faq items={settings.faq} />
+        <section id="contact" aria-labelledby="contact-title" className="scroll-mt-24 rounded-[18px] border border-line bg-paper-2 p-6 sm:p-10">
+          <p className="lab">Contact</p>
+          <h2 id="contact-title" className="display mb-3 mt-3 text-[24px] uppercase sm:text-[36px] lg:text-[44px]">
+            Une question ?
+          </h2>
+          <p className="mb-6 text-ink-2">
+            Une hésitation sur la taille, une commande, un échange : écris-nous, on te répond au plus vite.
+          </p>
+          <ContactForm />
+        </section>
       </section>
     </>
   );

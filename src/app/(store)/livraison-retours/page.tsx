@@ -3,7 +3,7 @@ import { getSettings } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Livraison & retours",
-  description: "Délais de livraison, frais et conditions de retour KALT.",
+  description: "Délais de livraison, frais et conditions de retour Rio District.",
 };
 
 export default async function ShippingPage() {
@@ -11,7 +11,7 @@ export default async function ShippingPage() {
   return (
     <div className="container-x py-12 md:py-20">
       <div className="mx-auto max-w-2xl">
-        <h1 className="display text-6xl md:text-8xl">Livraison & retours</h1>
+        <h1 className="display text-[30px] uppercase sm:text-[40px] md:text-[60px]">Livraison & retours</h1>
         <section className="mt-10">
           <h2 className="eyebrow text-muted">Livraison</h2>
           <p className="mt-3 text-[17px] leading-relaxed">{s.shipping.details}</p>

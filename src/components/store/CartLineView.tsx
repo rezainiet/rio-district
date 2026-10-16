@@ -50,7 +50,7 @@ function ItemEditor({
           const fallback = next?.sizes.find((s) => s.available)?.label ?? size;
           onChange(e.target.value, keep ? size : fallback);
         }}
-        className="h-9 rounded-[var(--radius-sm)] border border-line-strong bg-white/60 pl-2 pr-7 text-[13px]"
+        className="h-10 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-2.5 pr-7 text-sm"
       >
         {!product && <option value={productId}>Indisponible</option>}
         {options.map((p) => (
@@ -64,7 +64,7 @@ function ItemEditor({
         id={`${id}-size`}
         value={size}
         onChange={(e) => onChange(productId, e.target.value as Size)}
-        className="h-9 rounded-[var(--radius-sm)] border border-line-strong bg-white/60 pl-2 pr-7 text-[13px]"
+        className="h-10 rounded-[var(--radius-sm)] border border-line-strong bg-paper-3 pl-2.5 pr-7 text-sm"
       >
         {(product?.sizes ?? []).map((s) => (
           <option key={s.label} value={s.label} disabled={!s.available}>
@@ -162,10 +162,10 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
         )}
 
         <div className="mt-3 flex items-center justify-between">
-          <div className="flex h-9 items-center rounded-full border border-line-strong" role="group" aria-label="Quantité">
+          <div className="flex h-10 items-center rounded-full border border-line-strong" role="group" aria-label="Quantité">
             <button
               type="button"
-              className="grid size-9 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
+              className="grid size-10 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
               onClick={() => setQuantity(line.key, line.quantity - 1)}
               disabled={line.quantity <= 1}
               aria-label="Diminuer la quantité"
@@ -177,7 +177,7 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
             </span>
             <button
               type="button"
-              className="grid size-9 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
+              className="grid size-10 place-items-center rounded-full hover:bg-studio disabled:opacity-30"
               onClick={() => setQuantity(line.key, line.quantity + 1)}
               disabled={line.quantity >= 10}
               aria-label="Augmenter la quantité"
@@ -188,7 +188,7 @@ export function CartLineView({ line, compact = false }: { line: CartLine; compac
           <button
             type="button"
             onClick={() => remove(line.key)}
-            className="text-xs text-muted underline underline-offset-4 hover:text-ink"
+            className="-m-3 p-3 text-xs text-muted underline underline-offset-4 hover:text-ink"
           >
             Retirer
           </button>

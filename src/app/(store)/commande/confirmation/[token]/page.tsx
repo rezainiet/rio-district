@@ -37,18 +37,18 @@ export default async function ConfirmationPage({ params }: PageProps<"/commande/
           <CheckIcon width={26} height={26} />
         </span>
         <p className="eyebrow mt-6 text-muted">Demande n° {order.number}</p>
-        <h1 className="display mt-2 text-6xl md:text-8xl">Merci, c&apos;est noté.</h1>
+        <h1 className="display mt-2 text-[30px] uppercase sm:text-[40px] md:text-[60px]">Merci, c&apos;est noté.</h1>
         <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink-2">
           Ta demande de commande est bien enregistrée. Nous revenons vers toi à <strong>{order.customer.email}</strong> pour la
           confirmer et t&apos;indiquer comment régler.
         </p>
 
         <dl className="mt-8 grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-line bg-line sm:grid-cols-2">
-          <div className="bg-[#fbf9f4] p-4">
+          <div className="bg-paper-2 p-4">
             <dt className="eyebrow text-muted">Statut</dt>
             <dd className="mt-1 font-semibold">{STATUS_LABEL[order.status] ?? order.status}</dd>
           </div>
-          <div className="bg-[#fbf9f4] p-4">
+          <div className="bg-paper-2 p-4">
             <dt className="eyebrow text-muted">Paiement</dt>
             <dd className="mt-1 font-semibold">{paid ? "Payée" : "Non payée — aucun montant prélevé"}</dd>
           </div>

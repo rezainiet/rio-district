@@ -6,12 +6,12 @@ type Variant = "primary" | "brand" | "lime" | "outline" | "ghost" | "light" | "d
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-display font-semibold uppercase tracking-[0.12em] [font-variation-settings:'wdth'_110] rounded-[var(--radius-sm)] transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-[var(--ease-out-soft)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 select-none whitespace-nowrap";
+  "ui-btn inline-flex items-center justify-center gap-2 font-display font-semibold uppercase tracking-[0.12em] [font-variation-settings:'wdth'_110] rounded-[var(--btn-radius,var(--radius-sm))] transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-[var(--ease-out-soft)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 select-none whitespace-nowrap";
 
 const variants: Record<Variant, string> = {
   primary: "bg-ink text-paper hover:bg-brand",
   brand: "bg-brand text-white hover:bg-brand-ink",
-  lime: "bg-lime text-ink hover:bg-[#c7e43c]",
+  lime: "bg-lime text-[#121212] hover:brightness-95",
   outline: "border border-ink text-ink hover:bg-ink hover:text-paper",
   ghost: "text-ink hover:bg-paper-2",
   light: "bg-paper text-ink hover:bg-white",

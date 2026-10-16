@@ -1,32 +1,26 @@
 import type { FaqItem } from "@/lib/defaults";
-import { PlusIcon } from "@/components/ui/icons";
 
-export function Faq({ items, id = "faq" }: { items: FaqItem[]; id?: string }) {
+/** FAQ panel (Dark Premium): accordion inside a rounded surface. The parent decides the layout. */
+export function Faq({ items, id = "faq", className = "" }: { items: FaqItem[]; id?: string; className?: string }) {
   if (items.length === 0) return null;
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="container-x py-20 md:py-28">
-      <div className="grid gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-4">
-          <p className="eyebrow text-muted">FAQ</p>
-          <h2 id={`${id}-title`} className="display mt-3 text-5xl md:text-7xl">
-            Questions
-            <br />
-            fréquentes.
-          </h2>
-        </div>
-        <div className="faq divide-y divide-line border-y border-line lg:col-span-8">
-          {items.map((item, i) => (
-            <details key={i} className="group">
-              <summary className="flex min-h-16 list-none items-center justify-between gap-6 py-5 text-left">
-                <span className="font-display text-lg font-semibold [font-variation-settings:'wdth'_92] md:text-xl">{item.question}</span>
-                <span className="faq-icon grid size-9 shrink-0 place-items-center rounded-full border border-line-strong transition-transform duration-300 group-hover:border-ink">
-                  <PlusIcon width={16} height={16} />
-                </span>
-              </summary>
-              <p className="max-w-2xl pb-6 pr-12 text-[15px] leading-relaxed text-ink-2">{item.answer}</p>
-            </details>
-          ))}
-        </div>
+    <section id={id} aria-labelledby={`${id}-title`} className={`scroll-mt-24 rounded-[18px] border border-line bg-paper-2 p-6 sm:p-10 ${className}`}>
+      <p className="lab">FAQ</p>
+      <h2 id={`${id}-title`} className="display mt-3 text-[24px] uppercase sm:text-[36px] lg:text-[44px]">
+        Questions fréquentes
+      </h2>
+      <div className="faq mt-6">
+        {items.map((item, i) => (
+          <details key={i} className="group border-t border-line">
+            <summary className="flex min-h-14 list-none items-center justify-between gap-6 py-4 text-left">
+              <span className="text-[15px] font-medium sm:text-base">{item.question}</span>
+              <span className="faq-icon shrink-0 text-xl leading-none text-brand transition-transform duration-300" aria-hidden>
+                +
+              </span>
+            </summary>
+            <p className="max-w-2xl pb-5 pr-10 text-[15px] leading-relaxed text-ink-2">{item.answer}</p>
+          </details>
+        ))}
       </div>
     </section>
   );

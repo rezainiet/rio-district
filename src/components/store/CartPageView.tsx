@@ -13,7 +13,7 @@ export function CartPageView() {
 
   return (
     <div className="container-x py-10 md:py-16">
-      <h1 className="display text-6xl md:text-8xl">Panier</h1>
+      <h1 className="display text-[30px] uppercase sm:text-[40px] md:text-[60px]">Panier</h1>
 
       {!hydrated ? (
         <div className="mt-10 grid gap-4" aria-busy="true" aria-label="Chargement du panier">
@@ -35,7 +35,7 @@ export function CartPageView() {
             ))}
           </div>
           <aside className="lg:col-span-5" aria-label="Récapitulatif">
-            <div className="rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] p-5 lg:sticky lg:top-24 md:p-6">
+            <div className="rounded-[var(--radius-md)] border border-line bg-paper-2 p-5 lg:sticky lg:top-24 md:p-6">
               <h2 className="eyebrow mb-4 text-muted">Récapitulatif</h2>
               <CartSummary quote={quote} shippingLabel={config.shippingSummary.split(",")[0]} />
               <ButtonLink

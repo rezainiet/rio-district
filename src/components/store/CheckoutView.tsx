@@ -148,7 +148,7 @@ export function CheckoutView() {
   if (lines.length === 0) {
     return (
       <div className="container-x py-20 text-center">
-        <h1 className="display text-6xl">Commande</h1>
+        <h1 className="display text-[30px] uppercase sm:text-[40px]">Commande</h1>
         <p className="mt-4 text-muted">Ton panier est vide.</p>
         <ButtonLink href="/#collection" className="mt-6">Voir la collection</ButtonLink>
       </div>
@@ -171,7 +171,7 @@ export function CheckoutView() {
         <span aria-hidden>→</span>
         <span>Confirmation</span>
       </nav>
-      <h1 className="display mt-4 text-6xl md:text-8xl">Commande</h1>
+      <h1 className="display mt-4 text-[30px] uppercase sm:text-[40px] md:text-[60px]">Commande</h1>
 
       <div className="mt-6 flex gap-3 rounded-[var(--radius-md)] border border-brand/30 bg-brand/[0.06] p-4 text-sm leading-relaxed text-ink-2">
         <InfoIcon className="mt-0.5 shrink-0 text-brand" />
@@ -185,7 +185,7 @@ export function CheckoutView() {
       ) : (
         <>
         {/* Mobile: the order and its total stay visible before the form. */}
-        <details className="faq group mt-6 rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] lg:hidden">
+        <details className="faq group mt-6 rounded-[var(--radius-md)] border border-line bg-paper-2 lg:hidden">
           <summary className="flex min-h-14 list-none items-center justify-between gap-3 px-4">
             <span className="flex items-center gap-2 text-sm font-semibold">
               Ta commande · {quote.itemsCount} article{quote.itemsCount > 1 ? "s" : ""}
@@ -263,14 +263,14 @@ export function CheckoutView() {
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">
-            <div className="rounded-[var(--radius-md)] border border-line bg-[#fbf9f4] p-5 md:p-6 lg:sticky lg:top-24">
+            <div className="rounded-[var(--radius-md)] border border-line bg-paper-2 p-5 md:p-6 lg:sticky lg:top-24">
               <h2 className="eyebrow mb-4 text-muted">03 · Ta commande</h2>
               <ul className="divide-y divide-line border-y border-line" aria-busy={quoteState === "loading"}>
                 {quote.lines.map((l, i) => (
                   <li key={i} className="flex gap-3 py-3">
                     <div className="flex shrink-0 -space-x-4">
                       {l.items.map((it, j) => (
-                        <div key={j} className="relative h-14 w-11 overflow-hidden rounded-[var(--radius-xs)] bg-studio ring-2 ring-[#fbf9f4]">
+                        <div key={j} className="relative h-14 w-11 overflow-hidden rounded-[var(--radius-xs)] bg-studio ring-2 ring-paper-2">
                           {(productMap.get(it.productId)?.images[0]?.url ?? it.image) && (
                             <Image src={productMap.get(it.productId)?.images[0]?.url ?? it.image} alt="" fill sizes="44px" className="object-cover" />
                           )}

@@ -16,7 +16,8 @@
     "screenshots": "tsx scripts/screenshots.ts",
     "demo:orders": "tsx scripts/demo-orders.ts",
     "images:fetch": "tsx scripts/fetch-reference-images.ts",
-    "images:migrate": "tsx scripts/migrate-product-images.ts"
+    "images:migrate": "tsx scripts/migrate-product-images.ts",
+    "qa:mobile": "tsx scripts/qa-mobile.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

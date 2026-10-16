@@ -81,7 +81,7 @@ async function nextOrderNumber() {
     { $inc: { seq: 1 } },
     { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
   );
-  return `KALT-${String(10000 + counter.seq)}`;
+  return `RD-${String(10000 + counter.seq)}`;
 }
 
 export type OrderRequest = z.output<typeof orderRequestSchema>;
