@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept 3 — Minimal Scandinavian · KALT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="../shared.js"></script>
+<style>
+  /* Quiet room: warm stone neutrals, sage accent, light weights, lots of air, 2px radii. */
+  :root { --bg:#f1efeb; --card:#e7e4de; --paper:#fbfaf8; --ink:#2b2a28; --mute:#8b867e; --line:#dcd8d1; --sage:#6f8a72; --sage-soft:#dfe5dc;
+          --font:"Hanken Grotesk", "Helvetica Neue", system-ui, sans-serif; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { background:var(--bg); color:var(--ink); font:400 15px/1.7 var(--font) }
+  img { display:block; width:100%; height:100%; object-fit:cover }
+  a { color:inherit; text-decoration:none }
+  .wrap { max-width:1280px; margin:0 auto; padding-inline:48px }
+  .small { font-size:13px; color:var(--mute) }
+  .btn { display:inline-flex; align-items:center; justify-content:center; height:50px; padding:0 28px; border-radius:2px; background:var(--ink); color:var(--paper); font:500 14px/1 var(--font); white-space:nowrap }
+  .btn.sage { background:var(--sage) }
+  .tlink { font-weight:500; border-bottom:1px solid var(--ink); padding-bottom:3px }
+  .ph { background:var(--card); border-radius:2px; overflow:hidden }
+
+  .ann { text-align:center; font-size:12.5px; color:var(--mute); padding:10px 0; border-bottom:1px solid var(--line) }
+  .ann span + span::before { content:""; display:inline-block; width:3px; height:3px; border-radius:50%; background:var(--mute); margin:0 16px; vertical-align:3px }
+  header .wrap { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; height:76px }
+  .logo { font:500 22px/1 var(--font); letter-spacing:.02em }
+  header nav { display:flex; gap:34px; font-size:14px }
+  header .r { justify-self:end; display:flex; gap:26px; font-size:14px }
+
+  .hero { padding:56px 0 120px }
+  .hero .wrap { display:grid; grid-template-columns:5fr 6fr; gap:96px; align-items:center }
+  .hero h1 { font:300 76px/1.02 var(--font); letter-spacing:-.03em }
+  .hero h1 span { color:var(--sage) }
+  .hero p { font-size:18px; color:#5b5852; max-width:420px; margin:28px 0 40px; line-height:1.65 }
+  .offer { display:flex; gap:40px; margin-bottom:44px }
+  .offer b { display:block; font:400 30px/1.2 var(--font); margin-top:4px }
+  .offer .s b { color:var(--sage) }
+  .hero .ph { aspect-ratio:4/5 }
+  .dots { display:flex; gap:22px; margin-top:22px; justify-content:flex-end }
+  .dots span { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--mute) }
+  .dots i { width:12px; height:12px; border-radius:50%; box-shadow:0 0 0 1px #0002 }
+  .dots span.on { color:var(--ink) } .dots span.on i { box-shadow:0 0 0 1px var(--bg), 0 0 0 2px var(--ink) }
+
+  .h2 { font:300 48px/1.1 var(--font); letter-spacing:-.02em }
+  .head { display:flex; justify-content:space-between; align-items:end; margin-bottom:44px }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:64px 36px }
+  .card .ph { aspect-ratio:4/5 }
+  .card .meta { display:flex; justify-content:space-between; margin-top:16px }
+  .card h3 { font:400 16px/1.4 var(--font) }
+  .card .p { text-align:right; font-size:16px }
+  .card .p small { display:block; font-size:12.5px; color:var(--sage) }
+
+  .pack { margin-block:140px }
+  .pack .box { background:var(--sage-soft); border-radius:2px; display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:64px; padding:64px }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:14px } .pair .ph { aspect-ratio:3/4; background:#d3d9cf }
+  .pack .h2 { margin:14px 0 18px }
+  .pack .price { display:flex; align-items:baseline; gap:16px; margin:26px 0 30px }
+  .pack .price b { font:300 64px/1 var(--font); letter-spacing:-.02em } .pack .price s { color:var(--mute) }
+  .pill { display:inline-block; background:var(--paper); color:var(--sage); font-size:12.5px; font-weight:500; padding:5px 12px; border-radius:20px }
+
+  .story .wrap { display:grid; grid-template-columns:7fr 5fr; gap:96px; align-items:center }
+  .story .ph { aspect-ratio:5/4 }
+  .story p.lead { font:300 30px/1.35 var(--font); letter-spacing:-.01em; margin:18px 0 34px }
+  .list div { display:flex; justify-content:space-between; padding:15px 0; border-top:1px solid var(--line) }
+  .list div:last-child { border-bottom:1px solid var(--line) }
+
+  .benefits { margin:140px 0 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line) }
+  .benefits .wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:36px; padding-block:48px }
+  .benefits svg { width:26px; height:26px; stroke:var(--sage); fill:none; stroke-width:1.4; margin-bottom:14px }
+  .benefits h4 { font:500 15px/1.3 var(--font) }
+
+  .lower { padding:130px 0 }
+  .lower .wrap { display:grid; grid-template-columns:1fr 1fr; gap:110px }
+  .faq div { display:flex; justify-content:space-between; padding:20px 0; border-top:1px solid var(--line); font-size:16px }
+  .faq div:last-child { border-bottom:1px solid var(--line) }
+  .field { background:var(--paper); border-radius:2px; padding:16px 18px; color:var(--mute); margin-bottom:12px }
+
+  footer { border-top:1px solid var(--line); padding:56px 0 30px }
+  footer .wrap { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:30px }
+  footer li { list-style:none; font-size:14px; line-height:2.1 } footer h5 { font:500 13px/1 var(--font); color:var(--mute); margin-bottom:14px }
+  footer .b { grid-column:1/-1; display:flex; justify-content:space-between; margin-top:44px; font-size:12.5px; color:var(--mute) }
+
+  @media (max-width:700px) {
+    .wrap { padding-inline:20px } header nav { display:none } header .wrap { grid-template-columns:1fr auto; height:60px } header .r span.s { display:none }
+    .ann span:nth-child(n+2) { display:none }
+    .hero { padding:16px 0 70px } .hero .wrap { grid-template-columns:1fr; gap:30px } .hero .wrap > div:last-child { order:-1 }
+    .hero h1 { font-size:40px } .hero p { font-size:16px; margin:18px 0 26px } .offer { margin-bottom:28px } .offer b { font-size:24px }
+    .btns { display:grid !important; gap:14px; justify-items:center } .btn { width:100% } .dots { justify-content:flex-start; flex-wrap:wrap; gap:12px 16px }
+    .h2 { font-size:34px } .grid { grid-template-columns:1fr 1fr; gap:36px 14px } .card .meta { display:block } .card .p { text-align:left }
+  }
+</style>
+</head>
+<body>
+<div class="ann" id="ann"></div>
+<header><div class="wrap">
+  <a class="logo" href="#">kalt</a>
+  <nav id="nav"></nav>
+  <div class="r"><span class="s">Recherche</span><span>Panier (0)</span></div>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <span class="small">Collection Brésil · 6 coloris</span>
+    <h1 style="margin-top:16px">Une veste.<br>Six couleurs.<br><span>Deux pour 24,95 €.</span></h1>
+    <p>Un coupe-vent léger à la coupe ample, zippé jusqu'au col. Simple à porter, facile à choisir, du XS au 3XL.</p>
+    <div class="offer"><div class="small">La veste<b id="p1"></b></div><div class="small s">Le pack de deux<b id="p2"></b></div></div>
+    <div class="btns" style="display:flex; gap:30px; align-items:center"><a class="btn" href="#">Choisir ma couleur</a><a class="tlink" href="#">Composer un pack</a></div>
+  </div>
+  <div>
+    <div class="ph"><img id="hero" alt=""></div>
+    <div class="dots" id="dots"></div>
+  </div>
+</div></section>
+
+<section class="wrap" id="collection">
+  <div class="head"><h2 class="h2">La collection</h2><a class="tlink" href="#">Guide des tailles</a></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="wrap pack"><div class="box">
+  <div class="pair"><div class="ph"><img id="a" alt=""></div><div class="ph"><img id="b" alt=""></div></div>
+  <div>
+    <span class="pill">Pack 2 vestes</span>
+    <h2 class="h2">Pourquoi choisir<br>une seule couleur ?</h2>
+    <p style="color:#5b5852; max-width:400px">Deux vestes, deux couleurs, deux tailles si besoin. Tu composes ton pack directement depuis la fiche produit.</p>
+    <div class="price"><b id="pk"></b><s id="pkf"></s><span class="pill" id="pks"></span></div>
+    <a class="btn sage" href="#">Composer mon pack</a>
+  </div>
+</div></section>
+
+<section class="story"><div class="wrap">
+  <div class="ph"><img id="story" alt=""></div>
+  <div><span class="small">La veste</span>
+    <p class="lead">Légère quand il fait doux, utile quand le vent se lève. Une pièce simple qui va avec tout.</p>
+    <div class="list" id="list"></div></div>
+</div></section>
+
+<section class="benefits"><div class="wrap" id="benefits"></div></section>
+
+<section class="lower"><div class="wrap">
+  <div><h2 class="h2" style="margin-bottom:34px">Questions fréquentes</h2><div class="faq" id="faq"></div></div>
+  <div><h2 class="h2" style="margin-bottom:14px">Une question ?</h2><p style="color:#5b5852; margin-bottom:30px">Écris-nous, on répond rapidement.</p>
+    <div class="field">Ton e-mail</div><div class="field" style="height:120px">Ton message</div><a class="btn" href="#">Envoyer</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div><span class="logo">kalt</span><p class="small" style="margin-top:12px">Vestes Brésil — coupe-vent léger, six coloris.</p></div>
+  <div><h5>Coloris</h5><ul id="fc"></ul></div>
+  <div><h5>Aide</h5><ul><li>Livraison & retours</li><li>Guide des tailles</li><li>FAQ</li><li>Contact</li></ul></div>
+  <div><h5>Contact</h5><ul><li>contact@kaltshop.club</li><li>Instagram</li><li>TikTok</li></ul></div>
+  <div class="b"><span>© 2026 kalt</span><span>Prix TTC · Paiement en ligne bientôt disponible</span></div>
+</div></footer>
+
+<script>
+  const K = window.KALT, $ = (id) => document.getElementById(id);
+  $("ann").innerHTML = K.announcement.map((a) => `<span>${a}</span>`).join("");
+  $("nav").innerHTML = ["Collection", "Pack", "La veste", "Aide"].map((n) => `<a href="#">${n}</a>`).join("");
+  $("p1").textContent = K.price; $("p2").textContent = K.pack;
+  $("hero").src = K.img("blanc");
+  $("dots").innerHTML = K.products.map((p) => `<span class="${p.slug === "blanc" ? "on" : ""}"><i style="background:${p.hex}"></i>${p.color}</span>`).join("");
+  $("grid").innerHTML = K.products.map((p) => `<article class="card"><div class="ph"><img src="${K.img(p.slug)}" alt="${p.name}"></div>
+    <div class="meta"><h3>${p.name}<br><span class="small">${p.color}</span></h3><div class="p">${K.price}<small>ou 2 pour ${K.pack}</small></div></div></article>`).join("");
+  $("a").src = K.img("vert"); $("b").src = K.img("rose");
+  $("pk").textContent = K.pack; $("pkf").textContent = K.packFull; $("pks").textContent = `${K.packSave} d'économie`;
+  $("story").src = K.img("bleu");
+  $("list").innerHTML = K.details.map((d) => `<div><span>${d}</span><span class="small">✓</span></div>`).join("");
+  const icons = ['<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/>','<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/>','<path d="M3 15L15 3l6 6L9 21z"/><path d="M7 11l2 2M10 8l2 2"/>','<circle cx="8" cy="10" r="4"/><circle cx="16" cy="14" r="4"/>'];
+  $("benefits").innerHTML = K.benefits.map(([t, d], i) => `<div><svg viewBox="0 0 24 24">${icons[i]}</svg><h4>${t}</h4><p class="small">${d}</p></div>`).join("");
+  $("faq").innerHTML = K.faq.map((q) => `<div><span>${q}</span><span class="small">+</span></div>`).join("");
+  $("fc").innerHTML = K.products.map((p) => `<li>${p.color}</li>`).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept 4 — Dark Premium · KALT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="../shared.js"></script>
+<style>
+  /* Night campaign: near-black stage, ivory type and CTAs, brass details, photos lit like a spotlight. */
+  :root { --bg:#0b0b0c; --s1:#131315; --s2:#1b1b1e; --ivory:#f2eee6; --mute:#8e8a82; --line:#2a2a2d; --brass:#c8a96a;
+          --display:"Syne", "Arial Black", sans-serif; --body:"Manrope", system-ui, sans-serif; color-scheme:dark; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { background:var(--bg); color:var(--ivory); font:400 15px/1.65 var(--body) }
+  img { display:block; width:100%; height:100%; object-fit:cover }
+  a { color:inherit; text-decoration:none }
+  .wrap { max-width:1360px; margin:0 auto; padding-inline:40px }
+  .lab { font:600 11px/1 var(--body); letter-spacing:.22em; text-transform:uppercase; color:var(--brass) }
+  .disp { font-family:var(--display); text-transform:uppercase; letter-spacing:-.01em }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:12px; height:56px; padding:0 32px; border-radius:999px; background:var(--ivory); color:#0b0b0c; font:600 14px/1 var(--body); letter-spacing:.04em; white-space:nowrap }
+  .btn.ghost { background:transparent; color:var(--ivory); box-shadow:inset 0 0 0 1px #4a4a4e }
+  /* Photos were shot on grey: deepen them so they sit on black. */
+  .shot { background:#101012; overflow:hidden; position:relative }
+  .shot img { filter:brightness(.82) contrast(1.12) saturate(1.05) }
+  .shot::after { content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 35%, transparent 45%, rgba(11,11,12,.75) 100%) }
+
+  .ann { border-bottom:1px solid var(--line); text-align:center; padding:11px 0; color:var(--mute); font-size:12.5px; letter-spacing:.06em }
+  .ann span + span::before { content:"✦"; color:var(--brass); margin:0 18px; font-size:9px; vertical-align:2px }
+  header .wrap { display:flex; align-items:center; height:80px; gap:48px }
+  .logo { font:800 30px/1 var(--display); letter-spacing:.06em }
+  header nav { display:flex; gap:32px; flex:1; font-size:14px; color:#c9c5bd }
+  .cart { display:flex; gap:10px; align-items:center; font-size:14px } .cart b { background:var(--ivory); color:#000; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px }
+
+  .hero { position:relative; height:760px; overflow:hidden }
+  .hero .bgword { position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); font:800 300px/1 var(--display); color:#161618; letter-spacing:-.02em; white-space:nowrap }
+  .hero .shot { position:absolute; left:55%; top:20px; bottom:0; width:600px; transform:translateX(-50%); background:transparent }
+  .hero .shot img { object-position:50% 30%; -webkit-mask-image:radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%); mask-image:radial-gradient(70% 72% at 50% 46%, #000 52%, transparent 78%) }
+  .hero .shot::after { display:none }
+  .hero .left { position:absolute; left:40px; top:150px; max-width:340px; z-index:2 }
+  .hero h1 { font:800 62px/.94 var(--display); text-transform:uppercase; margin:18px 0 22px }
+  .hero h1 em { font-style:normal; color:var(--brass) }
+  .hero .left p { color:#b9b5ad; font-size:16px }
+  .buycard { position:absolute; right:40px; bottom:60px; width:360px; background:var(--s1); border:1px solid var(--line); border-radius:18px; padding:26px }
+  .buycard .row { display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; border-bottom:1px solid var(--line) }
+  .buycard .row b { font:700 30px/1 var(--display) } .buycard .row.g b { color:var(--brass) }
+  .sw { display:flex; gap:10px; margin:18px 0 20px } .sw i { width:26px; height:26px; border-radius:50%; box-shadow:0 0 0 1px #ffffff22 } .sw i.on { box-shadow:0 0 0 2px var(--bg), 0 0 0 3px var(--ivory) }
+  .scroll { position:absolute; left:40px; bottom:60px; display:flex; gap:12px; align-items:center; color:var(--mute); font-size:13px }
+
+  .sec { padding:110px 0 }
+  .head { display:flex; justify-content:space-between; align-items:end; margin-bottom:42px }
+  .head h2 { font:800 64px/.95 var(--display); text-transform:uppercase }
+  .row6 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px }
+  .card { background:var(--s1); border:1px solid var(--line); border-radius:16px; overflow:hidden }
+  .card .shot { aspect-ratio:1/1 }
+  .card .body { padding:20px 22px 22px; display:flex; justify-content:space-between; align-items:end }
+  .card h3 { font:700 20px/1.1 var(--display); text-transform:uppercase }
+  .card .p { text-align:right; font:600 18px/1 var(--body) } .card .p small { display:block; color:var(--brass); font-size:12px; margin-top:6px }
+  .card.feature { box-shadow:0 0 0 1px var(--brass) } .card .cta { display:flex; justify-content:space-between; background:var(--ivory); color:#000; padding:14px 22px; font-weight:600; font-size:14px }
+
+  .pack { background:var(--s1); border-top:1px solid var(--line); border-bottom:1px solid var(--line) }
+  .pack .wrap { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; padding-block:110px }
+  .stack { position:relative; height:540px }
+  .stack .shot { position:absolute; width:62%; aspect-ratio:4/5; border-radius:18px; border:1px solid var(--line) }
+  .stack .a { left:0; top:0 } .stack .b { right:0; bottom:0; box-shadow:0 40px 80px -30px #000 }
+  .pack h2 { font:800 72px/.94 var(--display); text-transform:uppercase; margin:18px 0 24px }
+  .bigp { display:flex; align-items:baseline; gap:18px; margin:30px 0 } .bigp b { font:800 96px/1 var(--display) } .bigp s { color:var(--mute); font-size:20px }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:36px }
+  .steps div { border:1px solid var(--line); border-radius:12px; padding:14px; font-size:14px; color:#c9c5bd } .steps b { display:block; color:var(--brass); font:700 13px/1 var(--display); margin-bottom:8px }
+
+  .camp .wrap { display:grid; grid-template-columns:4fr 3fr 3fr; gap:18px; align-items:end }
+  .camp .shot { border-radius:16px } .camp .t1 { aspect-ratio:4/5 } .camp .t2 { aspect-ratio:3/4; margin-bottom:80px } .camp .t3 { aspect-ratio:3/4 }
+  .camp h2 { font:800 58px/.95 var(--display); text-transform:uppercase; margin-bottom:22px }
+  .spec { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px } .spec span { border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:13px; color:#c9c5bd }
+
+  .ben .wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:18px }
+  .ben .wrap > div { border-top:1px solid var(--brass); padding-top:20px }
+  .ben h4 { font:700 18px/1.2 var(--display); text-transform:uppercase; margin-bottom:6px } .ben p { color:var(--mute); font-size:14px }
+
+  .lower .wrap { display:grid; grid-template-columns:1fr 1fr; gap:18px }
+  .panel { background:var(--s1); border:1px solid var(--line); border-radius:18px; padding:40px }
+  .panel h2 { font:800 44px/1 var(--display); text-transform:uppercase; margin:14px 0 26px }
+  .q { display:flex; justify-content:space-between; padding:18px 0; border-top:1px solid var(--line); font-size:16px } .q span:last-child { color:var(--brass) }
+  .f { background:var(--s2); border-radius:12px; padding:16px 18px; color:var(--mute); margin-bottom:10px }
+
+  footer { border-top:1px solid var(--line); margin-top:110px; padding:64px 0 30px }
+  footer .wrap { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:30px }
+  footer h5 { margin-bottom:16px } footer li { list-style:none; color:#bdb9b1; line-height:2.1; font-size:14px }
+  footer .b { grid-column:1/-1; display:flex; justify-content:space-between; color:var(--mute); font-size:12.5px; margin-top:40px; padding-top:20px; border-top:1px solid var(--line) }
+
+  @media (max-width:700px) {
+    .wrap { padding-inline:18px } header nav { display:none } header .wrap { height:64px; justify-content:space-between }
+    .ann span:nth-child(n+2) { display:none }
+    .hero { height:auto; padding:20px 18px 30px } .hero .bgword { font-size:120px; top:22% }
+    .hero .left { position:relative; left:0; top:0; max-width:none } .hero h1 { font-size:46px; margin:12px 0 }
+    .hero .shot { position:relative; left:0; transform:none; width:100%; height:420px; top:0 }
+    .buycard { position:relative; right:0; bottom:0; width:100%; margin-top:22px } .scroll { display:none }
+    .head { display:block } .head h2 { font-size:30px; margin-bottom:8px } .row6 { grid-template-columns:1fr 1fr; gap:10px } .card .body { display:block } .card .p { text-align:left; margin-top:8px }
+  }
+</style>
+</head>
+<body>
+<div class="ann" id="ann"></div>
+<header><div class="wrap">
+  <a class="logo" href="#">KALT</a>
+  <nav id="nav"></nav>
+  <a class="cart" href="#">Panier <b>0</b></a>
+</div></header>
+
+<section class="hero">
+  <div class="bgword">BRÉSIL</div>
+  <div class="shot"><img id="hero" alt=""></div>
+  <div class="left">
+    <span class="lab">Collection Brésil — 6 coloris</span>
+    <h1>La veste<br>de la <em>saison.</em></h1>
+    <p>Coupe-vent léger, coupe ample, zip intégral. Du XS au 3XL.</p>
+  </div>
+  <div class="scroll">↓ Faire défiler la collection</div>
+  <div class="buycard">
+    <span class="lab">Veste Brésil Noir</span>
+    <div class="row"><span>La veste</span><b id="p1"></b></div>
+    <div class="row g"><span>Les deux, au choix</span><b id="p2"></b></div>
+    <div class="sw" id="sw"></div>
+    <a class="btn" href="#" style="width:100%">Choisir ma taille →</a>
+    <a class="btn ghost" href="#" style="width:100%; margin-top:10px">Composer mon pack</a>
+  </div>
+</section>
+
+<section class="sec"><div class="wrap">
+  <div class="head"><h2>La collection</h2><span class="lab">Six coloris · une coupe</span></div>
+  <div class="row6" id="grid"></div>
+</div></section>
+
+<section class="pack"><div class="wrap">
+  <div class="stack"><div class="shot a"><img id="a" alt=""></div><div class="shot b"><img id="b" alt=""></div></div>
+  <div>
+    <span class="lab">Pack 2 vestes</span>
+    <h2>Deux couleurs.<br>Un seul prix.</h2>
+    <p style="color:#b9b5ad; max-width:420px; font-size:16px">Mélange les coloris, choisis une taille pour chacune. L'économie s'applique automatiquement.</p>
+    <div class="bigp"><b id="pk"></b><s id="pkf"></s></div>
+    <div class="steps"><div><b>01</b>Deux coloris</div><div><b>02</b>Deux tailles</div><div><b>03</b>Ta demande</div></div>
+    <a class="btn" href="#">Composer mon pack — <span id="pks"></span></a>
+  </div>
+</div></section>
+
+<section class="sec camp"><div class="wrap">
+  <div class="shot t1"><img id="c1" alt=""></div>
+  <div>
+    <span class="lab">La veste</span>
+    <h2 style="margin-top:14px">Légère.<br>Ample.<br>Zippée.</h2>
+    <p style="color:#b9b5ad">La pièce qui habille une tenue sans l'alourdir.</p>
+    <div class="spec" id="spec"></div>
+    <div class="shot t2" style="margin-top:30px; margin-bottom:0"><img id="c2" alt=""></div>
+  </div>
+  <div class="shot t3"><img id="c3" alt=""></div>
+</div></section>
+
+<section class="ben"><div class="wrap" id="ben"></div></section>
+
+<section class="sec lower"><div class="wrap">
+  <div class="panel"><span class="lab">FAQ</span><h2>Questions fréquentes</h2><div id="faq"></div></div>
+  <div class="panel"><span class="lab">Contact</span><h2>Une question ?</h2><div class="f">Ton e-mail</div><div class="f" style="height:110px">Ton message</div><a class="btn" href="#" style="width:100%">Envoyer</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div><div class="logo" style="font-size:64px">KALT</div><p style="color:var(--mute); margin-top:12px">Vestes Brésil — coupe-vent léger, six coloris.</p></div>
+  <div><h5 class="lab">Coloris</h5><ul id="fc"></ul></div>
+  <div><h5 class="lab">Aide</h5><ul><li>Livraison & retours</li><li>Guide des tailles</li><li>FAQ</li><li>Contact</li></ul></div>
+  <div><h5 class="lab">Suivre</h5><ul><li>Instagram</li><li>TikTok</li><li>contact@kaltshop.club</li></ul></div>
+  <div class="b"><span>© 2026 KALT</span><span>Prix TTC · Paiement en ligne bientôt disponible</span></div>
+</div></footer>
+
+<script>
+  const K = window.KALT, $ = (id) => document.getElementById(id);
+  $("ann").innerHTML = K.announcement.map((a) => `<span>${a}</span>`).join("");
+  $("nav").innerHTML = K.nav.map((n) => `<a href="#">${n}</a>`).join("");
+  $("hero").src = K.img("noir"); $("p1").textContent = K.price; $("p2").textContent = K.pack;
+  $("sw").innerHTML = K.products.map((p) => `<i class="${p.slug === "noir" ? "on" : ""}" style="background:${p.hex}"></i>`).join("");
+  $("grid").innerHTML = K.products.map((p, i) => `<article class="card ${i === 2 ? "feature" : ""}"><div class="shot"><img src="${K.img(p.slug)}" alt="${p.name}"></div>
+    <div class="body"><div><span class="lab" style="color:var(--mute)">${p.color}</span><h3 style="margin-top:8px">${p.name}</h3></div><div class="p">${K.price}<small>ou 2 pour ${K.pack}</small></div></div>
+    ${i === 2 ? `<div class="cta"><span>Choisir ma taille</span><span>→</span></div>` : ""}</article>`).join("");
+  $("a").src = K.img("blanc"); $("b").src = K.img("bleu");
+  $("pk").textContent = K.pack; $("pkf").textContent = K.packFull; $("pks").textContent = `${K.packSave} d'économie`;
+  $("c1").src = K.img("rose"); $("c2").src = K.img("vert"); $("c3").src = K.img("jaune");
+  $("spec").innerHTML = K.details.map((d) => `<span>${d}</span>`).join("");
+  $("ben").innerHTML = K.benefits.map(([t, d]) => `<div><h4>${t}</h4><p>${d}</p></div>`).join("");
+  $("faq").innerHTML = K.faq.map((q) => `<div class="q"><span>${q}</span><span>+</span></div>`).join("");
+  $("fc").innerHTML = K.products.map((p) => `<li>${p.color}</li>`).join("");
+</script>
+</body>
+</html>

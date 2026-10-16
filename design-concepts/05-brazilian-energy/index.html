@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept 5 — Brazilian Energy Premium · KALT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../shared.js"></script>
+<style>
+  /* Rio at golden hour: forest green ground, sun-yellow highlights, a touch of cobalt, arches and curves instead of boxes. */
+  :root { --green:#0b4d35; --green2:#0f5f42; --sun:#ffc93c; --sun2:#ffe08a; --cobalt:#2443a6; --sand:#fbf7ef; --ink:#10251c; --mute:#5f6f66; --line:#e5dfd2;
+          --display:"Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif; --body:"Figtree", system-ui, sans-serif; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { background:var(--sand); color:var(--ink); font:400 16px/1.6 var(--body) }
+  img { display:block; width:100%; height:100%; object-fit:cover }
+  a { color:inherit; text-decoration:none }
+  .wrap { max-width:1360px; margin:0 auto; padding-inline:40px }
+  .disp { font-family:var(--display); font-weight:800; letter-spacing:-.025em }
+  .eyebrow { font:700 12px/1 var(--body); letter-spacing:.14em; text-transform:uppercase }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; height:56px; padding:0 30px; border-radius:999px; font:700 15px/1 var(--body); white-space:nowrap }
+  .btn.sun { background:var(--sun); color:var(--ink) } .btn.dark { background:var(--green); color:#fff } .btn.out { box-shadow:inset 0 0 0 2px currentColor }
+  .arch { border-radius:999px 999px 24px 24px; overflow:hidden; background:#cfd6d2 }
+  .hl { position:relative; display:inline-block; z-index:0 } .hl::after { content:""; position:absolute; left:-4px; right:-6px; bottom:6%; height:34%; background:var(--sun); z-index:-1; border-radius:8px; transform:rotate(-1.5deg) }
+
+  .ann { background:var(--sun); color:var(--ink); text-align:center; padding:10px 0; font:600 13.5px/1 var(--body) }
+  .ann span + span::before { content:"✺"; margin:0 16px; color:var(--green) }
+  header { background:var(--green); color:#fff }
+  header .wrap { display:flex; align-items:center; height:78px; gap:46px }
+  .logo { font:800 32px/1 var(--display); letter-spacing:-.03em } .logo i { font-style:normal; color:var(--sun) }
+  header nav { flex:1; display:flex; gap:30px; font-weight:500; color:#d8e8df }
+  .cart { background:#ffffff1a; border-radius:999px; padding:10px 16px; font-weight:600 }
+
+  .hero { background:var(--green); color:#fff; position:relative; padding:56px 0 150px; overflow:hidden }
+  .hero .wrap { display:grid; grid-template-columns:6fr 6fr; gap:40px; align-items:center }
+  .sun-disc { position:absolute; right:-120px; top:-160px; width:620px; height:620px; border-radius:50%; background:radial-gradient(circle at 40% 40%, #ffd65c, #f2b52b 70%); opacity:.95 }
+  .hero h1 { font:800 112px/.9 var(--display); letter-spacing:-.04em }
+  .hero h1 .hl { color:var(--ink) }
+  .hero p { font-size:19px; color:#cfe3d7; max-width:470px; margin:26px 0 30px }
+  .offer { display:inline-flex; background:#ffffff14; border:1px solid #ffffff26; border-radius:22px; overflow:hidden; margin-bottom:32px }
+  .offer div { padding:16px 24px } .offer div + div { background:var(--sun); color:var(--ink) }
+  .offer b { display:block; font:800 34px/1.1 var(--display) }
+  .arches { position:relative; display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:16px; align-items:end; z-index:1 }
+  .arches .arch:nth-child(1) { aspect-ratio:3/5 } .arches .arch:nth-child(2) { aspect-ratio:3/5.4 } .arches .arch:nth-child(3) { aspect-ratio:3/5 }
+  .sticker { position:absolute; left:-30px; top:36%; width:132px; height:132px; border-radius:50%; background:var(--cobalt); color:#fff; display:grid; place-items:center; text-align:center; transform:rotate(-12deg); z-index:3; box-shadow:0 18px 40px -10px #0006 }
+  .sticker b { display:block; font:800 30px/1 var(--display) }
+  .wave { position:absolute; left:0; right:0; bottom:-1px; height:110px; color:var(--sand) }
+
+  .chips { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:-40px 0 0; position:relative; z-index:2 }
+  .chips span { display:flex; gap:10px; align-items:center; background:#fff; border-radius:999px; padding:10px 18px 10px 10px; font-weight:600; box-shadow:0 10px 30px -14px #0b4d3540 }
+  .chips i { width:26px; height:26px; border-radius:50%; box-shadow:inset 0 0 0 1px #0002 }
+
+  .sec { padding:100px 0 }
+  .head { text-align:center; margin-bottom:50px } .head h2 { font:800 68px/.95 var(--display); letter-spacing:-.03em; margin-top:12px }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:44px 30px }
+  .card .arch { aspect-ratio:4/5 }
+  .card .meta { display:flex; justify-content:space-between; align-items:center; margin-top:18px }
+  .card h3 { font:800 24px/1.1 var(--display); letter-spacing:-.02em }
+  .pill { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600; margin-top:8px }
+  .pill i { width:12px; height:12px; border-radius:50%; box-shadow:inset 0 0 0 1px #0002 }
+  .price { text-align:right } .price b { font:800 26px/1 var(--display) } .price small { display:block; color:var(--green); font-weight:600; font-size:13px; margin-top:6px }
+
+  .pack { background:var(--sun); border-radius:48px; margin:0 40px; position:relative; overflow:hidden }
+  .pack .wrap { display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; padding-block:90px }
+  .pack h2 { font:800 92px/.9 var(--display); letter-spacing:-.04em; margin:16px 0 22px }
+  .pack .duo { display:grid; grid-template-columns:1fr 1fr; gap:20px; position:relative }
+  .pack .duo .arch { aspect-ratio:3/4.6; background:#e9b42e }
+  .pack .plus { position:absolute; left:50%; top:52%; transform:translate(-50%,-50%); width:76px; height:76px; border-radius:50%; background:var(--green); color:var(--sun); display:grid; place-items:center; font:800 44px/1 var(--display) }
+  .bigp { display:flex; align-items:baseline; gap:18px; margin:26px 0 28px } .bigp b { font:800 100px/1 var(--display); letter-spacing:-.04em } .bigp s { font-size:20px; opacity:.6 }
+  .save { background:var(--green); color:var(--sun); border-radius:999px; padding:8px 16px; font-weight:700; font-size:14px }
+
+  .story .wrap { display:grid; grid-template-columns:5fr 7fr; gap:80px; align-items:center }
+  .story .arch { aspect-ratio:4/5 }
+  .story h2 { font:800 72px/.95 var(--display); letter-spacing:-.03em; margin:14px 0 22px } .story h2 span { color:var(--cobalt) }
+  .story p { font-size:18px; color:var(--mute); max-width:560px }
+  .tags { display:flex; flex-wrap:wrap; gap:10px; margin-top:30px } .tags span { background:var(--green); color:#fff; border-radius:999px; padding:12px 20px; font-weight:600 }
+  .tags span:nth-child(2) { background:var(--cobalt) } .tags span:nth-child(3) { background:var(--sun); color:var(--ink) }
+
+  .ben .wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:18px }
+  .ben .wrap > div { background:#fff; border:1px solid var(--line); border-radius:28px; padding:28px }
+  .ben .ic { width:52px; height:52px; border-radius:50%; background:var(--green); color:var(--sun); display:grid; place-items:center; font:800 20px/1 var(--display); margin-bottom:18px }
+  .ben h4 { font:800 22px/1.15 var(--display); margin-bottom:6px } .ben p { color:var(--mute); font-size:14.5px }
+
+  .lower .wrap { display:grid; grid-template-columns:7fr 5fr; gap:24px }
+  .lower h2 { font:800 52px/1 var(--display); letter-spacing:-.03em; margin:12px 0 26px }
+  .q { display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid var(--line); border-radius:20px; padding:20px 24px; margin-bottom:10px; font-weight:600; font-size:17px }
+  .q span:last-child { width:32px; height:32px; border-radius:50%; background:var(--sun); display:grid; place-items:center; font-weight:800 }
+  .contact { background:var(--green); color:#fff; border-radius:32px; padding:40px }
+  .f { background:#ffffff14; border-radius:16px; padding:16px 18px; color:#bcd6c8; margin-bottom:10px }
+
+  footer { background:var(--green); color:#fff; margin-top:100px; position:relative; padding:120px 0 34px }
+  footer .wave { top:-1px; bottom:auto; transform:scaleY(-1); color:var(--sand) }
+  footer .wrap { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:30px }
+  footer h5 { color:var(--sun); margin-bottom:14px } footer li { list-style:none; color:#cfe3d7; line-height:2.1 }
+  footer .b { grid-column:1/-1; display:flex; justify-content:space-between; color:#9fbfae; font-size:13px; border-top:1px solid #ffffff22; margin-top:40px; padding-top:20px }
+
+  @media (max-width:700px) {
+    .wrap { padding-inline:18px } header nav { display:none } header .wrap { height:62px; justify-content:space-between }
+    .ann span:nth-child(n+2) { display:none }
+    .hero { padding:26px 0 110px } .hero .wrap { grid-template-columns:1fr; gap:26px } .hero h1 { font-size:58px } .hero p { font-size:16px; margin:16px 0 20px }
+    .sun-disc { width:300px; height:300px; right:-170px; top:-40px } .offer b { font-size:26px } .offer div { padding:12px 16px }
+    .btns { display:grid !important; gap:10px } .sticker { width:96px; height:96px; left:auto; right:-6px; top:-20px } .sticker b { font-size:22px }
+    .chips { justify-content:flex-start; margin-top:-30px } .chips span { padding:7px 12px 7px 7px; font-size:13px } .chips i { width:18px; height:18px }
+    .sec { padding:64px 0 } .head h2 { font-size:44px } .grid { grid-template-columns:1fr 1fr; gap:28px 12px } .card h3 { font-size:17px } .card .meta { display:block } .price { text-align:left; margin-top:8px } .price b { font-size:20px }
+    .pack { margin:0 12px; border-radius:28px } .pack .wrap, .story .wrap, .lower .wrap { grid-template-columns:1fr; gap:30px } .pack h2 { font-size:52px } .bigp b { font-size:64px } .ben .wrap { grid-template-columns:1fr 1fr }
+  }
+</style>
+</head>
+<body>
+<div class="ann" id="ann"></div>
+<header><div class="wrap">
+  <a class="logo" href="#">kalt<i>.</i></a>
+  <nav id="nav"></nav>
+  <a class="cart" href="#">Panier · 0</a>
+</div></header>
+
+<section class="hero">
+  <div class="sun-disc"></div>
+  <div class="wrap">
+    <div style="position:relative; z-index:2">
+      <span class="eyebrow" style="color:var(--sun)">Collection Brésil · 6 coloris</span>
+      <h1 style="margin-top:18px">Le Brésil,<br>en six <span class="hl">couleurs.</span></h1>
+      <p>Un coupe-vent léger et ample, pensé pour les jours de soleil et les soirs de vent. Du XS au 3XL.</p>
+      <div class="offer"><div>La veste<b id="p1"></b></div><div>Les deux, au choix<b id="p2"></b></div></div>
+      <div class="btns" style="display:flex; gap:12px"><a class="btn sun" href="#">Choisir ma couleur →</a><a class="btn out" href="#">Composer mon pack</a></div>
+    </div>
+    <div class="arches" id="arches"><div class="sticker"><span>2 vestes<b id="st"></b></span></div></div>
+  </div>
+  <svg class="wave" viewBox="0 0 1440 110" preserveAspectRatio="none"><path fill="currentColor" d="M0 60 C 240 120 480 0 720 40 S 1200 110 1440 40 L1440 110 L0 110 Z"/></svg>
+</section>
+
+<div class="wrap chips" id="chips"></div>
+
+<section class="sec"><div class="wrap">
+  <div class="head"><span class="eyebrow" style="color:var(--green)">La collection</span><h2>Trouve <span class="hl">la tienne.</span></h2></div>
+  <div class="grid" id="grid"></div>
+</div></section>
+
+<section class="pack"><div class="wrap">
+  <div class="duo"><div class="arch"><img id="a" alt=""></div><div class="arch" style="margin-top:60px"><img id="b" alt=""></div><span class="plus">+</span></div>
+  <div>
+    <span class="eyebrow">Pack 2 vestes · mix & match</span>
+    <h2>Une seule couleur ? Impossible.</h2>
+    <p style="font-size:18px; max-width:440px">Deux vestes, deux coloris, deux tailles si tu veux. Le prix du pack s'applique tout seul.</p>
+    <div class="bigp"><b id="pk"></b><s id="pkf"></s></div>
+    <div style="display:flex; gap:16px; align-items:center"><a class="btn dark" href="#">Composer mon pack →</a><span class="save" id="pks"></span></div>
+  </div>
+</div></section>
+
+<section class="sec story"><div class="wrap">
+  <div class="arch"><img id="s" alt=""></div>
+  <div>
+    <span class="eyebrow" style="color:var(--green)">La veste</span>
+    <h2>Pensée pour le soleil,<br><span>prête pour le vent.</span></h2>
+    <p>Légère, ample, zippée jusqu'au col : la pièce qui habille une tenue sans l'alourdir, de la plage au centre-ville.</p>
+    <div class="tags" id="tags"></div>
+  </div>
+</div></section>
+
+<section class="ben"><div class="wrap" id="ben"></div></section>
+
+<section class="sec lower"><div class="wrap">
+  <div><span class="eyebrow" style="color:var(--green)">FAQ</span><h2>Questions fréquentes</h2><div id="faq"></div></div>
+  <div class="contact"><span class="eyebrow" style="color:var(--sun)">Contact</span><h2 style="color:#fff">Une question ?</h2>
+    <div class="f">Ton e-mail</div><div class="f" style="height:110px">Ton message</div><a class="btn sun" href="#" style="width:100%">Envoyer</a></div>
+</div></section>
+
+<footer>
+  <svg class="wave" viewBox="0 0 1440 110" preserveAspectRatio="none"><path fill="currentColor" d="M0 60 C 240 120 480 0 720 40 S 1200 110 1440 40 L1440 110 L0 110 Z"/></svg>
+  <div class="wrap">
+    <div><div class="logo" style="font-size:72px">kalt<i>.</i></div><p style="color:#cfe3d7; margin-top:10px">Vestes Brésil — coupe-vent léger, six coloris.</p></div>
+    <div><h5 class="eyebrow">Coloris</h5><ul id="fc"></ul></div>
+    <div><h5 class="eyebrow">Aide</h5><ul><li>Livraison & retours</li><li>Guide des tailles</li><li>FAQ</li><li>Contact</li></ul></div>
+    <div><h5 class="eyebrow">Suivre</h5><ul><li>Instagram</li><li>TikTok</li><li>contact@kaltshop.club</li></ul></div>
+    <div class="b"><span>© 2026 kalt</span><span>Prix TTC · Paiement en ligne bientôt disponible</span></div>
+  </div>
+</footer>
+
+<script>
+  const K = window.KALT, $ = (id) => document.getElementById(id);
+  $("ann").innerHTML = K.announcement.map((a) => `<span>${a}</span>`).join("");
+  $("nav").innerHTML = K.nav.map((n) => `<a href="#">${n}</a>`).join("");
+  $("p1").textContent = K.price; $("p2").textContent = K.pack; $("st").textContent = K.pack;
+  $("arches").insertAdjacentHTML("beforeend", ["vert","jaune","bleu"].map((s) => `<div class="arch"><img src="${K.img(s)}" alt=""></div>`).join(""));
+  $("chips").innerHTML = K.products.map((p) => `<span><i style="background:${p.hex}"></i>${p.color}</span>`).join("");
+  $("grid").innerHTML = K.products.map((p) => `<article class="card"><div class="arch"><img src="${K.img(p.slug)}" alt="${p.name}"></div>
+    <div class="meta"><div><h3>${p.name}</h3><span class="pill"><i style="background:${p.hex}"></i>${p.color}</span></div><div class="price"><b>${K.price}</b><small>ou 2 pour ${K.pack}</small></div></div></article>`).join("");
+  $("a").src = K.img("rose"); $("b").src = K.img("noir");
+  $("pk").textContent = K.pack; $("pkf").textContent = K.packFull; $("pks").textContent = `${K.packPct} · ${K.packSave} d'économie`;
+  $("s").src = K.img("blanc");
+  $("tags").innerHTML = K.details.map((d) => `<span>${d}</span>`).join("");
+  $("ben").innerHTML = K.benefits.map(([t, d], i) => `<div><div class="ic">${["→","↺","XS","×2"][i]}</div><h4>${t}</h4><p>${d}</p></div>`).join("");
+  $("faq").innerHTML = K.faq.map((q) => `<div class="q"><span>${q}</span><span>+</span></div>`).join("");
+  $("fc").innerHTML = K.products.map((p) => `<li>${p.color}</li>`).join("");
+</script>
+</body>
+</html>
