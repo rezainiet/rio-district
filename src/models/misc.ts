@@ -139,6 +139,13 @@ export function reviewStatus(t: { status?: string | null; published?: boolean | 
 
 const PaymentAttemptSchema = new Schema(
   {
+    kind: { type: String, enum: ["session", "redirect"], default: "session" },
+    mode: { type: String, enum: ["mock", "live"] },
+    offer: { type: String, enum: ["single", "bundle"] },
+    redirectIssuedAt: Date,
+    redirectCount: { type: Number, default: 0 },
+    correlationSent: { type: Boolean, default: false },
+    configurationHash: String,
     order: { type: Types.ObjectId, ref: "Order", required: true, index: true },
     provider: { type: String, required: true },
     providerRef: { type: String, required: true },
@@ -150,6 +157,7 @@ const PaymentAttemptSchema = new Schema(
   { timestamps: true },
 );
 PaymentAttemptSchema.index({ provider: 1, providerRef: 1 }, { unique: true });
+PaymentAttemptSchema.index({ order: 1, provider: 1, kind: 1 }, { unique: true, partialFilterExpression: { kind: "redirect" } });
 export type PaymentAttemptDoc = InferSchemaType<typeof PaymentAttemptSchema> & { _id: Types.ObjectId };
 export const PaymentAttempt: Model<PaymentAttemptDoc> =
   (models.PaymentAttempt as Model<PaymentAttemptDoc>) ||

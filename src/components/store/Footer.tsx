@@ -1,73 +1,17 @@
 import Link from "next/link";
-import { Logo } from "./Header";
+import { Logo } from "./Logo";
 import type { PublicProduct } from "@/lib/types";
 
-export function Footer({
-  storeName,
-  tagline,
-  contactEmail,
-  products,
-  social,
-  returnsHref,
-}: {
-  storeName: string;
-  tagline: string;
-  contactEmail: string;
-  products: PublicProduct[];
-  social: { instagram: string; tiktok: string };
-  returnsHref: string;
+export function Footer({ storeName, tagline, contactEmail, products, social, returnsHref }: {
+  storeName: string; tagline: string; contactEmail: string; products: PublicProduct[];
+  social: { instagram: string; tiktok: string }; returnsHref: string;
 }) {
-  const year = new Date().getFullYear();
-  // min-h-11 (44px): comfortable touch targets without changing the visual rhythm.
-  const linkCls = "link-underline inline-flex min-h-11 items-center text-ink-2 hover:text-ink";
-  return (
-    <footer className="mt-auto border-t border-line">
-      {/* Tablet: the wordmark (no-wrap) gets its own row; four columns from lg, where it fits. */}
-      <div className="container-x grid gap-10 pb-8 pt-12 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div className="md:col-span-3 lg:col-span-1">
-          <Logo name={storeName} className="text-[26px] sm:text-[30px] lg:text-[34px]" />
-          <p className="mt-3 max-w-sm text-[15px] text-muted">{tagline}</p>
-        </div>
-
-        <nav aria-label="Coloris">
-          <p className="lab mb-3">Coloris</p>
-          <ul className="grid grid-cols-2 text-[15px] md:grid-cols-1">
-            {products.map((p) => (
-              <li key={p.id}>
-                <Link href={`/produit/${p.slug}`} className={`${linkCls} gap-2.5`}>
-                  <span className="size-3 rounded-full ring-1 ring-white/25" style={{ background: p.color.hex }} aria-hidden />
-                  {p.color.name || p.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <nav aria-label="Aide">
-          <p className="lab mb-3">Aide</p>
-          <ul className="text-[15px]">
-            <li><Link className={linkCls} href="/livraison-retours">Livraison</Link></li>
-            <li><Link className={linkCls} href={returnsHref}>Retours & remboursements</Link></li>
-            <li><Link className={linkCls} href="/#faq">Questions fréquentes</Link></li>
-            <li><Link className={linkCls} href="/#contact">Contact</Link></li>
-            <li><Link className={linkCls} href="/panier">Panier</Link></li>
-          </ul>
-        </nav>
-
-        <div>
-          <p className="lab mb-3">Nous écrire</p>
-          <ul className="text-[15px]">
-            <li><a href={`mailto:${contactEmail}`} className={`${linkCls} break-all`}>{contactEmail}</a></li>
-            {social.instagram && <li><a className={linkCls} href={social.instagram} rel="noopener noreferrer" target="_blank">Instagram</a></li>}
-            {social.tiktok && <li><a className={linkCls} href={social.tiktok} rel="noopener noreferrer" target="_blank">TikTok</a></li>}
-          </ul>
-        </div>
-
-        <div className="flex flex-col gap-2 border-t border-line pt-5 text-[13px] text-muted sm:flex-row sm:justify-between md:col-span-3 lg:col-span-4">
-          <p>© {year} {storeName}. Tous droits réservés.</p>
-          <p>Prix TTC · Paiement en ligne bientôt disponible</p>
-        </div>
-      </div>
-    </footer>
-  );
+  return <footer className="rio-footer border-t border-line"><div className="container-x">
+    <div className="footer-main">
+      <div><Logo name={storeName} /><p className="mt-5 max-w-xs text-sm leading-relaxed text-muted">{tagline}</p><p className="mt-3 text-xs uppercase tracking-[0.18em] text-brand">Une allure. Six expressions.</p></div>
+      <nav aria-label="Les coloris Rio" className="footer-colors"><p className="lab mb-4">Trouve ta couleur</p><ul>{products.map(p => <li key={p.id}><Link href={"/produit/" + p.slug}><span style={{background:p.color.hex}} aria-hidden="true" />{p.color.name}<span aria-hidden="true" className="ml-auto text-muted">↗</span></Link></li>)}</ul></nav>
+      <div className="footer-contact"><p className="lab">On est là pour toi</p><Link href="/#contact" className="footer-contact-cta">Parlons-en. <span aria-hidden="true">↗</span></Link><a href={"mailto:" + contactEmail} className="mt-3 inline-block break-all text-sm text-muted hover:text-ink">{contactEmail}</a><div className="mt-5 flex gap-5 text-sm">{social.instagram && <a href={social.instagram} rel="noopener noreferrer" target="_blank">Instagram ↗</a>}{social.tiktok && <a href={social.tiktok} rel="noopener noreferrer" target="_blank">TikTok ↗</a>}</div></div>
+    </div>
+    <div className="footer-bottom"><p>© {new Date().getFullYear()} {storeName}</p><div className="flex flex-wrap gap-x-5 gap-y-2"><Link href="/livraison-retours">Livraison</Link><Link href={returnsHref}>Retours & remboursements</Link><span>Prix TTC</span></div></div>
+  </div></footer>;
 }

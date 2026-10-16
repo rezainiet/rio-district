@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { MAX_LINE_QUANTITY, priceCart } from "@/lib/pricing";
 import type { BundleConfig, CartLineInput, CartQuote, PublicProduct } from "@/lib/types";
+import type { CheckoutPresentation } from "@/lib/payments/everflow";
 
 export type CartLine = CartLineInput & { key: string };
 
 export type StoreConfig = {
+  checkout?: CheckoutPresentation;
   storeName: string;
   bundle: BundleConfig;
   shippingCents: number;

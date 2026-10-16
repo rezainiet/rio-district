@@ -1,9 +1,10 @@
 # Déploiement Rio District sur un VPS Ubuntu
 
-État au 16/10/2026 : **préparé et répété localement, rien n'a été déployé.**
-Aucune information d'infrastructure n'a été fournie (IP du VPS, domaine, accès SSH, MongoDB
-cible) : tout ce qui suit est à exécuter une fois ces éléments connus et le lancement autorisé.
-Les bloquants et l'état détaillé sont dans [LAUNCH-READINESS.md](LAUNCH-READINESS.md).
+Mise à jour d’une installation existante autorisée le 17/10/2026 : suivre le §10 ci-dessous.
+Les §1–9 décrivent l’installation initiale historique et ne constituent PAS des commandes
+à réexécuter sur le VPS existant. Ne pas réinstaller MongoDB/nginx, recréer des comptes,
+modifier le pare-feu ou renouveler les certificats pour une simple mise à jour.
+Le service, le port, les chemins et les variables réellement en production font autorité.
 
 ## 1. Ce qu'il faut avant de commencer
 
@@ -204,3 +205,60 @@ données existantes. Le webhook de paiement répond 501 tant qu'aucun prestatair
   images ajoutées par l'admin et photos d'avis dans `UPLOAD_DIR`.
 - CSP sans nonce pour les scripts : renforcement possible plus tard.
 - Aucun e-mail automatique (ni client, ni admin) : l'équipe surveille l'admin.
+
+## 10. Mise à jour de l’installation existante (Rio District uniquement)
+
+1. Vérifier et pousser le commit approuvé sur `main`, sans forcer l’historique. Conserver
+   les changements locaux et exclure secrets, uploads, sauvegardes et fichiers temporaires.
+2. Inspection SSH en lecture seule : service Rio District exact, répertoire courant/release
+   précédente, port, utilisateur applicatif, configuration nginx du seul domaine concerné,
+   état TLS, variables (sans afficher leurs valeurs privées), URI MongoDB et uploads.
+   Établir une référence de santé des autres services/sites avant toute mutation.
+3. Vérifier ressources et droits ; créer une sauvegarde privée de cette application,
+   de sa configuration, de SA base et de SES uploads. Tester la lisibilité/restauration
+   isolée. Ne pas exécuter aveuglément le script quotidien ni son nettoyage par rétention.
+4. Préparer une nouvelle release isolée du commit exact, avec le lockfile et l’environnement
+   existant. Ne pas reseeder, importer la base locale, modifier les stocks/avis ou écraser
+   les médias ajoutés en production. Les nouveaux champs Order/PaymentAttempt sont additifs ;
+   vérifier la compatibilité et les index existants avant tout changement de schéma/index.
+5. Garder Everflow désactivé, pixels vides et aucune approbation live :
+
+   ```dotenv
+   PAYMENT_PROVIDER=everflow
+   EVERFLOW_ENABLED=false
+   EVERFLOW_MODE=live
+   EVERFLOW_SINGLE_CHECKOUT_URL=https://www.molipy8trk.com/2J23GL9/TTF23GH/
+   EVERFLOW_BUNDLE_CHECKOUT_URL=https://www.molipy8trk.com/2J23GL9/TRSKRX3/
+   EVERFLOW_PUBLIC_ASSET_BASE_URL=https://riodistrict.store
+   EVERFLOW_LIVE_APPROVED=false
+   EVERFLOW_VARIANTS_APPROVED=false
+   EVERFLOW_BUNDLE_METADATA_APPROVED=false
+   EVERFLOW_PIXEL_PLATFORM=
+   EVERFLOW_PIXEL_APPROVED=false
+   RIO_EVERFLOW_TEST=false
+   ```
+
+   Ces valeurs non secrètes s’ajoutent sans remplacer l’URI MongoDB, l’URL réelle du site,
+   les réglages légitimes, les authentifications, les uploads ou les variables privées.
+   Tous les identifiants publicitaires restent vides. Le checkout conserve la demande
+   de commande non payée ; le webhook Everflow répond 501.
+6. Installer avec `npm ci` dans la nouvelle release, construire avec les vraies variables
+   de production et valider sur un port loopback libre temporaire, sans commandes client.
+7. Uniquement après sauvegarde/rollback vérifiés et candidat sain : bascule atomique
+   de la release selon l’architecture observée, puis redémarrage du SEUL service Rio District.
+   Ne pas redémarrer MongoDB, nginx, tous les services, toutes les apps Node ou `pm2 all`.
+   Un reload nginx n’est nécessaire que si sa configuration doit effectivement changer,
+   après validation ; les autres virtual hosts doivent rester identiques.
+8. Vérifier santé HTTP/DB, storefront, admin, photos persistantes, prix 19,99€/24,95€,
+   retours 15 jours, avis et marketing légitimes. Recette à 375/390/414/768/1440 px.
+   Aucune redirection live, données client transmises, commande payée ou faux compte à rebours.
+9. Comparer les autres sites/services à la référence. En cas de panne critique, revenir
+   à la release précédente et redémarrer uniquement Rio District. Ne jamais restaurer
+   un ancien dump par-dessus des commandes récentes sans autorisation explicite.
+10. Consigner commit exact, date, release/rollback, contrôles et état des flags après
+    le déploiement réel. Aucun rapport « déployé » n’est valable avant ces preuves.
+
+La documentation de paiement et les questions restantes sont dans
+[EVERFLOW_CHECKOUT.md](EVERFLOW_CHECKOUT.md). L’activation live nécessite une autorisation
+distincte, des preuves de paiement authentifiées, la corrélation des variantes/commandes,
+la validation du domaine destinataire et les approbations de partage de données.

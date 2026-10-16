@@ -21,6 +21,7 @@ export function toPublicProduct(p: ProductDoc): PublicProduct {
     material: p.material ?? "",
     care: p.care ?? "",
     priceCents: p.priceCents,
+    currency: p.currency ?? "EUR",
     compareAtCents: p.compareAtCents ?? null,
     images: (p.images ?? []).map((i) => ({ url: i.url, alt: i.alt ?? "", kind: (i.kind ?? "photo") as "photo" | "placeholder" })),
     sizes: (p.sizes ?? []).map((s) => {

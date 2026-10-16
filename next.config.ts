@@ -7,6 +7,8 @@ const remoteHosts = (process.env.IMAGE_REMOTE_HOSTS ?? "")
   .filter(Boolean);
 
 const nextConfig: NextConfig = {
+  // Separate output for the isolated local payment simulator/build verification.
+  distDir: process.env.RIO_EVERFLOW_TEST === "true" ? ".next-everflow" : ".next",
   // Storefront and admin pages read MongoDB on each request (force-dynamic),
   // so we keep the classic rendering model instead of Cache Components.
   cacheComponents: false,
@@ -60,6 +62,11 @@ const nextConfig: NextConfig = {
         source: "/api/admin/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
+      ...["/commande/:path*", "/api/orders", "/api/payments/:path*"].map(source => ({ source, headers: [
+        { key: "Cache-Control", value: "no-store, private" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "X-Robots-Tag", value: "noindex, nofollow" },
+      ] })),
     ];
   },
 };

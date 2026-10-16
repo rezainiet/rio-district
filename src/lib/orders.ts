@@ -1,5 +1,5 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { connectDB } from "./db";
 import { getProductMap, getSettings } from "./catalog";
 import { priceCart, stockRequirements } from "./pricing";
@@ -12,7 +12,7 @@ import { Counter } from "@/models/misc";
 
 export class OrderError extends Error {
   constructor(
-    public code: "closed" | "invalid_cart" | "out_of_stock" | "not_found" | "invalid_transition",
+    public code: "closed" | "invalid_cart" | "out_of_stock" | "not_found" | "invalid_transition" | "idempotency_conflict" | "preparing",
     message: string,
     public details?: unknown,
   ) {
@@ -24,6 +24,7 @@ export class OrderError extends Error {
 export async function quoteCart(lines: CartLineInput[]): Promise<CartQuote> {
   const ids = lines.flatMap((l) => (l.kind === "single" ? [l.productId] : l.items.map((i) => i.productId)));
   const [products, settings] = await Promise.all([getProductMap(ids), getSettings()]);
+  if ([...products.values()].some(product => product.currency && product.currency !== "EUR")) throw new OrderError("invalid_cart", "Cette boutique accepte uniquement les prix en EUR.");
   return priceCart(lines, products, settings.bundle, settings.shipping.priceCents);
 }
 
@@ -86,12 +87,28 @@ async function nextOrderNumber() {
 
 export type OrderRequest = z.output<typeof orderRequestSchema>;
 
-export async function createOrderRequest(input: OrderRequest, meta: { ip?: string; userAgent?: string }) {
+export async function createOrderRequest(input: OrderRequest, meta: { ip?: string; userAgent?: string }, hosted?: {
+  validate: (quote: CartQuote) => void | Promise<void>;
+}) {
   await connectDB();
+  await Order.init();
+  // Bind retries to immutable cart AND customer information. No PII is stored in the hash.
+  const fingerprint = createHash("sha256").update(JSON.stringify({ lines: input.lines, customer: input.customer, marketingConsent: input.marketingConsent, hosted: Boolean(hosted) })).digest("hex");
+  async function reuse(existing: OrderDoc) {
+    if (existing.requestFingerprint !== fingerprint) throw new OrderError("idempotency_conflict", "Cette demande a déjà été enregistrée avec d’autres coordonnées. Retrouve la commande en attente ou utilise un nouveau panier.");
+    for (let i = 0; existing.creationState === "preparing" && i < 40; i++) {
+      await new Promise(resolve => setTimeout(resolve, 75));
+      const updated = await Order.findById(existing._id).lean<OrderDoc>();
+      if (!updated) throw new OrderError("preparing", "La préparation a été interrompue. Réessaie avec la même demande.");
+      existing = updated;
+    }
+    if (existing.creationState === "preparing") throw new OrderError("preparing", "La commande est en préparation. Réessaie dans quelques instants avec la même demande.");
+    return { order: existing, duplicate: true };
+  }
 
   // Idempotency: a retried submission returns the order created the first time.
   const existing = await Order.findOne({ idempotencyKey: input.idempotencyKey }).lean<OrderDoc>();
-  if (existing) return { order: existing, duplicate: true };
+  if (existing) return reuse(existing);
 
   const settings = await getSettings();
   if (!settings.orders.acceptingOrders) {
@@ -103,8 +120,10 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
     throw new OrderError("invalid_cart", quote.errors[0]?.message ?? "Panier invalide.", quote.errors);
   }
 
+  await hosted?.validate(quote); // Refuse incompatible offers before claiming an order or stock.
   const needs = stockRequirements(quote.lines);
-  const reserved = await reserveStock(needs);
+  let reserved: Reservation[] = [];
+  let claimed: OrderDoc | null = null;
 
   try {
     const c = input.customer;
@@ -112,7 +131,10 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
       number: await nextOrderNumber(),
       publicToken: randomBytes(18).toString("base64url"),
       idempotencyKey: input.idempotencyKey,
-      customer: { fullName: c.fullName, email: c.email, phone: c.phone },
+      requestFingerprint: fingerprint,
+      creationState: "preparing",
+      marketingConsent: input.marketingConsent,
+      customer: { fullName: c.fullName, firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone },
       shipping: {
         address: c.address,
         address2: c.address2 ?? "",
@@ -144,18 +166,26 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
       shippingCents: quote.shippingCents,
       totalCents: quote.totalCents,
       status: "pending_confirmation",
-      paymentStatus: "awaiting_payment_setup",
-      stockReserved: reserved.length > 0,
-      history: [{ type: "created", to: "pending_confirmation", by: "client", message: "Demande de commande reçue (non payée)." }],
+      paymentStatus: hosted ? "pending" : "awaiting_payment_setup",
+      payment: { provider: hosted ? "everflow" : null },
+      stockReserved: false,
+      history: [{ type: "created", to: "pending_confirmation", by: "client", message: hosted ? "Commande reçue ; paiement externe non confirmé." : "Demande de commande reçue (non payée)." }],
       meta: { ip: meta.ip, userAgent: meta.userAgent?.slice(0, 300) },
     });
+    claimed = order.toObject() as OrderDoc;
+    // The unique idempotency key is acquired BEFORE decrementing stock.
+    reserved = await reserveStock(needs);
+    order.stockReserved = reserved.length > 0;
+    order.creationState = "ready";
+    await order.save();
     return { order: order.toObject() as OrderDoc, duplicate: false };
   } catch (err) {
     await releaseStock(reserved);
+    if (claimed) await Order.deleteOne({ _id: claimed._id, creationState: "preparing" });
     // Two identical submissions raced: return the one that won.
     if ((err as { code?: number }).code === 11000) {
       const winner = await Order.findOne({ idempotencyKey: input.idempotencyKey }).lean<OrderDoc>();
-      if (winner) return { order: winner, duplicate: true };
+      if (winner) return reuse(winner);
     }
     throw err;
   }
@@ -179,6 +209,7 @@ export async function updateOrderStatus(id: string, to: OrderStatus, by: string,
   const order = await Order.findById(id);
   if (!order) throw new OrderError("not_found", "Commande introuvable.");
   const from = order.status as OrderStatus;
+  if (order.creationState === "preparing") throw new OrderError("invalid_transition", "Préparation en cours : rapprocher la réservation avant toute modification.");
   if (!ALLOWED[from].includes(to)) {
     throw new OrderError("invalid_transition", `Transition impossible : ${from} → ${to}.`);
   }
@@ -208,6 +239,10 @@ export async function updatePaymentStatus(id: string, to: PaymentStatus, by: str
   const order = await Order.findById(id);
   if (!order) throw new OrderError("not_found", "Commande introuvable.");
   const from = order.paymentStatus;
+  if (order.creationState === "preparing") throw new OrderError("invalid_transition", "Préparation en cours : rapproche d’abord la réservation.");
+  if (order.payment?.provider === "everflow" && (!message || message.trim().length < 10)) {
+    throw new OrderError("invalid_transition", "Indique une référence de transaction et la preuve vérifiée du rapprochement (10 caractères minimum).");
+  }
   order.paymentStatus = to;
   if (to === "paid" && !order.payment?.paidAt) order.set("payment.paidAt", new Date());
   if (to !== "paid") order.set("payment.paidAt", null);

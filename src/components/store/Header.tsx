@@ -8,25 +8,10 @@ import clsx from "clsx";
 import { useStore } from "./StoreProvider";
 import { formatEUR } from "@/lib/money";
 import { BagIcon, CloseIcon, MenuIcon } from "@/components/ui/icons";
+import { Logo } from "./Logo";
+import { HeaderOffer, type CountdownData } from "./Countdown";
 
-const NAV = [
-  { href: "/#collection", label: "Collection" },
-  { href: "/#pack", label: "Pack 2 vestes" },
-  { href: "/#avis", label: "Avis" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/#contact", label: "Contact" },
-];
-
-/** The Rio District wordmark (Syne, kept as the brand signature). */
-export function Logo({ name, className }: { name: string; className?: string }) {
-  return (
-    <span className={clsx("brand-mark whitespace-nowrap text-[17px] uppercase leading-none tracking-[0.04em] sm:text-[22px] lg:text-[24px]", className)}>
-      {name}
-    </span>
-  );
-}
-
-export function Header() {
+export function Header({ countdown }: { countdown?: CountdownData | null }) {
   const { config, products, quote, hydrated, setDrawerOpen } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -70,24 +55,13 @@ export function Header() {
           scrolled || menuOpen ? "border-line bg-paper/92 backdrop-blur-md" : "border-transparent bg-paper",
         )}
       >
-        <div className="container-x flex h-14 items-center gap-4 md:h-[72px] lg:gap-12">
+        <div className="container-x header-main">
           <Link href="/" className="inline-flex h-11 items-center" aria-label={`${config.storeName} — accueil`}>
             <Logo name={config.storeName} />
           </Link>
 
-          <nav aria-label="Navigation principale" className="hidden flex-1 lg:block">
-            <ul className="flex items-center gap-8 text-[15px] text-ink-2">
-              {NAV.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className="link-underline py-1 hover:text-ink">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="-mr-2 ml-auto flex items-center lg:ml-0">
+          <div className="header-offer-slot">{config.bundle.enabled && <HeaderOffer bundle={config.bundle} data={countdown} />}</div>
+          <div className="-mr-2 flex items-center justify-self-end">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}

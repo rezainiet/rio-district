@@ -1,48 +1,32 @@
 "use client";
-
 import { useState } from "react";
 import type { RatingSummary } from "@/lib/marketing";
 import type { PublicReview } from "@/lib/reviews";
 import { Modal } from "@/components/ui/Modal";
-import { PreviewTag, RatingPanel, ReviewCard } from "@/components/store/pdp/blocks";
+import { Stars } from "./Stars";
+import { PreviewTag } from "./pdp/blocks";
 
-/**
- * Homepage reviews: published reviews only (nothing rendered when there is none).
- * Phones get a swipeable row of readable cards; desktop a three-column grid.
- */
 export function HomeReviews({ summary, reviews, previewSource }: { summary: RatingSummary; reviews: PublicReview[]; previewSource: boolean }) {
-  const [photo, setPhoto] = useState<string | null>(null);
-  if (summary.count === 0) return null;
-  const ordered = [...reviews].sort((a, b) => b.photos.length - a.photos.length);
-  return (
-    <section id="avis" aria-labelledby="avis-title" className="scroll-mt-20 border-t border-line py-14 lg:py-24">
-      <div className="container-x">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="lab">Avis clients</p>
-              {previewSource && <PreviewTag>Aperçu · avis publiés en production</PreviewTag>}
-            </div>
-            <h2 id="avis-title" className="display t-section mt-2 uppercase">Ce qu&apos;ils en disent.</h2>
-            <p className="mt-2 text-[15px] text-muted">Avis sur la Veste Brésil, tous coloris confondus, relus avant publication.</p>
-          </div>
-          <RatingPanel summary={summary} className="lg:min-w-[440px]" />
-        </div>
-        <ul
-          className="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:px-0"
-          aria-label="Avis clients, faire défiler"
-        >
-          {ordered.slice(0, 8).map((r) => (
-            <li key={r.id} className="w-[78%] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none">
-              <ReviewCard r={r} onPhoto={setPhoto} photoTall />
-            </li>
-          ))}
-        </ul>
-      </div>
-      <Modal open={photo !== null} onClose={() => setPhoto(null)} title="Photo client" className="max-w-2xl">
+  const [photo,setPhoto] = useState<string | null>(null);
+  const [shown,setShown] = useState(8);
+  if (!summary.count) return null;
+  const ordered = [...reviews].sort((a,b) => Number(b.photos.length > 0) - Number(a.photos.length > 0));
+  return <section id="avis" className="home-reviews section-space scroll-mt-32" aria-labelledby="avis-title"><div className="container-x">
+    <div className="section-heading"><div><div className="flex flex-wrap gap-3"><p className="lab">Les mots de la communauté</p>{previewSource && <PreviewTag>Aperçu</PreviewTag>}</div><h2 id="avis-title" className="display t-section mt-3">Ce qu&apos;ils en disent.</h2><p className="mt-3 text-sm text-muted">Leurs photos. Leurs mots. Tous les coloris réunis.</p></div>
+      <a href="#review-grid" className="review-score"><Stars value={summary.average} size={17}/><span><strong>{summary.average.toLocaleString("fr-FR", {minimumFractionDigits:1})} / 5</strong> · {summary.count} avis publiés</span></a>
+    </div>
+    <ul id="review-grid" className="review-masonry" aria-label="Avis et photos des clients">{ordered.slice(0,shown).map((r,i) => <li key={r.id} className="review-editorial-card">
+      {r.photos[0] && <button className={"review-photo " + (i % 3 === 1 ? "review-photo-square" : "")} onClick={() => setPhoto(r.photos[0])} aria-label={"Agrandir la photo de " + r.author}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {photo && <img src={photo} alt="Photo partagée par un client" className="max-h-[70dvh] w-full rounded-xl object-contain" />}
-      </Modal>
-    </section>
-  );
+        <img src={r.photos[0]} alt={"Photo partagée par " + r.author} loading="lazy" decoding="async" width="480" height="600" />
+        <span aria-hidden="true">↗</span>
+      </button>}
+      <div className="review-copy"><Stars value={r.rating} size={13}/>{r.title && <h3 className="mt-3 font-semibold">{r.title}</h3>}<p className="mt-3">{r.text}</p><p className="review-author">{r.author}{r.verified && <span>Achat vérifié</span>}</p></div>
+    </li>)}</ul>
+    {shown < ordered.length && <div className="mt-9 text-center"><button className="review-more" onClick={() => setShown(s => s + 8)}>Voir plus d&apos;avis <span className="text-muted">({ordered.length - shown})</span><span aria-hidden="true">+</span></button></div>}
+    <p className="mt-5 text-center text-xs text-muted">Avis sur le modèle Veste Brésil, relus avant publication.</p>
+  </div><Modal open={photo !== null} onClose={() => setPhoto(null)} title="Photo client" className="max-w-2xl">
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    {photo && <img src={photo} alt="Photo partagée par un client" className="max-h-[70dvh] w-full rounded-xl object-contain" />}
+  </Modal></section>;
 }

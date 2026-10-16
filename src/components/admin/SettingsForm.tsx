@@ -81,7 +81,7 @@ export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSetti
           <label htmlFor="s-paynotice" className={`${labelCls} mt-4`}>Mention paiement (panier, commande, confirmation)</label>
           <textarea id="s-paynotice" rows={4} className={inputCls} value={s.orders.paymentNotice} onChange={(e) => up("orders", { paymentNotice: e.target.value })} />
           <p className="mt-3 rounded-[var(--radius-sm)] bg-paper-2 p-3 text-xs text-muted">
-            Prestataire de paiement : <strong>{paymentsEnabled ? "configuré" : "non configuré"}</strong>. Voir docs/PAYMENTS.md pour l&apos;intégration.
+            Redirection de paiement : <strong>{paymentsEnabled ? "configurée" : "désactivée ou indisponible"}</strong>. La confirmation authentifiée Everflow n’est pas encore disponible. Voir docs/EVERFLOW_CHECKOUT.md.
           </p>
         </Card>
 

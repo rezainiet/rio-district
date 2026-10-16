@@ -9,6 +9,7 @@ import { COUNTRIES } from "@/lib/validation";
 import { Order, type OrderDoc, type OrderStatus } from "@/models/Order";
 import { Badge, Card, PageHeader } from "@/components/admin/ui";
 import { OrderActions } from "@/components/admin/OrderActions";
+import { PaymentAttempt } from "@/models/misc";
 
 export const metadata = { title: "Commande" };
 
@@ -18,6 +19,7 @@ const HISTORY_LABEL: Record<string, string> = {
   payment: "Paiement modifié",
   note: "Note ajoutée",
   cancelled: "Commande annulée",
+  checkout: "Redirection préparée (non vérifiée)",
 };
 
 export default async function OrderDetailPage({ params }: PageProps<"/admin/commandes/[id]">) {
@@ -26,6 +28,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/comm
   await connectDB();
   const order = await Order.findById(id).lean<OrderDoc>();
   if (!order) notFound();
+  const attempt = await PaymentAttempt.findOne({ order: order._id, provider: "everflow", kind: "redirect" }).lean();
 
   const country = COUNTRIES.find((c) => c.code === order.shipping.country)?.label ?? order.shipping.country;
   const label = (map: Record<string, string>, v?: string | null) => (v ? map[v] ?? v : "—");
@@ -122,7 +125,9 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/comm
         </div>
 
         <div className="space-y-6">
+          {order.payment?.provider === "everflow" && <Card title="Checkout Everflow"><dl className="space-y-2 text-sm"><div><dt className="text-muted">Mode</dt><dd>{attempt?.mode === "mock" ? "Simulation locale — aucun paiement réel" : "Redirection externe"}</dd></div><div><dt className="text-muted">État de la tentative</dt><dd>{attempt ? `${attempt.status} · ${attempt.redirectCount} redirection(s) préparée(s)` : "À reprendre"}</dd></div><div><dt className="text-muted">Référence interne de rapprochement</dt><dd className="break-all">{attempt?.providerRef ?? "Non créée"}</dd></div><div><dt className="text-muted">Corrélation transmise au partenaire</dt><dd>{attempt?.correlationSent ? "Oui (sub1 approuvé)" : "Non — rapprochement à confirmer"}</dd></div></dl><p className="mt-4 text-xs text-muted">Préparer un lien ne prouve ni l’arrivée chez le partenaire ni un paiement. Vérifie la transaction, le montant et la commande avant toute modification manuelle.</p></Card>}
           <OrderActions
+            hosted={order.payment?.provider === "everflow"}
             id={String(order._id)}
             status={order.status as OrderStatus}
             next={allowedNextStatuses(order.status as OrderStatus)}

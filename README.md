@@ -4,9 +4,11 @@ Boutique e-commerce en français (Next.js 16 + MongoDB), thème « Dark Premium 
 6 vestes, pack de 2 vestes à couleurs mélangées, guide des tailles, panier, **demande de commande
 sans paiement** et espace d'administration complet.
 
-> Le paiement en ligne n'est **volontairement pas branché**. Chaque commande est enregistrée avec
-> `paymentStatus = "awaiting_payment_setup"` et `status = "pending_confirmation"`. Voir
-> [docs/PAYMENTS.md](docs/PAYMENTS.md) pour brancher un prestataire.
+> Le paiement hébergé Everflow est implémenté mais **désactivé par défaut**. Le parcours
+> actuel conserve les demandes non payées (`awaiting_payment_setup`). Le mode hébergé
+> crée des commandes `pending`, sans jamais déduire un paiement d’une redirection.
+> Voir [docs/EVERFLOW_CHECKOUT.md](docs/EVERFLOW_CHECKOUT.md) pour le simulateur local,
+> les validations du partenaire manquantes et les conditions d’activation.
 
 ## Démarrage rapide (local)
 
@@ -161,3 +163,15 @@ sauvegardes) et modèles dans `deploy/`. Points clés :
 - [docs/IMAGES.md](docs/IMAGES.md) — photos produits : sources, autorisation, migration, remplacement
 - [docs/LIMITATIONS.md](docs/LIMITATIONS.md) — limites connues et contenus à fournir par le client
 - [docs/LAUNCH-READINESS.md](docs/LAUNCH-READINESS.md) — état de préparation au lancement, avis de référence, bloquants
+# Local Everflow checkout review
+
+The hosted checkout integration is **disabled by default**. The existing unpaid
+order-request flow remains available. See [docs/EVERFLOW_CHECKOUT.md](docs/EVERFLOW_CHECKOUT.md)
+for the redirect contract, privacy risks, missing payment evidence and activation gates.
+
+With MongoDB listening locally, `npm run dev:everflow` opens a separate simulator on
+`http://localhost:3001`, using only `rio_everflow_test_preview` and a separate Next output.
+It does not change `.env.local`, contact the tracking domain or process payments.
+Use fictional customer details only. Run `npm test`, `npm run test:everflow` and, while
+the simulator is running, `npm run qa:everflow` for the local checks. QA credentials and
+screenshots remain in ignored `.data/`; passwords are never printed.

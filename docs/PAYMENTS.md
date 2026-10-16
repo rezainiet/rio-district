@@ -1,7 +1,9 @@
 # Passation — intégration du paiement
 
-État actuel : **aucun prestataire actif.** Aucune donnée bancaire n'est collectée, aucun
-paiement n'est simulé. Les commandes sont des *demandes* :
+État par défaut : **paiement hébergé désactivé**. Everflow dispose d’une capacité de
+redirection distincte de l’interface de paiement authentifiée. Le simulateur local ne
+réalise aucun débit. Aucune donnée bancaire n’est collectée. Lorsque l’intégration est
+désactivée, les commandes restent des *demandes* :
 
 | Champ | Valeur à la création |
 |---|---|
@@ -47,7 +49,19 @@ comme « encaissé » que les commandes `paid`.
 6. Adapter les textes : `Réglages → Mention paiement`, FAQ « Comment se passe le paiement ? »,
    pied de page. N'afficher un badge « paiement sécurisé » qu'une fois le flux testé de bout en
    bout en mode test **puis** en production.
-7. Expiration des commandes impayées (optionnel) : tâche planifiée qui annule les commandes
-   `pending` au-delà d'un délai, ce qui libère le stock.
+7. Expiration des commandes impayées : uniquement après revue et tests d’une politique
+   de rapprochement qui exclut un paiement en cours/déjà reçu avant de libérer le stock.
 
-Panier, calcul des prix, modèle produit et modèle commande n'ont pas besoin d'être modifiés.
+## Everflow redirect capability
+
+Everflow now has a separate, feature-flagged hosted redirect implementation. It reuses
+orders, server pricing, stock and `PaymentAttempt`, without implementing a fictitious
+payment session or unsigned webhook. See [EVERFLOW_CHECKOUT.md](EVERFLOW_CHECKOUT.md).
+`/api/payments/webhook/everflow` deliberately responds **501**; `applyPaymentEvent`
+also refuses Everflow events until a verified authentication/mapping contract exists.
+Only an authorized, documented manual reconciliation may change its payment status.
+
+The interface described above remains the extension point for providers that actually
+support authenticated payment events. `paymentsEnabled()` controls storefront wording;
+it indicates selection of hosted checkout, not proof that a webhook or live payment is available.
+Use `checkoutPresentation().available` for configuration readiness.

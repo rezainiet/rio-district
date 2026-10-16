@@ -1,5 +1,6 @@
 import "server-only";
 import { log } from "../log";
+import { checkoutPresentation } from "./hosted";
 
 /**
  * Payment integration seam.
@@ -48,10 +49,10 @@ export interface PaymentProvider {
 
 export function getPaymentProvider(): PaymentProvider | null {
   const id = (process.env.PAYMENT_PROVIDER ?? "").trim();
-  if (!id) return null;
+  if (!id || id === "everflow") return null; // Redirect capability has no authenticated event adapter yet.
   // Intentionally empty until the client chooses and tests a provider.
   log.warn("payments.provider_not_implemented", { provider: id });
   return null;
 }
 
-export const paymentsEnabled = () => getPaymentProvider() !== null;
+export const paymentsEnabled = () => checkoutPresentation().mode !== "request" || getPaymentProvider() !== null;

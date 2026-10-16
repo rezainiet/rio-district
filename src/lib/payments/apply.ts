@@ -18,6 +18,7 @@ const toPaymentStatus = {
  * Refuses to mark an order paid when the amount doesn't match its total.
  */
 export async function applyPaymentEvent(event: PaymentEvent) {
+  if (event.provider === "everflow") throw new Error("Confirmation Everflow indisponible : contrat d’authentification manquant.");
   await connectDB();
   const attempt = await PaymentAttempt.findOne({ provider: event.provider, providerRef: event.providerRef });
   if (!attempt) throw new Error("Tentative de paiement inconnue.");

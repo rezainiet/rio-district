@@ -48,7 +48,7 @@ const LineSchema = new Schema(
 const HistorySchema = new Schema(
   {
     at: { type: Date, default: () => new Date() },
-    type: { type: String, enum: ["created", "status", "payment", "note", "cancelled"], required: true },
+    type: { type: String, enum: ["created", "status", "payment", "note", "cancelled", "checkout"], required: true },
     from: String,
     to: String,
     by: String,
@@ -73,7 +73,12 @@ const OrderSchema = new Schema(
     publicToken: { type: String, required: true },
     /** Client-generated key that makes order submission idempotent. */
     idempotencyKey: { type: String, required: true },
+    requestFingerprint: String,
+    creationState: { type: String, enum: ["preparing", "ready"], default: "ready" },
+    marketingConsent: { type: Boolean, default: false },
     customer: {
+      firstName: String,
+      lastName: String,
       fullName: { type: String, required: true },
       email: { type: String, required: true, lowercase: true },
       phone: { type: String, required: true },
@@ -123,7 +128,7 @@ OrderSchema.index({ "customer.email": 1 });
 type InferredOrder = InferSchemaType<typeof OrderSchema>;
 export type OrderDoc = Omit<InferredOrder, "customer" | "shipping"> & {
   _id: Types.ObjectId;
-  customer: { fullName: string; email: string; phone: string };
+  customer: { fullName: string; firstName?: string; lastName?: string; email: string; phone: string };
   shipping: { address: string; address2: string; postalCode: string; city: string; country: string };
   createdAt: Date;
   updatedAt: Date;

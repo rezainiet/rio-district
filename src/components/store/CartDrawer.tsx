@@ -157,7 +157,7 @@ export function CartDrawer() {
                       Continuer mes achats
                     </Button>
                     <p className="text-center text-[13px] text-muted">
-                      Demande de commande · rien à payer aujourd&apos;hui ·{" "}
+                      {config.checkout && config.checkout.mode !== "request" ? "Paiement chez notre partenaire externe · " : "Demande de commande · rien à payer aujourd’hui · "}
                       <Link href="/panier" className="underline underline-offset-4 hover:text-ink">panier détaillé</Link>
                     </p>
                   </div>

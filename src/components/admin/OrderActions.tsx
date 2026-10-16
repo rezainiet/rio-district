@@ -21,11 +21,13 @@ export function OrderActions({
   next,
   paymentStatus,
   notes,
+  hosted = false,
 }: {
   id: string;
   status: string;
   next: string[];
   paymentStatus: string;
+  hosted?: boolean;
   notes: { id: string; text: string; author: string; at: string }[];
 }) {
   const router = useRouter();
@@ -34,6 +36,7 @@ export function OrderActions({
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState(paymentStatus);
   const [statusMessage, setStatusMessage] = useState("");
+  const [paymentEvidence, setPaymentEvidence] = useState("");
 
   const patch = async (body: Record<string, unknown>) => {
     setBusy(true);
@@ -93,21 +96,21 @@ export function OrderActions({
 
       <Card title="Paiement">
         <p className="text-xs leading-relaxed text-muted">
-          Aucun prestataire de paiement n&apos;est branché. Ne marque une commande « Payée » que si tu as réellement reçu le
-          paiement (virement, espèces…).
+          {hosted ? "Everflow fournit un lien de redirection, sans confirmation authentifiée. Rapproche la référence de transaction, le montant EUR et cette commande avec une preuve du partenaire avant de modifier le paiement." : "Ne marque une commande « Payée » que si tu as réellement reçu et vérifié le paiement."}
         </p>
         <label htmlFor="payment" className={`${labelCls} mt-3`}>Statut du paiement</label>
         <select id="payment" className={inputCls} value={payment} onChange={(e) => setPayment(e.target.value)}>
           {PAYMENT_OPTIONS.map((p) => <option key={p} value={p}>{PAYMENT_STATUS_LABEL[p]}</option>)}
         </select>
+        {hosted && <><label htmlFor="payment-evidence" className={`${labelCls} mt-3`}>Référence et preuve vérifiée (obligatoire)</label><textarea id="payment-evidence" className={inputCls} value={paymentEvidence} onChange={e => setPaymentEvidence(e.target.value)} minLength={10} maxLength={300} placeholder="Référence de transaction, source et date de vérification — jamais de données bancaires" /></>}
         <Button
           size="sm"
           variant="outline"
           className="mt-3 w-full"
-          disabled={busy || payment === paymentStatus}
+          disabled={busy || payment === paymentStatus || (hosted && paymentEvidence.trim().length < 10)}
           onClick={() => {
             if (payment === "paid" && !confirm("Confirmer que le paiement a bien été reçu ?")) return;
-            patch({ action: "payment", paymentStatus: payment });
+            patch({ action: "payment", paymentStatus: payment, message: hosted ? paymentEvidence : undefined });
           }}
         >
           Mettre à jour le paiement

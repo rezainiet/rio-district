@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
@@ -14,8 +14,12 @@ import { formatEUR } from "@/lib/money";
 import type { CartQuote } from "@/lib/types";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { CheckIcon, InfoIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
+import { eligibleOffer } from "@/lib/payments/everflow";
+import type { z } from "zod";
+import { ResumeCheckout } from "./ResumeCheckout";
 
 const KEY_STORAGE = "rd.checkout.key";
+const volatileKeys = new Map<string, string>();
 
 function newKey() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -25,15 +29,16 @@ function newKey() {
 
 /** One idempotency key per cart content: retries reuse it, a changed cart gets a new one. */
 function idempotencyKeyFor(signature: string) {
+  const memoryKey = volatileKeys.get(signature);
+  if (memoryKey) return memoryKey;
   try {
     const saved = JSON.parse(sessionStorage.getItem(KEY_STORAGE) ?? "null");
-    if (saved?.sig === signature && typeof saved.key === "string") return saved.key as string;
-    const key = newKey();
-    sessionStorage.setItem(KEY_STORAGE, JSON.stringify({ sig: signature, key }));
-    return key;
-  } catch {
-    return newKey();
-  }
+    if (saved?.sig === signature && typeof saved.key === "string") { volatileKeys.set(signature, saved.key); return saved.key as string; }
+  } catch {}
+  const key = newKey();
+  volatileKeys.set(signature, key);
+  try { sessionStorage.setItem(KEY_STORAGE, JSON.stringify({ sig: signature, key })); } catch {}
+  return key;
 }
 
 function Field({
@@ -72,6 +77,15 @@ export function CheckoutView() {
   const { lines, quote: localQuote, hydrated, config, clear, productMap } = useStore();
   const [serverResult, setServerResult] = useState<{ sig: string; quote: CartQuote | null } | null>(null);
   const [submitError, setSubmitError] = useState("");
+  const [resumeToken, setResumeToken] = useState("");
+  const [navigating, setNavigating] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const sending = useRef(false);
+  const hosted = !!config.checkout && config.checkout.mode !== "request";
+  const mock = config.checkout?.mode === "mock";
+  useEffect(() => {
+    queueMicrotask(() => { try { const saved = JSON.parse(sessionStorage.getItem("rd.checkout.pending") ?? "null"); if (saved?.token && /^[A-Za-z0-9_-]{24}$/.test(saved.token)) setResumeToken(saved.token); } catch {} });
+  }, []);
 
   const inputs = useMemo(() => lines.map(toInput), [lines]);
   const signature = useMemo(() => JSON.stringify(inputs), [inputs]);
@@ -80,7 +94,7 @@ export function CheckoutView() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CheckoutCustomer>({
+  } = useForm<CheckoutCustomer, unknown, z.output<typeof checkoutCustomerSchema>>({
     resolver: zodResolver(checkoutCustomerSchema),
     mode: "onTouched",
     defaultValues: { country: "FR", address2: "", notes: "" },
@@ -111,13 +125,20 @@ export function CheckoutView() {
 
   const quote = serverQuote ?? localQuote;
   const cartInvalid = (serverQuote?.errors.length ?? 0) > 0 || localQuote.errors.length > 0;
+  let offerError = "";
+  if (hosted && !cartInvalid) {
+    try { eligibleOffer(quote); } catch (error) { offerError = (error as Error).message; }
+  }
 
-  const onSubmit = handleSubmit(async (customer) => {
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => handleSubmit(async (customer) => {
+    if (sending.current || navigating) return;
+    sending.current = true;
+    try {
     setSubmitError("");
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(signature), lines: inputs, customer, website: "" }),
+      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(signature), lines: inputs, customer, marketingConsent, website: "" }),
     }).catch(() => null);
 
     if (!res) {
@@ -126,15 +147,30 @@ export function CheckoutView() {
     }
     const data = await res.json().catch(() => null);
     if (res.ok && data?.ok) {
+      if (data.checkout) {
+        try { sessionStorage.setItem("rd.checkout.pending", JSON.stringify({ token: data.order.token })); } catch {}
+        setResumeToken(data.order.token);
+        const destination = new URL(data.checkout.redirectUrl, window.location.origin);
+        const valid = data.checkout.mode === "mock"
+          ? destination.origin === window.location.origin && /^\/commande\/paiement-test\/[A-Za-z0-9_-]{24}$/.test(destination.pathname)
+          : destination.protocol === "https:" && destination.host === "www.molipy8trk.com" && ["/2J23GL9/TTF23GH/", "/2J23GL9/TRSKRX3/"].includes(destination.pathname);
+        if (!valid) { setSubmitError("Destination de paiement refusée. Ta commande reste en attente."); return; }
+        setNavigating(true);
+        window.location.assign(destination.href);
+        return;
+      }
       try {
         sessionStorage.removeItem(KEY_STORAGE);
       } catch {}
+      volatileKeys.delete(signature);
       clear();
       router.replace(`/commande/confirmation/${data.order.token}`);
       return;
     }
-    setSubmitError(data?.error ?? "Ta demande n'a pas pu être enregistrée. Réessaie.");
-  });
+    setSubmitError(data?.error ?? "La réponse n’a pas pu être confirmée. Réessaie avec la même demande.");
+    } catch { setNavigating(false); setSubmitError("Redirection interrompue. Retrouve ta commande en attente pour réessayer sans la dupliquer."); }
+    finally { sending.current = false; }
+  })(event);
 
   if (!hydrated) {
     return (
@@ -169,17 +205,19 @@ export function CheckoutView() {
         <span aria-hidden>→</span>
         <span className="text-ink" aria-current="step">Coordonnées</span>
         <span aria-hidden>→</span>
-        <span>Confirmation</span>
+        <span>{hosted ? "Paiement externe" : "Confirmation"}</span>
       </nav>
       <h1 className="display t-title mt-3 uppercase">Finaliser ma commande</h1>
 
       <div className="mt-5 flex gap-3 rounded-[var(--radius-md)] border border-[#4a3f2a] bg-[#17140f] p-4 text-[15px] leading-relaxed text-ink-2">
         <InfoIcon className="mt-0.5 shrink-0 text-brand" />
         <p>
-          <strong className="font-semibold text-ink">Rien à payer aujourd&apos;hui.</strong> Tu envoies une demande de commande : nous la confirmons par e-mail et t&apos;indiquons comment régler. Aucune donnée bancaire n&apos;est demandée.
+          {hosted ? <><strong className="font-semibold text-ink">{mock ? "Simulation locale · aucun paiement réel." : "Un dernier pas vers le paiement."}</strong> {mock ? "Le partenaire est simulé sur ce site. Aucune coordonnée n’est envoyée à Everflow." : "Vous serez redirigé vers notre partenaire de paiement pour finaliser votre commande. Aucune donnée bancaire n’est collectée par Rio District."}</> : <><strong className="font-semibold text-ink">Rien à payer aujourd&apos;hui.</strong> Tu envoies une demande de commande : nous la confirmons par e-mail et t&apos;indiquons comment régler. Aucune donnée bancaire n&apos;est demandée.</>}
         </p>
       </div>
 
+      {hosted && config.checkout?.error && <p role="alert" className="mt-4 rounded-xl border border-danger p-4 text-danger">{config.checkout.error}</p>}
+      {hosted && resumeToken && <div className="mt-4 rounded-xl border border-line p-4"><p className="mb-3 text-sm text-ink-2">Une commande est déjà en attente. Vérifie son statut avant de lancer un autre paiement.</p><ResumeCheckout token={resumeToken} /><Link className="mt-3 block text-sm underline" href={`/commande/confirmation/${resumeToken}`}>Retrouver cette commande</Link></div>}
       {!config.acceptingOrders ? (
         <p className="mt-8 rounded-[var(--radius-md)] border border-line p-6 text-muted">{config.closedMessage}</p>
       ) : (
@@ -199,7 +237,7 @@ export function CheckoutView() {
                 <span>
                   <span className="font-semibold">{l.label}</span>
                   {l.quantity > 1 && <span className="text-muted"> × {l.quantity}</span>}
-                  <span className="block text-sm text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</span>
+                  <span className="block text-sm text-muted">{l.items.map((it) => `${it.name} · ${it.size}`).join(" + ")}</span>
                 </span>
                 <span className="price">{formatEUR(l.totalCents)}</span>
               </li>
@@ -217,8 +255,11 @@ export function CheckoutView() {
             <fieldset>
               <legend className="eyebrow mb-5 text-muted">01 · Tes coordonnées</legend>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field id="co-fullName" label="Nom complet" error={errors.fullName?.message} className="sm:col-span-2">
-                  <input className="field" autoComplete="name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("fullName")} />
+                <Field id="co-firstName" label="Prénom" error={errors.firstName?.message}>
+                  <input className="field" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("firstName")} />
+                </Field>
+                <Field id="co-lastName" label="Nom" error={errors.lastName?.message}>
+                  <input className="field" autoComplete="family-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("lastName")} />
                 </Field>
                 <Field id="co-email" label="E-mail" error={errors.email?.message}>
                   <input className="field" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" {...fieldProps("email")} />
@@ -257,9 +298,9 @@ export function CheckoutView() {
               </div>
             </fieldset>
             <p className="text-sm leading-relaxed text-muted">
-              Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire
-              n&apos;est demandée.
+              {hosted ? (mock ? "Utilise uniquement des coordonnées fictives pour cette simulation locale." : "En continuant, tes nom, coordonnées et adresse seront transmis au partenaire via un lien externe sur www.molipy8trk.com. Ces informations peuvent être conservées dans l’historique du navigateur et les journaux du partenaire. Consulte notre politique de confidentialité avant de continuer.") : "Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire n’est demandée."}
             </p>
+            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte le suivi publicitaire facultatif du partenaire pour ce paiement. Mon choix n’empêche pas de commander.</label>}
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">
@@ -281,7 +322,7 @@ export function CheckoutView() {
                       <p className="font-semibold">
                         {l.label} {l.quantity > 1 && <span className="text-muted">× {l.quantity}</span>}
                       </p>
-                      <p className="text-sm text-muted">{l.items.map((it) => `${it.color} · ${it.size}`).join(" + ")}</p>
+                      <p className="text-sm text-muted">{l.items.map((it) => `${it.name} · ${it.size}`).join(" + ")}</p>
                     </div>
                     <p className="price text-base">{formatEUR(l.totalCents)}</p>
                   </li>
@@ -304,14 +345,15 @@ export function CheckoutView() {
                   {submitError}
                 </p>
               )}
-              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || cartInvalid}>
-                {isSubmitting ? "Envoi de ta demande…" : `Envoyer ma demande · ${formatEUR(quote.totalCents)}`}
+              {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href="/panier" className="underline">Modifier le panier</Link></p>}
+              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || config.checkout?.available === false}>
+                {isSubmitting || navigating ? (hosted ? "Préparation du paiement…" : "Envoi de ta demande…") : hosted ? "Continuer vers le paiement ↗" : `Envoyer ma demande · ${formatEUR(quote.totalCents)}`}
               </Button>
-              <p className="mt-3 text-center text-sm text-muted">Aucun paiement ne sera prélevé maintenant.</p>
+              <p className="mt-3 text-center text-sm text-muted">{hosted ? (mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe") : "Aucun paiement ne sera prélevé maintenant."}</p>
               <div className="mt-5 border-t border-line pt-4">
                 <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Après l&apos;envoi</p>
                 <ol className="mt-3 grid gap-2.5 text-[15px] text-ink-2">
-                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Tu reçois un e-mail qui confirme ta commande et t&apos;indique comment régler.</li>
+                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> {hosted ? "Ta sélection est enregistrée. Le paiement reste en attente jusqu’à vérification par la boutique." : "Tu reçois un e-mail qui confirme ta commande et t’indique comment régler."}</li>
                   <li className="flex gap-2.5"><TruckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Expédition suivie, livraison estimée {config.deliveryEstimate}.</li>
                   <li className="flex gap-2.5"><ReturnIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception.</li>
                 </ol>

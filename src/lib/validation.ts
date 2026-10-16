@@ -37,12 +37,10 @@ const countryCodes = COUNTRIES.map((c) => c.code) as [string, ...string[]];
 
 export const checkoutCustomerSchema = z
   .object({
-    fullName: z
-      .string()
-      .trim()
-      .min(3, "Indique ton nom complet.")
-      .max(100, "Nom trop long.")
-      .refine((v) => v.includes(" "), "Indique ton prénom et ton nom."),
+    firstName: z.string().trim().max(100, "Prénom trop long.").optional(),
+    lastName: z.string().trim().max(100, "Nom trop long.").optional(),
+    // Older API clients may still submit fullName. Never guess how to split it.
+    fullName: z.string().trim().max(201, "Nom trop long.").optional(),
     email: z.string().trim().toLowerCase().pipe(z.email("Adresse e-mail invalide.")),
     phone: z
       .string()
@@ -56,10 +54,16 @@ export const checkoutCustomerSchema = z
     notes: z.string().trim().max(1000, "1000 caractères maximum.").optional().default(""),
   })
   .superRefine((v, ctx) => {
+    if (v.firstName || v.lastName || !v.fullName) {
+      if (!v.firstName) ctx.addIssue({ code: "custom", path: ["firstName"], message: "Indique ton prénom." });
+      if (!v.lastName) ctx.addIssue({ code: "custom", path: ["lastName"], message: "Indique ton nom." });
+    } else if (v.fullName.length < 3 || !v.fullName.includes(" ")) {
+      ctx.addIssue({ code: "custom", path: ["fullName"], message: "Indique ton prénom et ton nom." });
+    }
     if (v.country === "FR" && !/^\d{5}$/.test(v.postalCode)) {
       ctx.addIssue({ code: "custom", path: ["postalCode"], message: "Code postal français à 5 chiffres." });
     }
-  });
+  }).transform(v => ({ ...v, fullName: v.firstName && v.lastName ? `${v.firstName} ${v.lastName}` : v.fullName! }));
 
 export type CheckoutCustomer = z.input<typeof checkoutCustomerSchema>;
 
@@ -67,6 +71,7 @@ export const orderRequestSchema = z.object({
   idempotencyKey: z.string().regex(/^[A-Za-z0-9-]{16,64}$/, "Clé de requête invalide."),
   lines: cartSchema,
   customer: checkoutCustomerSchema,
+  marketingConsent: z.boolean().optional().default(false),
   /** Honeypot: must stay empty. */
   website: z.string().max(0).optional().default(""),
 });

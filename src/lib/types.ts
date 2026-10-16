@@ -13,6 +13,7 @@ export type PublicProduct = {
   material: string;
   care: string;
   priceCents: number;
+  currency?: string;
   compareAtCents: number | null;
   images: { url: string; alt: string; kind: "photo" | "placeholder" }[];
   sizes: { label: Size; available: boolean; /** Only set when stock is tracked and low (≤ 3). */ remaining: number | null }[];

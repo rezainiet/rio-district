@@ -54,7 +54,7 @@ export function CartPageView() {
               <ul className="mt-4 grid gap-2 text-sm text-ink-2">
                 <li className="flex gap-2"><TruckIcon width={17} height={17} className="mt-0.5 shrink-0 text-brand" /> Livrée {config.deliveryEstimate} pour une commande aujourd&apos;hui</li>
                 <li className="flex gap-2"><ReturnIcon width={17} height={17} className="mt-0.5 shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception</li>
-                <li className="flex gap-2"><InfoIcon width={17} height={17} className="mt-0.5 shrink-0 text-brand" /> Rien à payer aujourd&apos;hui : commande confirmée par e-mail</li>
+                <li className="flex gap-2"><InfoIcon width={17} height={17} className="mt-0.5 shrink-0 text-brand" /> {config.checkout && config.checkout.mode !== "request" ? "Coordonnées ici, puis paiement chez notre partenaire externe" : "Rien à payer aujourd’hui : commande confirmée par e-mail"}</li>
               </ul>
             </div>
           </aside>

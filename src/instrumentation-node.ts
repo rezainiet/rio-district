@@ -39,7 +39,7 @@ export async function checkProductionConfig() {
     log.warn("startup.mongo_without_credentials", { hint: "Activer l'authentification MongoDB en production." });
   }
   if (process.env.PAYMENT_PROVIDER) {
-    log.warn("startup.payment_provider_set", { provider: process.env.PAYMENT_PROVIDER, note: "Aucun adaptateur implémenté." });
+    log.warn("startup.payment_provider_set", { provider: process.env.PAYMENT_PROVIDER, note: process.env.PAYMENT_PROVIDER === "everflow" ? "Capacité de redirection uniquement ; aucune confirmation de paiement authentifiée." : "Aucun adaptateur implémenté." });
   }
   log.info("startup.ok", { site, uploads: UPLOAD_DIR, appEnv: process.env.APP_ENV ?? null });
 }

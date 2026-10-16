@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { getSettings } from "@/lib/catalog";
 import { formatEUR } from "@/lib/money";
 import { formatDate } from "@/lib/labels";
-import { paymentsEnabled } from "@/lib/payments";
+import { checkoutPresentation } from "@/lib/payments/hosted";
 import { Order, type OrderDoc } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { ContactMessage } from "@/models/misc";
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
           {settings.orders.acceptingOrders ? "Commandes ouvertes" : "Commandes fermées"}
         </span>
         <span className="rounded-full bg-stone-200 px-3 py-1 font-semibold text-stone-700">
-          Paiement en ligne : {paymentsEnabled() ? "actif" : "non configuré"}
+          Paiement : {checkoutPresentation().mode === "request" ? "demande non payée" : checkoutPresentation().available ? "redirection configurée · rapprochement manuel" : "redirection indisponible · vérifier la configuration"}
         </span>
         <span className="rounded-full bg-stone-200 px-3 py-1 font-semibold text-stone-700">{activeProducts} produits en ligne</span>
       </div>

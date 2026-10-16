@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { countdownParts, formatParisDeadline } from "@/lib/marketing";
 import { ButtonLink } from "@/components/ui/Button";
+import type { BundleConfig } from "@/lib/types";
+import { formatEUR } from "@/lib/money";
 
 export type CountdownData = {
   title: string;
@@ -40,6 +42,19 @@ const UNITS = [
 ] as const;
 
 const pad = (n: number) => String(n).padStart(2, "0");
+
+export function HeaderOffer({ bundle, data }: { bundle: BundleConfig; data?: CountdownData | null }) {
+  return <a href={data?.ctaHref || "/#pack"} className="header-offer">
+    <span>{bundle.quantity} vestes <span className="text-brand">· {formatEUR(bundle.priceCents)}</span></span>
+    {data ? <HeaderDeadline data={data} /> : <span className="header-offer-note">Le duo, à ta façon</span>}
+  </a>;
+}
+
+function HeaderDeadline({ data }: { data: CountdownData }) {
+  const parts = countdownParts(useRemaining(data.endsAt, data.serverNow));
+  if (parts.done) return <span className="header-offer-note">Les coloris au choix</span>;
+  return <span className="header-offer-note">Fin dans <span role="timer" aria-label={`Fin de l'offre le ${formatParisDeadline(data.endsAt)}`} className="font-bold tabular-nums text-ink">{parts.days > 0 && `${parts.days}j `}{pad(parts.hours)}:{pad(parts.minutes)}:{pad(parts.seconds)}</span></span>;
+}
 
 export function CountdownBand({ data }: { data: CountdownData }) {
   const remaining = useRemaining(data.endsAt, data.serverNow);

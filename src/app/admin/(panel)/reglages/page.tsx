@@ -1,5 +1,5 @@
 import { getSettings } from "@/lib/catalog";
-import { paymentsEnabled } from "@/lib/payments";
+import { checkoutPresentation } from "@/lib/payments/hosted";
 import { PageHeader } from "@/components/admin/ui";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 
@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Réglages" description="Contenus et règles de la boutique. Les changements sont visibles immédiatement." />
-      <SettingsForm initial={settings} paymentsEnabled={paymentsEnabled()} />
+      <SettingsForm initial={settings} paymentsEnabled={checkoutPresentation().available && checkoutPresentation().mode !== "request"} />
     </>
   );
 }

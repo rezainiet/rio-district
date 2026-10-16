@@ -1,0 +1,37 @@
+.rd-collection-invitation {
+  max-width: 760px;
+  margin: 0 auto 20px;
+  text-align: center;
+}
+
+.rd-collection-copy {
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-muted);
+  text-wrap: balance;
+}
+
+.rd-collection-copy > span { display: block; }
+.rd-collection-copy strong { font-weight: 650; color: var(--color-ink); }
+
+.rd-collection-arrow {
+  display: block;
+  width: 138px;
+  height: 95px;
+  margin: 18px auto 0;
+  color: var(--color-brand);
+  overflow: visible;
+}
+
+.rd-collection-arrow path {
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 639px) {
+  .rd-collection-copy { font-size: 13px; margin-top: 14px; }
+  .rd-collection-arrow { width: 116px; height: 80px; margin-top: 14px; }
+}

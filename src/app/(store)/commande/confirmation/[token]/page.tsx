@@ -7,8 +7,9 @@ import { COUNTRIES } from "@/lib/validation";
 import { Order, type OrderDoc } from "@/models/Order";
 import { ButtonLink } from "@/components/ui/Button";
 import { CheckIcon } from "@/components/ui/icons";
+import { ResumeCheckout } from "@/components/store/ResumeCheckout";
 
-export const metadata: Metadata = { title: "Demande reçue", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Commande enregistrée", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
 const STATUS_LABEL: Record<string, string> = {
   pending_confirmation: "En attente de confirmation",
@@ -29,6 +30,9 @@ export default async function ConfirmationPage({ params }: PageProps<"/commande/
 
   const country = COUNTRIES.find((c) => c.code === order.shipping.country)?.label ?? order.shipping.country;
   const paid = order.paymentStatus === "paid";
+  const hosted = order.payment?.provider === "everflow";
+  if (order.creationState === "preparing") notFound();
+  const paymentLabel = paid ? "Paiement vérifié" : order.paymentStatus === "refunded" ? "Remboursement enregistré" : order.paymentStatus === "failed" ? "Échec enregistré" : hosted ? "En attente — paiement non vérifié" : "Non payée — aucun montant prélevé";
 
   return (
     <div className="container-x py-12 md:py-20">
@@ -39,8 +43,7 @@ export default async function ConfirmationPage({ params }: PageProps<"/commande/
         <p className="eyebrow mt-6 text-muted">Demande n° {order.number}</p>
         <h1 className="display mt-2 text-[30px] uppercase sm:text-[40px] md:text-[60px]">Merci, c&apos;est noté.</h1>
         <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink-2">
-          Ta demande de commande est bien enregistrée. Nous revenons vers toi à <strong>{order.customer.email}</strong> pour la
-          confirmer et t&apos;indiquer comment régler.
+          {hosted ? <>Ta sélection est enregistrée. Cette page ne confirme aucun paiement. Si tu as déjà payé chez le partenaire, contacte la boutique avant de réessayer.</> : <>Ta demande de commande est bien enregistrée. Nous revenons vers toi à <strong>{order.customer.email}</strong> pour la confirmer et t&apos;indiquer comment régler.</>}
         </p>
 
         <dl className="mt-8 grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-line bg-line sm:grid-cols-2">
@@ -50,10 +53,11 @@ export default async function ConfirmationPage({ params }: PageProps<"/commande/
           </div>
           <div className="bg-paper-2 p-4">
             <dt className="eyebrow text-muted">Paiement</dt>
-            <dd className="mt-1 font-semibold">{paid ? "Payée" : "Non payée — aucun montant prélevé"}</dd>
+            <dd className="mt-1 font-semibold">{paymentLabel}</dd>
           </div>
         </dl>
-        {!paid && <p className="mt-3 text-sm text-muted">{settings.orders.paymentNotice}</p>}
+        {!paid && !hosted && <p className="mt-3 text-sm text-muted">{settings.orders.paymentNotice}</p>}
+        {hosted && order.paymentStatus === "pending" && order.status !== "cancelled" && <div className="mt-5"><ResumeCheckout token={token} /></div>}
 
         <section aria-labelledby="recap-title" className="mt-12">
           <h2 id="recap-title" className="eyebrow text-muted">Récapitulatif</h2>
@@ -105,8 +109,8 @@ export default async function ConfirmationPage({ params }: PageProps<"/commande/
           <div>
             <h2 className="eyebrow text-muted">Et ensuite ?</h2>
             <ol className="mt-2 space-y-1.5 text-sm text-ink-2">
-              <li>1. Nous confirmons ta commande par e-mail.</li>
-              <li>2. Tu règles selon les instructions reçues.</li>
+              <li>1. {hosted ? "La boutique rapproche ta commande avec une preuve de paiement vérifiée." : "Nous confirmons ta commande par e-mail."}</li>
+              <li>2. {hosted ? "Un retour du partenaire ne constitue pas une confirmation de paiement." : "Tu règles selon les instructions reçues."}</li>
               <li>3. Expédition, puis {settings.shipping.summary.toLowerCase()}.</li>
             </ol>
           </div>
