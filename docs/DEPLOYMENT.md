@@ -1,88 +1,206 @@
-# Mise en préproduction / production sur VPS
+# Déploiement Rio District sur un VPS Ubuntu
 
-État au 16/10/2026 : **prêt pour une préproduction (staging) privée, pas pour une ouverture publique.**
-Rien n'a été déployé.
+État au 16/10/2026 : **préparé et répété localement, rien n'a été déployé.**
+Aucune information d'infrastructure n'a été fournie (IP du VPS, domaine, accès SSH, MongoDB
+cible) : tout ce qui suit est à exécuter une fois ces éléments connus et le lancement autorisé.
+Les bloquants et l'état détaillé sont dans [LAUNCH-READINESS.md](LAUNCH-READINESS.md).
 
-## Bloquants avant une mise en ligne publique
+## 1. Ce qu'il faut avant de commencer
 
-| # | Bloquant | Responsable |
+| Élément | Exemple | Fourni ? |
 |---|---|---|
-| 1 | **Autorisation écrite** du client pour les 6 photos et pour la vente d'articles portant des marques tierces (Nike, CBF, Itaú, Vivo). Aujourd'hui : confirmation verbale seulement (`SOURCES.json` → `pending-written-authorization`). | Client |
-| 2 | **Mentions légales, CGV, politique de confidentialité** (obligatoires en France pour un site marchand). Pages inexistantes. | Client + juriste |
-| 3 | **E-mail de contact réel** (actuellement `contact@kaltshop.club`, à confirmer) et circuit de réponse aux demandes de commande. | Client |
-| 4 | **Conditions de livraison et de retour** (gratuite, 2–4 j, 14 j) reprises de la référence : à valider. | Client |
-| 5 | **Aucun e-mail automatique** (ni au client, ni à l'admin) : l'équipe doit surveiller l'admin pour traiter les demandes. | Décision client |
+| VPS Ubuntu 22.04 / 24.04, 2 vCPU, 2–4 Go RAM, 20 Go disque | — | **Non** |
+| Accès SSH par clé (pas de mot de passe root) | — | **Non** |
+| Nom de domaine + DNS (`www` et racine → IP du VPS) | `www.riodistrict.fr` | **Non** |
+| E-mail de contact Rio District | `contact@<domaine>` | **Non (bloquant)** |
+| Destination des sauvegardes hors serveur | stockage objet, autre serveur | **Non** |
+| Autorisation écrite : photos, avis, marques tierces | voir LAUNCH-READINESS | **Non** |
 
-Non bloquants pour la préproduction : paiement en ligne non branché (volontaire), avis non
-publiés, vues dos/détail manquantes, guide des tailles provisoire.
+## 2. Préparation du serveur (une fois)
 
-## Ce qui est prêt et vérifié
+```bash
+# Paquets
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install nginx certbot python3-certbot-nginx ufw curl git
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt -y install nodejs   # Node 22 LTS
 
-- Typecheck, lint, 8 tests unitaires, 6 vérifications de bout en bout, build de production sans avertissement.
-- Démarrage production testé : refus de démarrer (code de sortie 1) si `MONGODB_URI` manque, si
-  `NEXT_PUBLIC_SITE_URL` n'est pas en https au build, ou si `UPLOAD_DIR` est absent ou non inscriptible.
-- Cookie admin en production : `Secure; HttpOnly; SameSite=Lax`, session stockée hachée, 7 jours.
-- En-têtes : `HSTS` (production), `CSP` de base (`frame-ancestors`, `object-src`, `base-uri`,
-  `form-action`), `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
-  `no-store` + `noindex` sur l'admin.
-- Journaux structurés JSON (journald) : `order.created`, `order.rejected`, `admin.login`,
-  `admin.login_failed`, erreurs API. Aucune donnée personnelle client n'est journalisée.
-- Téléversements admin dans un dossier persistant (`UPLOAD_DIR`) hors release, servis par `/uploads/…`.
-- Commandes sans paiement : créées `pending_confirmation` / `awaiting_payment_setup`. Un
-  `paymentStatus` envoyé par le client est ignoré, le webhook répond 501, la page client affiche
-  « Non payée ». L'admin doit confirmer avant de marquer « Payée » ou d'expédier une commande non
-  payée. Le tableau de bord ne compte comme encaissées que les commandes `paid`.
-- Données protégées : `seed` n'insère que ce qui manque. `seed --reset` est refusé en production
-  et dès qu'une commande existe. Les commandes de démo, le smoke test et la base locale refusent de
-  s'exécuter avec `APP_ENV=production`.
+# Pare-feu : SSH + web uniquement (MongoDB n'est JAMAIS ouvert)
+sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable
 
-## Pré-requis serveur
+# Utilisateur applicatif sans shell, dossiers
+sudo useradd --system --home /var/lib/rio-district --shell /usr/sbin/nologin riodistrict
+sudo mkdir -p /srv/rio-district/{releases,shared} /var/lib/rio-district/uploads /var/backups/rio-district
+sudo chown -R riodistrict:riodistrict /srv/rio-district /var/lib/rio-district
+sudo chmod 700 /var/backups/rio-district
+```
 
-- Ubuntu 22.04/24.04, Node.js 22 LTS, nginx, certbot, MongoDB 7/8 (local) **ou** Atlas.
-- Utilisateur système `kalt` sans shell de connexion.
-- Dossiers : `/srv/kalt/releases/<date>`, `/srv/kalt/current` (lien), `/srv/kalt/shared/.env.local`
-  (chmod 600), `/var/lib/kalt/uploads` (propriétaire `kalt`), `/var/backups/kalt`.
+### MongoDB (local, avec authentification)
 
-## Checklist de déploiement (préproduction)
+Installer MongoDB 8 selon la documentation officielle (dépôt `repo.mongodb.org`), puis dans
+`/etc/mongod.conf` :
 
-1. **DNS** : `staging.<domaine>` → IP du VPS. Ne pas indexer (ajouter une authentification basique
-   nginx tant que les bloquants ne sont pas levés est recommandé).
-2. **MongoDB** : authentification activée, écoute `127.0.0.1` uniquement, utilisateur dédié
-   `readWrite` sur la base `kalt` seulement. Pas de port 27017 ouvert sur Internet.
-3. **Fichier d'environnement** `/srv/kalt/shared/.env.local` (modèle : `.env.example`) :
-   `APP_ENV=production`, `MONGODB_URI` avec identifiants, `NEXT_PUBLIC_SITE_URL=https://staging.<domaine>`,
-   `UPLOAD_DIR=/var/lib/kalt/uploads`, `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (mot de passe fort,
-   ≥ 16 caractères, différent de celui du développement), `PAYMENT_PROVIDER` vide.
-4. **Release** : copier le dépôt dans `/srv/kalt/releases/<date>`, lier `.env.local`, puis
-   `MONGOMS_DISABLE_POSTINSTALL=1 npm ci` (évite de télécharger le MongoDB de développement) et
-   `npm run build`. **Le build doit voir le `.env.local` de production** :
-   `NEXT_PUBLIC_SITE_URL` est figé à ce moment-là.
-5. **Données initiales** (une seule fois) : `npm run seed` (crée les 6 produits avec les photos,
-   les réglages, les avis non publiés et l'admin). Puis vider `SEED_ADMIN_PASSWORD` du fichier.
-   Ne pas lancer `demo:orders`.
-6. **Service** : installer `deploy/systemd/kalt.service`, `systemctl enable --now kalt`,
-   vérifier `journalctl -u kalt` → `startup.ok`.
-7. **nginx + TLS** : installer `deploy/nginx/kalt.conf`, `certbot --nginx`, recharger nginx.
-   Les en-têtes `Host`, `X-Real-IP` et `X-Forwarded-Proto` sont indispensables (CSRF et limitation
-   de débit).
-8. **Pare-feu** : uniquement 22, 80, 443.
-9. **Sauvegardes** : `deploy/backup.sh` quotidien (base + images téléversées), copie hors serveur,
-   test de restauration dans une base séparée.
-10. **Recette** : accueil, 6 fiches, pack 2 couleurs, panier, demande de commande (vérifier
-    « Non payée »), connexion admin en https, changement de statut, export CSV, téléversement
-    d'image puis redémarrage du service (l'image doit rester), réglages.
-11. **Commandes de test** : les annuler depuis l'admin ou les supprimer avant l'ouverture.
+```yaml
+net:
+  bindIp: 127.0.0.1          # jamais 0.0.0.0
+  port: 27017
+security:
+  authorization: enabled
+```
 
-## Mise à jour et retour arrière
+```bash
+sudo systemctl enable --now mongod
+# Créer d'abord un administrateur, puis l'utilisateur applicatif limité à SA base :
+mongosh --eval 'db.getSiblingDB("admin").createUser({user:"admin",pwd:passwordPrompt(),roles:["root"]})'
+mongosh -u admin -p --authenticationDatabase admin --eval \
+  'db.getSiblingDB("riodistrict").createUser({user:"riodistrict_app",pwd:passwordPrompt(),roles:[{role:"readWrite",db:"riodistrict"}]})'
+sudo systemctl restart mongod
+```
 
-Nouvelle release dans `releases/<date>`, `npm ci` + `npm run build`, bascule du lien `current`,
-`systemctl restart kalt`. Retour arrière : repointer `current` vers la release précédente et
-redémarrer. Les données (MongoDB, `UPLOAD_DIR`) ne sont pas dans les releases.
+(Alternative : MongoDB Atlas, accès IP restreint à l'IP du VPS, même utilisateur `readWrite`.)
+
+### Fichier d'environnement
+
+`/srv/rio-district/shared/.env.local` (propriétaire `riodistrict`, `chmod 600`) — modèle :
+[.env.example](../.env.example).
+
+```dotenv
+APP_ENV=production
+MONGODB_URI=mongodb://riodistrict_app:<MOT_DE_PASSE>@127.0.0.1:27017/riodistrict?authSource=riodistrict
+NEXT_PUBLIC_SITE_URL=https://www.<domaine>
+UPLOAD_DIR=/var/lib/rio-district/uploads
+SEED_ADMIN_EMAIL=
+SEED_ADMIN_PASSWORD=
+IMAGE_REMOTE_HOSTS=
+PAYMENT_PROVIDER=
+```
+
+`NEXT_PUBLIC_SITE_URL` est **figé au moment du build** : il doit être correct avant `npm run build`.
+Au démarrage, l'application refuse de tourner (code 1) si `MONGODB_URI` manque, si l'URL n'est
+pas en https ou si `UPLOAD_DIR` n'est pas inscriptible.
+
+## 3. Première release
+
+```bash
+REL=/srv/rio-district/releases/$(date +%Y%m%d-%H%M)
+sudo -u riodistrict git clone --depth 1 --branch <branche-approuvée> <dépôt> "$REL"
+sudo -u riodistrict ln -s /srv/rio-district/shared/.env.local "$REL/.env.local"
+cd "$REL"
+sudo -u riodistrict MONGOMS_DISABLE_POSTINSTALL=1 npm ci          # sans le MongoDB de développement
+sudo -u riodistrict npm run build                                   # lit le .env.local de production
+sudo ln -sfn "$REL" /srv/rio-district/current
+```
+
+## 4. Données de production (migration)
+
+La migration ne copie **que** les données métier approuvées : 6 produits (mêmes identifiants,
+images, tailles, stocks, prix), catégories, réglages (compte à rebours et pop-ups **désactivés**),
+avis de la boutique de référence (en attente, non publiés). Jamais : commandes, clients, messages,
+avis de test ou de démo, comptes admin, sessions, compteurs.
+
+Sur le **poste de travail** (base source = base locale validée) :
+
+```bash
+npm run migrate:prod -- export --contact-email contact@<domaine> --out .data/migration/rio-district-<date>
+# Le rapport liste les bloquants éventuels (e-mail manquant, image absente, contenu « démo »…)
+scp -r .data/migration/rio-district-<date> <user>@<vps>:/tmp/rio-district-migration
+```
+
+Sur le **VPS** :
+
+```bash
+cd /srv/rio-district/current
+sudo -u riodistrict npm run migrate:prod -- import --bundle /tmp/rio-district-migration           # simulation
+sudo -u riodistrict npm run migrate:prod -- import --bundle /tmp/rio-district-migration --apply   # écriture
+```
+
+- Idempotente : relancée, elle n'insère rien de plus et ne modifie jamais un enregistrement existant.
+- Refuse `--apply` si le bundle contient un bloquant ou si sa somme de contrôle ne correspond pas.
+- Si la base contient déjà des données : `--backup <archive mongodump de moins de 24 h>` obligatoire.
+- Chaque exécution est tracée dans la collection `migrations`.
+- Retour arrière d'une migration : `npm run migrate:prod -- rollback --id <id>` (simulation) puis
+  `--apply`. Ne retire que ce que cette migration a inséré et qui n'a pas été modifié depuis ;
+  refusé si des commandes utilisent les produits (dans ce cas : restaurer la sauvegarde).
+- Avis : publiés uniquement avec `--publish-approved` **et** une confirmation écrite complète dans
+  `scripts/data/reference-reviews.json` ; photos téléchargées uniquement avec `--with-photos`
+  **et** `photosAuthorized: true`.
+
+### Compte administrateur (jamais celui du développement)
+
+```bash
+read -rs ADMIN_PASSWORD && export ADMIN_PASSWORD     # ≥ 16 caractères, lettres et chiffres (vérifié)
+sudo -u riodistrict --preserve-env=ADMIN_PASSWORD npm run admin:create -- --email <admin@domaine>
+unset ADMIN_PASSWORD
+```
+
+## 5. Service, nginx, HTTPS, supervision
+
+```bash
+sudo cp deploy/systemd/rio-district.service deploy/systemd/rio-district-health.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now rio-district rio-district-health.timer
+journalctl -u rio-district -n 50          # doit contenir "startup.ok"
+curl -s http://127.0.0.1:3000/api/health  # {"status":"ok","db":"up",…}
+
+sudo cp deploy/nginx/rio-district.conf /etc/nginx/sites-available/   # remplacer www.example.com
+sudo ln -s /etc/nginx/sites-available/rio-district.conf /etc/nginx/sites-enabled/
+sudo certbot --nginx -d www.<domaine> -d <domaine>
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Points vérifiés par la configuration fournie :
+
+- L'application n'écoute que sur `127.0.0.1:3000` ; nginx est le seul point d'entrée.
+- nginx transmet `Host`, `X-Forwarded-Proto` et `X-Real-IP` depuis la connexion réelle : la
+  protection CSRF (Origin = Host) et la limitation de débit (par IP) en dépendent.
+- HTTPS : redirection 80 → 443, HSTS (envoyé par l'application en production), cookie admin
+  `Secure; HttpOnly; SameSite=Lax`.
+- En-têtes : CSP de base, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
+  `noindex` + `no-store` sur l'admin.
+- Corps de requête : 6 Mo par défaut, 20 Mo uniquement pour `/api/reviews` (3 photos).
+- Supervision : `rio-district-health.timer` interroge `/api/health` toutes les 5 min ; brancher
+  une alerte (sonde externe sur `https://www.<domaine>/api/health` et/ou `journalctl -p err`).
+
+## 6. Sauvegardes
+
+```bash
+sudo cp deploy/backup.sh /etc/cron.daily/rio-district-backup && sudo chmod 750 /etc/cron.daily/rio-district-backup
+sudo /etc/cron.daily/rio-district-backup    # premier essai
+```
+
+Base + dossier `UPLOAD_DIR` (images admin et photos d'avis), 14 jours en local, contrôle de
+lisibilité. **Copier hors serveur** chaque jour et **tester une restauration** dans une base
+séparée (`riodistrict_restore`) avant le lancement.
+
+## 7. Recette sur le serveur (avant ouverture)
+
+Accueil, 6 fiches, pack 2 couleurs (24,95 €), panier, demande de commande (page « Non payée »),
+admin en https, changement de statut, export CSV, téléversement d'une image puis
+`systemctl restart rio-district` (l'image doit rester), envoi d'un avis (doit rester en attente),
+activation puis désactivation d'un pop-up, `curl /api/health`. Annuler ou supprimer les commandes
+de test avant l'ouverture.
+
+## 8. Mise à jour et retour arrière applicatif
+
+```bash
+REL=/srv/rio-district/releases/<nouvelle-date>   # clone + lien .env.local + npm ci + npm run build (comme au §3)
+sudo mongodump --uri="<MONGODB_URI>" --archive=/var/backups/rio-district/pre-release.archive.gz --gzip
+sudo ln -sfn "$REL" /srv/rio-district/current && sudo systemctl restart rio-district
+```
+
+Retour arrière : repointer `current` vers la release précédente et redémarrer. Les données
+(MongoDB, `UPLOAD_DIR`) sont hors des releases. Données : `mongorestore` de la dernière archive
+dans une nouvelle base, vérification, puis bascule de `MONGODB_URI`.
+
+## 9. Garde-fous en production (`APP_ENV=production`)
+
+Refusés : `seed --reset`, `demo:orders`, `demo:marketing`, `test:smoke`, `db:local`.
+`migrate:prod` et `reviews:import` sont en simulation par défaut. Aucun script ne supprime de
+données existantes. Le webhook de paiement répond 501 tant qu'aucun prestataire n'est implémenté.
 
 ## Limites d'exploitation connues
 
 - Une seule instance applicative (limiteur de débit en mémoire).
-- Images produits initiales servies depuis `public/products/reference` (versionnées). Les
-  nouvelles images passent par l'admin → `UPLOAD_DIR`.
-- CSP sans restriction de scripts (nonce) : renforcement possible plus tard.
-- Pas de supervision externe : prévoir une sonde HTTP sur `/` et une alerte sur `journalctl -p err`.
+- Images produits initiales servies depuis `public/products/reference` (versionnées avec le code) ;
+  images ajoutées par l'admin et photos d'avis dans `UPLOAD_DIR`.
+- CSP sans nonce pour les scripts : renforcement possible plus tard.
+- Aucun e-mail automatique (ni client, ni admin) : l'équipe surveille l'admin.

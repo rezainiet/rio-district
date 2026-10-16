@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local data (database files, uploads, migration bundles, scratch files): git-ignored.
+    ".data/**",
   ]),
 ]);
 

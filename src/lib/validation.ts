@@ -192,3 +192,114 @@ export function fieldErrors(error: z.ZodError) {
   }
   return out;
 }
+
+/* ---------- Customer reviews ---------- */
+
+const NO_LINKS = /(https?:\/\/|www\.|\.(com|fr|net|org|io|ru|xyz)\b)/i;
+
+export const reviewSubmissionSchema = z.object({
+  productId: objectId,
+  name: z.string().trim().min(2, "Indique ton prénom.").max(40, "40 caractères maximum."),
+  email: z.string().trim().toLowerCase().pipe(z.email("Adresse e-mail invalide.")),
+  rating: z.coerce.number().int().min(1, "Choisis une note.").max(5),
+  title: z.string().trim().min(3, "Donne un titre à ton avis.").max(80, "80 caractères maximum."),
+  text: z
+    .string()
+    .trim()
+    .min(20, "Ton avis est un peu court (20 caractères minimum).")
+    .max(1500, "1500 caractères maximum.")
+    .refine((v) => !NO_LINKS.test(v), "Les liens ne sont pas acceptés dans les avis."),
+  /** Optional: lets us mark the review "Achat vérifié" when it matches a delivered order. */
+  orderNumber: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .max(20)
+    .refine((v) => v === "" || /^(RD|KALT)-\d{4,8}$/.test(v), "Numéro de commande au format RD-10012.")
+    .optional()
+    .default(""),
+  consent: z.literal(true, { error: "Merci d'accepter la publication de ton avis." }),
+  website: z.string().max(0).optional().default(""),
+});
+
+export const reviewModerationSchema = z.object({
+  action: z.enum(["publish", "hide", "reject", "pending"]).optional(),
+  verified: z.boolean().optional(),
+});
+
+/* ---------- Promotions: countdown + pop-ups ---------- */
+
+const isoOrNull = z.string().datetime({ offset: true }).nullable().or(z.literal("").transform(() => null));
+const href = z
+  .string()
+  .trim()
+  .max(300)
+  .refine((v) => v === "" || /^\/(?!\/)\S*$/.test(v) || /^https:\/\/\S+$/.test(v), "Lien : chemin interne (/…) ou https://");
+const imageUrl = z
+  .string()
+  .trim()
+  .max(300)
+  .refine((v) => v === "" || v.startsWith("/") || /^https:\/\//.test(v), "Image : chemin local ou https://");
+const frequencyDays = z.number().int().min(1, "1 jour minimum.").max(365);
+
+function datesInOrder(v: { startsAt: string | null; endsAt: string | null }, ctx: z.RefinementCtx) {
+  if (v.startsAt && v.endsAt && Date.parse(v.startsAt) >= Date.parse(v.endsAt)) {
+    ctx.addIssue({ code: "custom", path: ["endsAt"], message: "La fin doit être après le début." });
+  }
+}
+
+const popupContent = {
+  enabled: z.boolean(),
+  title: z.string().trim().max(80),
+  text: z.string().trim().max(280),
+  frequencyDays,
+  startsAt: isoOrNull,
+  endsAt: isoOrNull,
+};
+
+/** An enabled block must have its content; a disabled one may stay as a draft. */
+function requireContent(v: { enabled: boolean; title: string; text: string }, ctx: z.RefinementCtx) {
+  if (!v.enabled) return;
+  if (!v.title) ctx.addIssue({ code: "custom", path: ["title"], message: "Titre requis pour activer." });
+  if (!v.text) ctx.addIssue({ code: "custom", path: ["text"], message: "Message requis pour activer." });
+}
+
+function requireCta(v: { enabled: boolean; ctaLabel: string; ctaHref: string }, ctx: z.RefinementCtx) {
+  if (v.enabled && (!v.ctaLabel || !v.ctaHref)) {
+    ctx.addIssue({ code: "custom", path: ["ctaHref"], message: "Bouton et lien requis pour activer." });
+  }
+}
+
+export const promotionsSchema = z.object({
+  countdown: z
+    .object({
+      enabled: z.boolean(),
+      title: z.string().trim().max(80),
+      text: z.string().trim().max(240),
+      ctaLabel: z.string().trim().max(40),
+      ctaHref: href,
+      startsAt: isoOrNull,
+      endsAt: isoOrNull,
+      placement: z.object({ home: z.boolean(), product: z.boolean() }),
+    })
+    .superRefine((v, ctx) => {
+      datesInOrder(v, ctx);
+      if (!v.enabled) return;
+      if (!v.title) ctx.addIssue({ code: "custom", path: ["title"], message: "Titre requis pour activer." });
+      if (!v.endsAt) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Date de fin réelle requise pour activer." });
+      if (!v.placement.home && !v.placement.product) ctx.addIssue({ code: "custom", path: ["placement"], message: "Choisis au moins un emplacement." });
+      if (Boolean(v.ctaLabel) !== Boolean(v.ctaHref)) ctx.addIssue({ code: "custom", path: ["ctaHref"], message: "Renseigne le texte ET le lien du bouton." });
+    }),
+  popups: z.object({
+    welcome: z
+      .object({ ...popupContent, ctaLabel: z.string().trim().max(40), ctaHref: href, imageUrl, delaySeconds: z.number().int().min(5, "5 s minimum.").max(300) })
+      .superRefine((v, ctx) => { datesInOrder(v, ctx); requireContent(v, ctx); requireCta(v, ctx); }),
+    exitIntent: z
+      .object({ ...popupContent, ctaLabel: z.string().trim().max(40), ctaHref: href, imageUrl, minSecondsOnPage: z.number().int().min(5, "5 s minimum.").max(600) })
+      .superRefine((v, ctx) => { datesInOrder(v, ctx); requireContent(v, ctx); requireCta(v, ctx); }),
+    cartReminder: z
+      .object({ ...popupContent, delaySeconds: z.number().int().min(3, "3 s minimum.").max(300) })
+      .superRefine((v, ctx) => { datesInOrder(v, ctx); requireContent(v, ctx); }),
+  }),
+});
+export type PromotionsInput = z.input<typeof promotionsSchema>;

@@ -1,4 +1,5 @@
 import { DEFAULT_SIZE_CHART, DEFAULT_SIZE_RULES, type SizeChartRow, type SizeRule } from "./sizes";
+import { DEFAULT_COUNTDOWN, DEFAULT_POPUPS, type CountdownSettings, type PopupSettings } from "./marketing";
 
 export type FaqItem = { question: string; answer: string };
 
@@ -27,6 +28,10 @@ export type StoreSettings = {
   sizeRules: SizeRule[];
   sizeChart: SizeChartRow[];
   social: { instagram: string; tiktok: string };
+  /** Promotional countdown (Admin → Promotions). Off until a real campaign is configured. */
+  countdown: CountdownSettings;
+  /** Marketing pop-ups (Admin → Promotions). Off until configured. */
+  popups: PopupSettings;
 };
 
 /**
@@ -99,4 +104,6 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   sizeRules: DEFAULT_SIZE_RULES,
   sizeChart: DEFAULT_SIZE_CHART,
   social: { instagram: "", tiktok: "" },
+  countdown: DEFAULT_COUNTDOWN,
+  popups: DEFAULT_POPUPS,
 };

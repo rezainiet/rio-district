@@ -144,7 +144,7 @@ async function main() {
         const d = document.querySelector('[aria-labelledby="cart-title"]');
         return Array.from(d?.querySelectorAll("a, button, select") ?? []).map((e) => { const r = e.getBoundingClientRect(); return `${e.tagName} ${Math.round(r.width)}×${Math.round(r.height)} « ${(e.textContent || e.getAttribute("aria-label") || "").trim().slice(0, 24)} »`; }).filter((t) => { const m = t.match(/ (d+)×(d+) /); return m && (+m[1] < 44 || +m[2] < 40); });
       });
-      await page.evaluate(() => localStorage.removeItem("kalt.cart.v1"));
+      await page.evaluate(() => localStorage.removeItem("rd.cart.v1"));
 
       await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
       r.targetsHome = await targetsAndText(page);

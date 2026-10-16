@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { Manrope, Syne } from "next/font/google";
 import { getActiveProducts, getSettings } from "@/lib/catalog";
 import { StoreProvider, type StoreConfig } from "@/components/store/StoreProvider";
 import { AnnouncementBar } from "@/components/store/AnnouncementBar";
 import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
 import { CartDrawer } from "@/components/store/CartDrawer";
+import { MarketingPopups } from "@/components/store/MarketingPopups";
+import { livePopups } from "@/lib/marketing";
+import { manrope, syne } from "@/lib/store-fonts";
 
-// Dark Premium storefront typography (the admin keeps Archivo/Inter).
-const syne = Syne({ variable: "--font-syne", subsets: ["latin"], weight: ["500", "600", "700", "800"], display: "swap" });
-const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +63,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
           />
         </div>
         <CartDrawer />
+        <MarketingPopups popups={livePopups(settings.popups)} />
       </div>
     </StoreProvider>
   );

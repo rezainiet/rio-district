@@ -1,0 +1,347 @@
+{
+  "$comment": "Avis visibles sur https://www.kaltshop.club/ (section « Avis clients »), relevés tels quels. Généré par l'audit du 16/10/2026. Ne pas modifier les textes, notes ou noms.",
+  "source": {
+    "url": "https://www.kaltshop.club/",
+    "capturedAt": "2026-10-16T14:17:00.000Z",
+    "count": 28,
+    "fieldsAvailable": [
+      "author",
+      "rating",
+      "text",
+      "photo"
+    ],
+    "fieldsMissing": [
+      "date",
+      "colour",
+      "order / purchase record"
+    ],
+    "observations": [
+      "Aucune date d'avis n'est publiée : aucune date ne sera affichée (pas de date inventée).",
+      "Le produit est « Veste Brésil » sans coloris : les avis sont rattachés au modèle (les 6 coloris).",
+      "Aucun avis n'est relié à une commande : aucun ne peut porter la mention « Achat vérifié ».",
+      "Sur la référence, les notes globales par coloris (ex. 4,92 · 323 avis) sont explicitement étiquetées « DÉMO » (champ demoRating) : elles ne sont PAS reprises.",
+      "17 photos s'appellent ziyva-*.jpg : elles semblent provenir d'une autre boutique. Leur origine et les droits des personnes photographiées doivent être confirmés.",
+      "La référence affiche aussi des vidéos clients (/temoignages/avis-*.mp4) : non reprises, le module d'avis ne gère pas la vidéo."
+    ]
+  },
+  "authorization": {
+    "$comment": "À remplir UNIQUEMENT avec une confirmation écrite du client. Tant que status ≠ confirmed, les avis sont importés non publiés et les photos ne sont pas téléchargées.",
+    "status": "pending",
+    "reviewsAreGenuine": null,
+    "reuseAuthorized": null,
+    "photosAuthorized": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "evidence": null
+  },
+  "reviews": [
+    {
+      "key": "kaltshop-a3f6b2fd253e1915",
+      "position": 1,
+      "author": "Imen D.",
+      "rating": 5,
+      "text": "incroyable vraiment, je vous ai vu sur TikTok au début j'hésitais, j'ai vu les avis sur le site et j'ai direct acheté",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-5.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-92ef2f9c3b9aa469",
+      "position": 2,
+      "author": "Carla G.",
+      "rating": 5,
+      "text": "rien à dire vraiment c'est top, la qualité est bonne. Le délai de livraison était un peu long mais j'ai pas attendu beaucoup de temps, je vous avais vu sur TikTok depuis quelques jours et je l'ai pris sans hésiter.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-6.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-c3c5bcfa1c8de393",
+      "position": 3,
+      "author": "Shaima A.",
+      "rating": 5,
+      "text": "je suis trop contente, vous avez sauvé ma rentrée",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-7.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-daa2fafb8bdd3e71",
+      "position": 4,
+      "author": "Hicham Q.",
+      "rating": 5,
+      "text": "j'avais oublié de mettre un avis j'ai reçu ma commande vendredi après midi merci à vous j'pensais que j'allais me faire arnaquer",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-8.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-ff4996382be82fb7",
+      "position": 5,
+      "author": "Ayoub K.",
+      "rating": 5,
+      "text": "C'est carré",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-9.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-92d441587c3bc815",
+      "position": 6,
+      "author": "Julien",
+      "rating": 5,
+      "text": "OP",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/photo-10.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-14aaa94c117d8766",
+      "position": 7,
+      "author": "Anonyme",
+      "rating": 4,
+      "text": "Incroyable, mes sorties running ont littéralement changé avec la veste Brésil !!! Je suis trop content et satisfait de ma commande !",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-2.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-c059aa409411b50e",
+      "position": 8,
+      "author": "Lucas",
+      "rating": 5,
+      "text": "La veste Brésil est juste incroyable, très qualitative.. enfin toutes les qualités qu'on puisse attendre pour ce type de produit. Foncez les yeux fermés !!",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-3.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-95d0378b88fcf2bd",
+      "position": 9,
+      "author": "Nathan",
+      "rating": 5,
+      "text": "Je ne regrette pas mon achat, la veste Brésil est magnifique vraiment 😍😍",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-4.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-4c35997593e00be4",
+      "position": 10,
+      "author": "Anonyme",
+      "rating": 5,
+      "text": "La veste Brésil, incroyable je n'ai pas les mots",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-5.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-afe8c21def8cd812",
+      "position": 11,
+      "author": "Géraldine O.",
+      "rating": 5,
+      "text": "La veste Brésil est dingue 🤩",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-6.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-148529789ed40376",
+      "position": 12,
+      "author": "Anonyme",
+      "rating": 5,
+      "text": "Très satisfait de la veste Brésil. Je ne regrette pas mon achat, mon fils est ravi !",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-7.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-59eb785c25ebe484",
+      "position": 13,
+      "author": "Yanis",
+      "rating": 5,
+      "text": "Franchement très bonne surprise, la veste est vraiment belle et la qualité est top. Elle taille bien et correspond parfaitement aux photos.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-8.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-ea7db1b222cf815a",
+      "position": 14,
+      "author": "Lina",
+      "rating": 5,
+      "text": "Reçue en 3 jours seulement, super rapide ! La veste est très jolie et semble de bonne qualité. Je recommande.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-9.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-7af8e7e1503a822e",
+      "position": 15,
+      "author": "Inès",
+      "rating": 5,
+      "text": "Très satisfait de mon achat, la coupe est sympa et la veste rend super bien portée. Je vais sûrement en reprendre une autre.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-11.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-4ecf594c61bd9383",
+      "position": 16,
+      "author": "Samir",
+      "rating": 5,
+      "text": "La couleur verte est grave belle, je m’attendais à un vert différent mais en vrai elle rend super bien. La veste est propre.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-13.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-68ba57fdf2d02a6d",
+      "position": 17,
+      "author": "Yasmine",
+      "rating": 5,
+      "text": "Je l’avais vue sur TikTok, j’ai fini par commander et bien reçue. Elle ressemble vraiment aux photos, pas déçue.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-14.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-1179d8fe5dbc7df2",
+      "position": 18,
+      "author": "Rayan",
+      "rating": 5,
+      "text": "Avec un jean ça passe nickel, le style est simple mais ça fait son effet. Je vais clairement la porter souvent.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-15.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-9fd79282972d59c9",
+      "position": 19,
+      "author": "Amine",
+      "rating": 5,
+      "text": "Reçue en 3 jours, franchement la coupe tombe bien. Elle donne bien portée et la taille correspond à ce que je voulais.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-16.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-5180fb6ffee2a0c4",
+      "position": 20,
+      "author": "Maxime",
+      "rating": 5,
+      "text": "La noire change vraiment tout une fois portée, elle reste sobre mais le rendu est stylé. Facile à mettre avec n’importe quelle tenue.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-17.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-2a1ed632a390d843",
+      "position": 21,
+      "author": "Sofiane",
+      "rating": 5,
+      "text": "J’aime beaucoup la blanche, les finitions sont propres et la matière fait pas du tout bas de gamme comme je pensais.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-18.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-ff556bc0becb8c4d",
+      "position": 22,
+      "author": "Kenza",
+      "rating": 5,
+      "text": "Je l’avais repérée sur TikTok et je voulais tester. Bien reçue, la couleur est exactement comme je voulais et elle rend vraiment bien.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-19.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-0017b5aa4f45df06",
+      "position": 23,
+      "author": "Hugo",
+      "rating": 5,
+      "text": "Incroyable j’lai reçu en 2 jours",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": "https://www.kaltshop.club/temoignages/ziyva-20.jpg",
+      "approved": false
+    },
+    {
+      "key": "kaltshop-f5ed72c5d65de296",
+      "position": 24,
+      "author": "Elias",
+      "rating": 5,
+      "text": "Légère mais elle coupe vraiment le vent. Parfaite pour la mi-saison, je la garde dans le sac tout le temps.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": null,
+      "approved": false
+    },
+    {
+      "key": "kaltshop-210ec0587051e376",
+      "position": 25,
+      "author": "Naïla",
+      "rating": 5,
+      "text": "Six coloris, j'ai pris le rose et je ne regrette pas. Les broderies sont nettes et le tissu ne fait pas plastique.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": null,
+      "approved": false
+    },
+    {
+      "key": "kaltshop-6f30b75301c6c54b",
+      "position": 26,
+      "author": "Lucas",
+      "rating": 5,
+      "text": "Commandée pour un séjour au Brésil, elle a fait son effet. Bonne coupe, ni trop ample ni trop serrée.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": null,
+      "approved": false
+    },
+    {
+      "key": "kaltshop-62b9ad52bd60f3b7",
+      "position": 27,
+      "author": "Assia",
+      "rating": 4,
+      "text": "Très satisfaite du produit. Je conseille de prendre sa taille habituelle, elle taille normalement.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": null,
+      "approved": false
+    },
+    {
+      "key": "kaltshop-43b410d3dd547a92",
+      "position": 28,
+      "author": "Margaux",
+      "rating": 5,
+      "text": "Reçue plus tôt que prévu, avec le suivi par mail du début à la fin. C'est appréciable quand on commande en ligne.",
+      "model": "veste-bresil",
+      "date": null,
+      "photoSource": null,
+      "approved": false
+    }
+  ]
+}

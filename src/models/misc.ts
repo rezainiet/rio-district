@@ -70,26 +70,70 @@ export const ContactMessage: Model<ContactMessageDoc> =
   (models.ContactMessage as Model<ContactMessageDoc>) ||
   model<ContactMessageDoc>("ContactMessage", ContactMessageSchema);
 
-/* ---------- Testimonials (only published ones are shown) ---------- */
+/* ---------- Reviews / testimonials (only published ones are shown) ---------- */
+
+/**
+ * Moderation workflow. Customer submissions arrive as "pending"; only an admin
+ * can approve them. `published` remains the single visibility switch and can
+ * only be true for an approved review (enforced by the admin API).
+ * Documents created before this field existed have no status: they are read
+ * as "approved" when published and "pending" otherwise.
+ */
+export const REVIEW_STATUSES = ["pending", "approved", "rejected"] as const;
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
 const TestimonialSchema = new Schema(
   {
     author: { type: String, required: true, trim: true },
+    title: { type: String, default: "", maxlength: 80 },
     text: { type: String, required: true, maxlength: 1500 },
     rating: { type: Number, min: 1, max: 5, default: 5 },
-    /** True only when the client confirms it comes from a real customer order. */
+    /** True only when the review matches a delivered order, or the client confirmed it. */
     verified: { type: Boolean, default: false },
     published: { type: Boolean, default: false },
+    status: { type: String, enum: REVIEW_STATUSES },
     source: { type: String, default: "" },
+    /** admin = typed in the admin; customer = site form; import = carried over from the reference store. */
+    submittedBy: { type: String, enum: ["admin", "customer", "import"], default: "admin" },
     product: { type: Types.ObjectId, ref: "Product", default: null },
+    /** Review of the whole model (all colours), e.g. "veste-bresil", when the colour is unknown. */
+    group: { type: String, default: "" },
+    /** When the customer wrote it. Unknown for imported reviews: no date is shown rather than an invented one. */
+    reviewedAt: { type: Date, default: null },
+    /** Stable key of an imported review (prevents duplicates across re-imports). */
+    importKey: { type: String },
+    /** Where an imported review comes from, kept for audit. */
+    provenance: {
+      origin: { type: String, default: "" },
+      url: { type: String, default: "" },
+      capturedAt: { type: Date, default: null },
+      originalPhoto: { type: String, default: "" },
+    },
+    /** Private: never rendered on the storefront. */
+    email: { type: String, lowercase: true, trim: true, default: "" },
+    order: { type: Types.ObjectId, ref: "Order", default: null },
+    orderNumber: { type: String, default: "" },
+    /** Review photo URLs (/uploads/reviews/…), served only once the review is published. */
+    photos: { type: [String], default: [] },
+    moderatedAt: { type: Date, default: null },
+    moderatedBy: { type: String, default: "" },
     sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
 TestimonialSchema.index({ published: 1, sortOrder: 1 });
-export type TestimonialDoc = InferSchemaType<typeof TestimonialSchema> & { _id: Types.ObjectId };
+TestimonialSchema.index({ product: 1, published: 1, createdAt: -1 });
+TestimonialSchema.index({ email: 1, product: 1 });
+TestimonialSchema.index({ photos: 1 });
+TestimonialSchema.index({ group: 1, published: 1 });
+TestimonialSchema.index({ importKey: 1 }, { unique: true, partialFilterExpression: { importKey: { $type: "string" } } });
+export type TestimonialDoc = InferSchemaType<typeof TestimonialSchema> & { _id: Types.ObjectId; createdAt: Date; updatedAt: Date };
 export const Testimonial: Model<TestimonialDoc> =
   (models.Testimonial as Model<TestimonialDoc>) || model<TestimonialDoc>("Testimonial", TestimonialSchema);
+
+export function reviewStatus(t: { status?: string | null; published?: boolean | null }): ReviewStatus {
+  return (t.status as ReviewStatus | undefined) ?? (t.published ? "approved" : "pending");
+}
 
 /* ---------- Payment attempts (ready for a future provider) ---------- */
 

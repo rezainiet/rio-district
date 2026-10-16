@@ -1,0 +1,12 @@
+# /etc/systemd/system/rio-district-health.timer — every 5 minutes.
+# systemctl enable --now rio-district-health.timer
+
+[Unit]
+Description=Rio District health probe (every 5 min)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

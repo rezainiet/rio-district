@@ -34,14 +34,6 @@ const COLORS: { slug: string; name: string; hex: string; swatch: Swatch }[] = [
   { slug: "jaune", name: "Jaune", hex: "#F2C824", swatch: { body: "#F2C824", shade: "#D9AF12", trim: "#1E6B45", trim2: "#27479A", zip: "#5E4A05", light: true } },
 ];
 
-const TESTIMONIALS = [
-  { author: "Imen D.", text: "incroyable vraiment, je vous ai vu sur TikTok au début j'hésitais, j'ai vu les avis sur le site et j'ai direct acheté" },
-  { author: "Carla G.", text: "rien à dire vraiment c'est top, la qualité est bonne. Le délai de livraison était un peu long mais j'ai pas attendu beaucoup de temps, je vous avais vu sur TikTok depuis quelques jours et je l'ai pris sans hésiter." },
-  { author: "Shaima A.", text: "je suis trop contente, vous avez sauvé ma rentrée" },
-  { author: "Hicham Q.", text: "j'avais oublié de mettre un avis j'ai reçu ma commande vendredi après midi merci à vous j'pensais que j'allais me faire arnaquer" },
-  { author: "Ayoub K.", text: "C'est carré" },
-  { author: "Julien", text: "OP" },
-];
 
 async function main() {
   const uri = process.env.MONGODB_URI;
@@ -145,19 +137,8 @@ async function main() {
     console.log("  ↻ réglages réinitialisés");
   }
 
-  if ((await Testimonial.countDocuments()) === 0) {
-    await Testimonial.insertMany(
-      TESTIMONIALS.map((t, i) => ({
-        ...t,
-        rating: 5,
-        verified: false,
-        published: false,
-        source: "Repris de kaltshop.club — à confirmer par le client avant publication",
-        sortOrder: i,
-      })),
-    );
-    console.log(`  + ${TESTIMONIALS.length} avis importés (non publiés)`);
-  }
+  // Reviews are not seeded: the reference-store reviews are imported (pending,
+  // unpublished) by `npm run reviews:import`, with their provenance.
 
   const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.SEED_ADMIN_PASSWORD ?? "";

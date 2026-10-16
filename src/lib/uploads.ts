@@ -3,7 +3,7 @@ import path from "node:path";
 
 /**
  * Admin uploads live OUTSIDE the release directory so they survive redeploys.
- * Production: set UPLOAD_DIR to a persistent path (e.g. /var/lib/kalt/uploads).
+ * Production: set UPLOAD_DIR to a persistent path (e.g. /var/lib/rio-district/uploads).
  * Development default: .data/uploads (git-ignored).
  */
 export const UPLOAD_DIR = path.resolve(/* turbopackIgnore: true */ process.env.UPLOAD_DIR || ".data/uploads");

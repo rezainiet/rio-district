@@ -17,7 +17,11 @@
     "demo:orders": "tsx scripts/demo-orders.ts",
     "images:fetch": "tsx scripts/fetch-reference-images.ts",
     "images:migrate": "tsx scripts/migrate-product-images.ts",
-    "qa:mobile": "tsx scripts/qa-mobile.ts"
+    "qa:mobile": "tsx scripts/qa-mobile.ts",
+    "demo:marketing": "tsx scripts/demo-marketing.ts",
+    "qa:marketing": "tsx scripts/qa-marketing.ts",
+    "reviews:import": "tsx scripts/import-reference-reviews.ts",
+    "migrate:prod": "tsx scripts/migrate-production.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -30,6 +34,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "^7.90.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {

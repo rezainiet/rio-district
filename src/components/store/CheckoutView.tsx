@@ -15,7 +15,7 @@ import type { CartQuote } from "@/lib/types";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { InfoIcon } from "@/components/ui/icons";
 
-const KEY_STORAGE = "kalt.checkout.key";
+const KEY_STORAGE = "rd.checkout.key";
 
 function newKey() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto

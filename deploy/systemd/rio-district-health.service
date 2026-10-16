@@ -1,0 +1,10 @@
+# /etc/systemd/system/rio-district-health.service — run by rio-district-health.timer.
+# Fails (and logs at priority "err") when the site or the database does not answer.
+# Hook an alert on it, e.g.: journalctl -p err -u rio-district-health, or OnFailure= a mail unit.
+
+[Unit]
+Description=Rio District health probe
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl --fail --silent --show-error --max-time 10 -o /dev/null http://127.0.0.1:3000/api/health

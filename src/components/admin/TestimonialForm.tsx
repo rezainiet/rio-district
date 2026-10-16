@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { inputCls, labelCls } from "./ui";
 
-export function TestimonialForm() {
+export function TestimonialForm({ products }: { products: { id: string; name: string }[] }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,7 +24,9 @@ export function TestimonialForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             author: fd.get("author"),
+            title: fd.get("title"),
             text: fd.get("text"),
+            productId: fd.get("productId"),
             rating: Number(fd.get("rating")),
             source: fd.get("source"),
             verified: fd.get("verified") === "on",
@@ -46,6 +48,10 @@ export function TestimonialForm() {
         <input id="t-author" name="author" required className={inputCls} placeholder="Prénom N." />
       </div>
       <div>
+        <label htmlFor="t-title" className={labelCls}>Titre</label>
+        <input id="t-title" name="title" maxLength={80} className={inputCls} />
+      </div>
+      <div>
         <label htmlFor="t-text" className={labelCls}>Avis</label>
         <textarea id="t-text" name="text" required rows={4} className={inputCls} />
       </div>
@@ -56,10 +62,17 @@ export function TestimonialForm() {
         </select>
       </div>
       <div>
-        <label htmlFor="t-source" className={labelCls}>Source</label>
-        <input id="t-source" name="source" className={inputCls} placeholder="ex. e-mail client du 12/10" />
+        <label htmlFor="t-product" className={labelCls}>Produit</label>
+        <select id="t-product" name="productId" defaultValue="" className={inputCls}>
+          <option value="">Boutique (général)</option>
+          {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
       </div>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="verified" /> Achat vérifié</label>
+      <div>
+        <label htmlFor="t-source" className={labelCls}>Source (obligatoire)</label>
+        <input id="t-source" name="source" required className={inputCls} placeholder="ex. e-mail client du 12/10" />
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="verified" /> Achat vérifié (commande confirmée)</label>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="published" /> Publier</label>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <Button type="submit" size="sm" disabled={busy}>Ajouter</Button>

@@ -12,7 +12,6 @@ export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSetti
   const [s, setS] = useState(initial);
   const [bundlePrice, setBundlePrice] = useState(centsToInput(initial.bundle.priceCents));
   const [shipPrice, setShipPrice] = useState(centsToInput(initial.shipping.priceCents));
-  const [endsAt, setEndsAt] = useState(initial.promotion.endsAt ? initial.promotion.endsAt.slice(0, 16) : "");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string; fields?: Record<string, string> } | null>(null);
 
@@ -26,7 +25,6 @@ export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSetti
       ...s,
       bundle: { ...s.bundle, priceCents: inputToCents(bundlePrice) },
       shipping: { ...s.shipping, priceCents: inputToCents(shipPrice) },
-      promotion: { ...s.promotion, endsAt: endsAt ? new Date(endsAt).toISOString() : null },
     };
     if (Number.isNaN(payload.bundle.priceCents) || Number.isNaN(payload.shipping.priceCents)) {
       setMsg({ ok: false, text: "Prix invalide (ex. 24,95)." });
@@ -131,9 +129,10 @@ export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSetti
           <input id="s-phead" className={inputCls} value={s.promotion.headline} onChange={(e) => up("promotion", { headline: e.target.value })} />
           <label htmlFor="s-ptext" className={`${labelCls} mt-4`}>Texte</label>
           <textarea id="s-ptext" rows={2} className={inputCls} value={s.promotion.text} onChange={(e) => up("promotion", { text: e.target.value })} />
-          <label htmlFor="s-pend" className={`${labelCls} mt-4`}>Date de fin réelle (facultatif)</label>
-          <input id="s-pend" type="datetime-local" className={inputCls} value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
-          <p className="mt-1 text-xs text-muted">Ne renseigne une date que si l&apos;offre s&apos;arrête vraiment à ce moment-là.</p>
+          <p className="mt-3 text-xs text-muted">
+            Une offre limitée dans le temps ? Configure son compte à rebours dans{" "}
+            <a href="/admin/promotions" className="underline">Promotions</a>.
+          </p>
         </Card>
 
         <Card title="Bandeau d'annonce">

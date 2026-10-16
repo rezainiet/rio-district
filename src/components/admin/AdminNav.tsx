@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/produits", label: "Produits" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/avis", label: "Avis" },
+  { href: "/admin/promotions", label: "Promotions" },
   { href: "/admin/reglages", label: "Réglages" },
 ];
 
@@ -18,15 +19,17 @@ export function AdminNav({
   email,
   newMessages,
   pendingOrders,
+  pendingReviews,
 }: {
   storeName: string;
   email: string;
   newMessages: number;
   pendingOrders: number;
+  pendingReviews: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const counts: Record<string, number> = { "/admin/messages": newMessages, "/admin/commandes": pendingOrders };
+  const counts: Record<string, number> = { "/admin/messages": newMessages, "/admin/commandes": pendingOrders, "/admin/avis": pendingReviews };
 
   const logout = async () => {
     await fetch("/api/admin/auth/logout", { method: "POST" });

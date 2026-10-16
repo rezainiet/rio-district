@@ -53,7 +53,7 @@ async function shot(page: Page, name: string, opts: { full?: boolean } = { full:
 async function seedCart(context: BrowserContext, ids: Ids) {
   await context.addInitScript((cart) => {
     if (!sessionStorage.getItem("__cart_seeded")) {
-      localStorage.setItem("kalt.cart.v1", JSON.stringify(cart));
+      localStorage.setItem("rd.cart.v1", JSON.stringify(cart));
       sessionStorage.setItem("__cart_seeded", "1");
     }
   }, [
@@ -176,7 +176,7 @@ async function main() {
       await shot(p, `${label}-04-tiroir-panier`, { full: false });
       await p.goto(`${BASE}/commande`);
       await shot(p, `${label}-05-commande`);
-      await p.evaluate(() => localStorage.removeItem("kalt.cart.v1"));
+      await p.evaluate(() => localStorage.removeItem("rd.cart.v1"));
       await adminLogin(ctx);
       await p.goto(`${BASE}/admin`);
       await shot(p, `${label}-06-admin-tableau-de-bord`);

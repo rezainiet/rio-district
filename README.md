@@ -1,6 +1,6 @@
-# KALT — Vestes Brésil
+# Rio District — Vestes Brésil
 
-Boutique e-commerce en français (Next.js 16 + MongoDB) inspirée de kaltshop.club :
+Boutique e-commerce en français (Next.js 16 + MongoDB), thème « Dark Premium », reprise du catalogue de kaltshop.club (boutique de référence du client) :
 6 vestes, pack de 2 vestes à couleurs mélangées, guide des tailles, panier, **demande de commande
 sans paiement** et espace d'administration complet.
 
@@ -16,7 +16,8 @@ Prérequis : Node.js ≥ 20.9 (testé en 22.13), npm.
 npm install
 cp .env.example .env.local      # puis compléter (voir ci-dessous)
 npm run db:local                # MongoDB local persistant (terminal dédié) — inutile si vous avez Atlas
-npm run seed                    # catalogue, réglages, avis (non publiés), compte admin
+npm run seed                    # catalogue, réglages, compte admin
+npm run reviews:import -- --apply   # avis de la boutique de référence (en attente, non publiés)
 npm run dev                     # http://localhost:3000  ·  admin : http://localhost:3000/admin
 ```
 
@@ -68,7 +69,11 @@ révocable). Mots de passe hachés avec bcrypt (coût 12). Connexion limitée en
 | `npm run lint` / `npm run typecheck` | Qualité |
 | `npm run screenshots -- --set after` | Captures pleine page de l'app lancée (Chrome local) dans `docs/screenshots/<set>/` ; `--reference` capture aussi kaltshop.club |
 | `npm run images:fetch` / `npm run images:migrate` | Photos produits autorisées : téléchargement et migration sûre (voir docs/IMAGES.md) |
-| `npm run demo:orders` | 3 commandes « (DÉMO) » pour revoir l'admin ; `-- --clean` les supprime |
+| `npm run demo:orders` | 3 commandes « (DÉMO) » pour revoir l'admin ; `-- --clean` les supprime (refusé en production) |
+| `npm run reviews:import` | Avis de la boutique de référence (`scripts/data/reference-reviews.json`) : simulation par défaut, `-- --apply` pour écrire ; jamais publiés sans autorisation écrite du client |
+| `npm run migrate:prod` | Migration de production : `export` (poste de travail) → `import` (VPS, simulation puis `--apply`) → `rollback` ; voir docs/DEPLOYMENT.md |
+| `npm run demo:marketing` | Base **séparée** `<base>_demo` avec avis et campagnes « Démo » pour les captures ; `-- --clean` la supprime |
+| `npm run qa:mobile` / `npm run qa:marketing` | Recettes Chrome réelles (barre collante, tiroir, cibles tactiles / avis, compte à rebours, pop-ups) |
 
 ## Fonctionnalités
 
@@ -90,14 +95,22 @@ création, édition, brouillon/en ligne/archivé, suppression sûre (uniquement 
 prix, prix barré, coloris, groupe de coloris, tailles proposées, stock par taille (ou non suivi),
 images (téléversement ou URL, ordre, texte alternatif), SEO · réglages : nom, e-mail, bandeau,
 promotion, prix du pack, livraison, retours, ouverture des commandes, mention paiement, FAQ,
-barème du guide des tailles · messages de contact · modération des avis.
+barème du guide des tailles · messages de contact · avis : file d'attente, approbation,
+masquage, rejet, achat vérifié, statistiques, photos, provenance des avis importés ·
+promotions : compte à rebours (dates réelles, heure de Paris) et 3 pop-ups (bienvenue,
+intention de sortie, rappel de panier) avec aperçu, fréquence et dates.
+
+**Avis clients** — formulaire public (note, titre, texte, photos ré-encodées sans métadonnées,
+numéro de commande facultatif → « Achat vérifié » uniquement pour une commande livrée),
+limité en fréquence, publié seulement après modération ; note moyenne et répartition calculées
+sur les avis publiés uniquement.
 
 ## Architecture
 
 ```
 src/
   app/(store)/        pages boutique (layout avec panier)    app/admin/   login + (panel)
-  app/api/            orders, cart/quote, contact, admin/*, payments/webhook/[provider]
+  app/api/            orders, cart/quote, contact, reviews, health, admin/*, payments/webhook/[provider]
   components/store/   UI boutique (client/serveur)            components/admin/  UI admin
   components/ui/      Button, Modal (<dialog> natif), icônes
   lib/                logique métier pure ou serveur :
@@ -109,7 +122,8 @@ src/
   models/             Mongoose : Product, Category, Order, Settings, AdminUser, AdminSession,
                       ContactMessage, Testimonial, PaymentAttempt, Counter
   proxy.ts            garde optimiste /admin (la vraie vérification est côté serveur)
-scripts/              seed, create-admin, local-mongo, smoke, placeholders (visuels SVG)
+scripts/              seed, create-admin, local-mongo, smoke, migrate-production, import-reference-reviews,
+                      demo-*/qa-* (outils locaux, refusés ou sans effet en production)
 ```
 
 Règles clés :
@@ -134,7 +148,7 @@ sauvegardes) et modèles dans `deploy/`. Points clés :
 
 - `NEXT_PUBLIC_SITE_URL` (https) est figé au moment de `npm run build`.
 - En production, l'application refuse de démarrer sans `MONGODB_URI`, sans URL https ou sans `UPLOAD_DIR`.
-- `APP_ENV=production` bloque `seed --reset`, `demo:orders`, `test:smoke` et `db:local`.
+- `APP_ENV=production` bloque `seed --reset`, `demo:orders`, `demo:marketing`, `test:smoke` et `db:local`.
 - Une seule instance (limiteur de débit en mémoire).
 
 ## Documents
@@ -146,3 +160,4 @@ sauvegardes) et modèles dans `deploy/`. Points clés :
 - [docs/PAYMENTS.md](docs/PAYMENTS.md) — passation pour l'intégration du paiement
 - [docs/IMAGES.md](docs/IMAGES.md) — photos produits : sources, autorisation, migration, remplacement
 - [docs/LIMITATIONS.md](docs/LIMITATIONS.md) — limites connues et contenus à fournir par le client
+- [docs/LAUNCH-READINESS.md](docs/LAUNCH-READINESS.md) — état de préparation au lancement, avis de référence, bloquants

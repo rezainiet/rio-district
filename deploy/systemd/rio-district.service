@@ -1,0 +1,37 @@
+# /etc/systemd/system/rio-district.service — template.
+# Layout: /srv/rio-district/current (symlink to the active release),
+# /srv/rio-district/shared/.env.local (chmod 600, symlinked into each release),
+# uploads in /var/lib/rio-district/uploads, backups in /var/backups/rio-district.
+# Run ONE instance: the rate limiter is in memory.
+
+[Unit]
+Description=Rio District storefront (Next.js)
+After=network.target mongod.service
+Wants=mongod.service
+
+[Service]
+Type=simple
+User=riodistrict
+Group=riodistrict
+WorkingDirectory=/srv/rio-district/current
+Environment=NODE_ENV=production
+Environment=APP_ENV=production
+# Listens on localhost only: nginx is the single public entry point.
+# Runs next directly (no npm wrapper: nothing to write in a home directory under ProtectSystem=strict).
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
+Restart=on-failure
+RestartSec=5
+# Logs (JSON lines) go to journald: journalctl -u rio-district -f
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/rio-district /srv/rio-district/current/.next
+
+[Install]
+WantedBy=multi-user.target

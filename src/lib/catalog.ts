@@ -4,7 +4,7 @@ import { connectDB } from "./db";
 import { DEFAULT_SETTINGS, type StoreSettings } from "./defaults";
 import type { PublicProduct } from "./types";
 import { Product, type ProductDoc } from "@/models/Product";
-import { Settings, Testimonial } from "@/models/misc";
+import { Settings } from "@/models/misc";
 
 const LOW_STOCK = 3;
 
@@ -73,16 +73,4 @@ export async function getProductMap(ids: string[]) {
   const valid = [...new Set(ids)].filter((id) => Types.ObjectId.isValid(id));
   const docs = await Product.find({ _id: { $in: valid }, status: "active" }).lean<ProductDoc[]>();
   return new Map(docs.map((d) => [String(d._id), toPublicProduct(d)]));
-}
-
-export async function getPublishedTestimonials() {
-  await connectDB();
-  const docs = await Testimonial.find({ published: true }).sort({ sortOrder: 1, createdAt: -1 }).limit(12).lean();
-  return docs.map((t) => ({
-    id: String(t._id),
-    author: t.author,
-    text: t.text,
-    rating: t.rating ?? 5,
-    verified: Boolean(t.verified),
-  }));
 }

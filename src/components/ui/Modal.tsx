@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import clsx from "clsx";
 
 /**
@@ -23,6 +23,8 @@ export function Modal({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Unique per instance: several modals can live on the same page.
+  const titleId = useId();
 
   useEffect(() => {
     const el = ref.current;
@@ -38,7 +40,7 @@ export function Modal({
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
       className={clsx(
         "m-auto w-[calc(100%-24px)] max-w-lg rounded-[var(--radius-lg)] bg-paper p-0 text-ink shadow-[var(--shadow-pop)] backdrop:bg-transparent",
         "max-h-[calc(100dvh-24px)] open:animate-fade-up",
@@ -47,7 +49,7 @@ export function Modal({
     >
       <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
         <div>
-          <h2 id="modal-title" className="display text-3xl">
+          <h2 id={titleId} className="display text-3xl">
             {title}
           </h2>
           {description && <p className="mt-1 text-sm text-muted">{description}</p>}

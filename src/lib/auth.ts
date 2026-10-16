@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { connectDB } from "./db";
 import { AdminSession, AdminUser } from "@/models/misc";
+import { SESSION_COOKIE } from "./session-cookie";
 
-export const SESSION_COOKIE = "kalt_admin";
+export { SESSION_COOKIE };
 const SESSION_DAYS = 7;
 
 export type AdminIdentity = { id: string; email: string; name: string; role: string };

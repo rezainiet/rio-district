@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getActiveProducts, getProductBySlug, getPublishedTestimonials, getSettings } from "@/lib/catalog";
+import { getActiveProducts, getProductBySlug, getSettings } from "@/lib/catalog";
+import { getProductReviews } from "@/lib/reviews";
+import { countdownFor } from "@/lib/marketing";
+import { CountdownStrip } from "@/components/store/Countdown";
 import { deliveryEstimate, deliveryRange } from "@/lib/delivery";
 import { formatEUR } from "@/lib/money";
 import { isSize } from "@/lib/sizes";
@@ -9,7 +12,7 @@ import { Gallery } from "@/components/store/Gallery";
 import { ProductPurchase } from "@/components/store/ProductPurchase";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Faq } from "@/components/store/Faq";
-import { Testimonials } from "@/components/store/Testimonials";
+import { Reviews } from "@/components/store/Reviews";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -38,15 +41,12 @@ export async function generateMetadata({ params }: PageProps<"/produit/[slug]">)
 export default async function ProductPage({ params, searchParams }: PageProps<"/produit/[slug]">) {
   const { slug } = await params;
   const sp = await searchParams;
-  const [product, settings, all, testimonials] = await Promise.all([
-    getProductBySlug(slug),
-    getSettings(),
-    getActiveProducts(),
-    getPublishedTestimonials(),
-  ]);
+  const [product, settings, all] = await Promise.all([getProductBySlug(slug), getSettings(), getActiveProducts()]);
   if (!product) notFound();
 
   const siblings = product.group ? all.filter((p) => p.group === product.group) : [product];
+  const { summary, reviews } = await getProductReviews(product, siblings);
+  const countdown = countdownFor(settings.countdown, "product");
   const bundleOptions = all.filter((p) => p.bundleEligible && (!product.group || p.group === product.group));
   const related = all.filter((p) => p.id !== product.id).slice(0, 4);
 
@@ -72,6 +72,10 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       availability: anyAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
     },
+    // Only real, published reviews feed the rating shown to search engines.
+    ...(summary.count > 0 && {
+      aggregateRating: { "@type": "AggregateRating", ratingValue: summary.average, reviewCount: summary.count, bestRating: 5, worstRating: 1 },
+    }),
   };
 
   return (
@@ -98,6 +102,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           </div>
         </div>
         <div className="lg:col-span-5">
+          {countdown && <CountdownStrip data={countdown} />}
           <ProductPurchase
             key={product.id}
             product={product}
@@ -152,7 +157,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </div>
       </section>
 
-      <Testimonials items={testimonials} title="Ils l'ont adoptée." />
+      <Reviews variant="product" summary={summary} reviews={reviews} product={{ id: product.id, name: product.name }} />
 
       {related.length > 0 && (
         <section aria-labelledby="related-title" className="border-t border-line py-20 md:py-24">

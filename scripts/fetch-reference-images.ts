@@ -82,12 +82,13 @@ async function main() {
     }
   }
 
+  // Provenance stays out of public/: it holds internal authorization notes.
   writeFileSync(
-    path.join(dir, "SOURCES.json"),
+    path.resolve("docs/provenance/product-images.json"),
     JSON.stringify({ authorization: auth, files: lock }, null, 2) + "\n",
     "utf8",
   );
-  console.log(`✓ ${Object.keys(lock).length} image(s) dans ${path.relative(process.cwd(), dir)} (provenance : SOURCES.json)`);
+  console.log(`✓ ${Object.keys(lock).length} image(s) dans ${path.relative(process.cwd(), dir)} (provenance : docs/provenance/product-images.json)`);
 }
 
 main().catch((err) => {

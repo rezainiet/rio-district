@@ -34,7 +34,7 @@ type Ctx = {
 };
 
 const StoreContext = createContext<Ctx | null>(null);
-const STORAGE_KEY = "kalt.cart.v1";
+const STORAGE_KEY = "rd.cart.v1";
 
 function signature(line: CartLineInput) {
   return line.kind === "single"

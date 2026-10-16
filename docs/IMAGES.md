@@ -9,7 +9,7 @@ les marques tierces visibles dessus (Nike, CBF, Itaú, Vivo). **Aucune autorisat
 client n'est au dossier.** Les photos sont donc utilisables en recette / préproduction, mais ne
 doivent pas être considérées comme licenciées pour une mise en ligne publique tant que
 `authorization.writtenAuthorization` (document, signataire, date) n'est pas renseigné dans
-`scripts/data/reference-images.json` et `public/products/reference/SOURCES.json`. Ces deux fichiers
+`scripts/data/reference-images.json` et `docs/provenance/product-images.json` (hors de `public/` : il contient des notes internes). Ces deux fichiers
 indiquent aussi, pour chaque photo : source, dimensions, poids, SHA-256 et date de récupération.
 
 | Produit | Fichier servi par l'app | Source d'origine | Taille | Vues |

@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getActiveProducts, getPublishedTestimonials, getSettings } from "@/lib/catalog";
+import { getActiveProducts, getSettings } from "@/lib/catalog";
+import { getStoreReviews } from "@/lib/reviews";
+import { countdownFor } from "@/lib/marketing";
+import { CountdownBand } from "@/components/store/Countdown";
 import { formatEUR } from "@/lib/money";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Faq, faqJsonLd } from "@/components/store/Faq";
-import { Testimonials } from "@/components/store/Testimonials";
+import { Reviews } from "@/components/store/Reviews";
 import { ContactForm } from "@/components/store/ContactForm";
 import { ButtonLink } from "@/components/ui/Button";
 import type { PublicProduct } from "@/lib/types";
@@ -20,11 +23,9 @@ function Shot({ product, className, sizes, priority }: { product?: PublicProduct
 }
 
 export default async function HomePage() {
-  const [settings, products, testimonials] = await Promise.all([
-    getSettings(),
-    getActiveProducts(),
-    getPublishedTestimonials(),
-  ]);
+  const [settings, products] = await Promise.all([getSettings(), getActiveProducts()]);
+  const storeReviews = await getStoreReviews(products);
+  const countdown = countdownFor(settings.countdown, "home");
   const { bundle } = settings;
   // Pick a product by colour slug, falling back to position so any catalogue still renders.
   const pick = (slug: string, i: number) => products.find((p) => p.slug.endsWith(`-${slug}`)) ?? products[i % Math.max(1, products.length)];
@@ -125,6 +126,9 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ---------- CAMPAIGN COUNTDOWN (only for a real, admin-configured deadline) ---------- */}
+      {countdown && <CountdownBand data={countdown} />}
 
       {/* ---------- COLLECTION ---------- */}
       <section id="collection" aria-labelledby="collection-title" className="container-x scroll-mt-24 py-20 lg:py-28">
@@ -227,7 +231,7 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <Testimonials items={testimonials} />
+      <Reviews variant="home" summary={storeReviews.summary} reviews={storeReviews.reviews} />
 
       {/* ---------- FAQ + CONTACT ---------- */}
       <section className="container-x grid gap-[18px] py-20 lg:grid-cols-2 lg:py-28">
