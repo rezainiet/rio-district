@@ -1,0 +1,62 @@
+[
+  {
+    "ok": true,
+    "msg": "fiche @320 : titre, note, prix et stock au 1er écran ; date de livraison à 639 px (écran 667 px)"
+  },
+  {
+    "ok": true,
+    "msg": "fiche @375 : titre, note, prix et stock au 1er écran ; date de livraison à 662 px (écran 667 px)"
+  },
+  {
+    "ok": true,
+    "msg": "fiche @390 : titre, note, prix et stock au 1er écran ; date de livraison à 676 px (écran 844 px)"
+  },
+  {
+    "ok": true,
+    "msg": "fiche @414 : titre, note, prix et stock au 1er écran ; date de livraison à 698 px (écran 844 px)"
+  },
+  {
+    "ok": true,
+    "msg": "barre collante : visible au 1er écran, « Choisir ma taille » amène au sélecteur, puis se masque sur les options"
+  },
+  {
+    "ok": true,
+    "msg": "note cliquable → section avis"
+  },
+  {
+    "ok": true,
+    "msg": "pastille de couleur sur la photo → fiche Noir"
+  },
+  {
+    "ok": true,
+    "msg": "ajout 19,99 € : confirmation « Ajouté au panier » + variante, compteur à 1, suggestion pack honnête (+4,96 €), « Continuer mes achats », Échap"
+  },
+  {
+    "ok": true,
+    "msg": "pack : taille manquante signalée, Vert S + Jaune XL → 24,95 €, panier total 44,94 €"
+  },
+  {
+    "ok": true,
+    "msg": "prix serveur (/api/cart/quote) : 44,94 € identique au tiroir"
+  },
+  {
+    "ok": true,
+    "msg": "commande : types de clavier et autocomplete corrects, 6 messages d'erreur à l'envoi vide (focus: co-fullName), étiquettes visibles, total 44,94 € — non soumise"
+  },
+  {
+    "ok": true,
+    "msg": "accueil 1er écran : {\"prix\":true,\"cta\":true}"
+  },
+  {
+    "ok": true,
+    "msg": "menu mobile : ouverture, verrouillage du défilement, Échap, lien Retours & remboursements"
+  },
+  {
+    "ok": true,
+    "msg": "15 jours partout (accueil, fiche, panier, livraison, retours) ; aucune mention « paiement sécurisé »"
+  },
+  {
+    "ok": true,
+    "msg": "clavier : flèches sur les tailles (S → M) ; focus none/solid"
+  }
+]

@@ -1,0 +1,179 @@
+<title>Rio District · Refonte mobile</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: review board — verdict, then one comparison row per screen (KALT · before · after), then numbers and open points. */
+  /* Deliberately single-theme dark: it is the storefront's own Dark Premium identity. */
+  :root {
+    --bg: #0b0b0c;
+    --panel: #141416;
+    --ink: #f4f0e8;
+    --ink-2: #cdc9c1;
+    --muted: #9c978e;
+    --line: #29292c;
+    --brass: #c8a96a;
+    --ok: #8fd9ad;
+    --bad: #f08a7e;
+    --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding-block: 36px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .lab { font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--brass); margin: 0; }
+  h1, h2, h3 { font-family: var(--display); font-variation-settings: "wdth" 72; font-weight: 800; text-transform: uppercase; text-wrap: balance; margin: 0; line-height: .96; }
+  h1 { font-size: clamp(40px, 8vw, 76px); margin-top: 10px; }
+  h2 { font-size: clamp(28px, 4.4vw, 44px); }
+  h3 { font-size: 20px; font-variation-settings: "wdth" 80; }
+  p { margin: 0; }
+  .lead { color: var(--ink-2); max-width: 70ch; margin-top: 14px; }
+  section { margin-top: 56px; display: grid; gap: 18px; }
+  .note { color: var(--muted); font-size: 14px; }
+  .cards { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+  .card p { color: var(--ink-2); font-size: 15px; }
+  .big { font-family: var(--display); font-variation-settings: "wdth" 80; font-weight: 800; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .tabs button { flex: none; font: 600 14px var(--body); color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; min-height: 42px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tabs button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .row { display: grid; gap: 14px; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); align-items: start; }
+  figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  figcaption { font-size: 14px; color: var(--ink-2); }
+  figcaption b { display: block; font-family: var(--display); font-variation-settings: "wdth" 80; font-weight: 800; text-transform: uppercase; font-size: 15px; color: var(--ink); letter-spacing: .02em; }
+  figcaption b.after { color: var(--brass); }
+  .shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot.tall { max-height: 1100px; overflow-y: auto; }
+  .table { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: right; font-size: 15px; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  .good { color: var(--ok); font-weight: 700; }
+  .warn { color: #eaa74a; font-weight: 700; }
+  ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.list li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; color: var(--ink-2); font-size: 15px; }
+  ul.list li::before { content: ""; width: 8px; height: 8px; border-radius: 99px; margin-top: 8px; background: var(--brass); }
+  ul.list b { color: var(--ink); }
+  .two { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 860px) {
+    .cards, .two { grid-template-columns: minmax(0, 1fr); }
+    .row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (prefers-reduced-motion: no-preference) { .tabs button { transition: background-color .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+  <p class="lab">Rio District · refonte mobile-first · 17 octobre 2026</p>
+  <h1>La boutique, repensée pour le téléphone.</h1>
+  <p class="lead">
+    Captures réelles de l'application (Chrome, 390 px Retina et 1440 px), avant et après, à côté de KALT. Les prix, le panier, la
+    commande et les règles serveur n'ont pas changé. Rien n'est en ligne : la nouvelle version attend votre validation.
+  </p>
+
+  <section aria-labelledby="h-essentiel">
+    <h2 id="h-essentiel">L'essentiel</h2>
+    <div class="cards">
+      <div class="card"><p class="lab">1er écran mobile</p><p class="big">Prix + avis + bouton</p><p>Accueil et fiche montrent dès l'arrivée ce qu'on vend, la note réelle, le prix, le stock et la date de livraison.</p></div>
+      <div class="card"><p class="lab">Lisibilité</p><p class="big">0 texte &lt; 12 px</p><p>Avant : 12 à 18 par page. Titres condensés : « Veste Brésil Vert » tient sur une ligne. Aucun défilement horizontal de 320 à 1440 px.</p></div>
+      <div class="card"><p class="lab">Confiance</p><p class="big">15 jours partout</p><p>Retour 15 jours sous le bouton, page Retours &amp; remboursements, frise de livraison datée, « rien à payer aujourd'hui » (pas de faux « paiement sécurisé »).</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-compare">
+    <h2 id="h-compare">Avant / après</h2>
+    <div class="tabs" role="tablist" aria-label="Écran">
+      <button role="tab" id="t-home" aria-selected="true" data-view="home">Accueil mobile</button>
+      <button role="tab" id="t-pdp" aria-selected="false" data-view="pdp">Fiche mobile</button>
+      <button role="tab" id="t-buy" aria-selected="false" data-view="buy">Choix et achat</button>
+      <button role="tab" id="t-reviews" aria-selected="false" data-view="reviews">Avis et menu</button>
+      <button role="tab" id="t-cart" aria-selected="false" data-view="cart">Panier et commande</button>
+      <button role="tab" id="t-returns" aria-selected="false" data-view="returns">Retours</button>
+      <button role="tab" id="t-desk" aria-selected="false" data-view="desk">Ordinateur</button>
+      <button role="tab" id="t-full" aria-selected="false" data-view="full">Pages complètes</button>
+    </div>
+    <p class="note" id="caption"></p>
+    <div class="row" id="board" role="tabpanel" aria-labelledby="t-home"></div>
+  </section>
+
+  <section aria-labelledby="h-type">
+    <h2 id="h-type">Typographie retenue : B</h2>
+    <p class="lead" style="margin-top:0">Mêmes éléments, trois polices de titre, 390 px. Syne reste la signature du logo ; les titres et les prix passent en Archivo condensé (déjà chargé par le site).</p>
+    <div class="row" style="--n:3">
+      <figure><div class="shot"><img src="typographie/option-a-390.jpg" alt="Option A, Syne" loading="lazy"></div><figcaption><b>A · Syne (avant)</b>Mots coupés, « € » seul sur sa ligne.</figcaption></figure>
+      <figure><div class="shot"><img src="typographie/option-b-390.jpg" alt="Option B, Archivo condensé" loading="lazy"></div><figcaption><b class="after">B · Archivo condensé (retenu)</b>Une ligne par titre, prix compacts, ton commercial.</figcaption></figure>
+      <figure><div class="shot"><img src="typographie/option-c-390.jpg" alt="Option C, Archivo standard" loading="lazy"></div><figcaption><b>C · Archivo standard</b>Propre mais « Questions fréquentes » repasse sur 2 lignes.</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-perf">
+    <h2 id="h-perf">Mesures</h2>
+    <div class="table">
+      <table>
+        <thead><tr><th>Lighthouse (mobile simulé)</th><th>En ligne aujourd'hui</th><th>Nouvelle version</th><th>Ordinateur (nouvelle)</th></tr></thead>
+        <tbody>
+          <tr><td>Accueil — performance</td><td>93</td><td class="warn">86 – 90</td><td class="good">100</td></tr>
+          <tr><td>Accueil — CLS (stabilité)</td><td>0,072</td><td class="good">0</td><td>0,002</td></tr>
+          <tr><td>Fiche produit — performance</td><td>90</td><td class="good">91</td><td class="good">100</td></tr>
+          <tr><td>Retours — performance</td><td>—</td><td class="good">95</td><td class="good">100</td></tr>
+          <tr><td>Accessibilité (3 pages)</td><td>100</td><td class="good">100</td><td class="good">100</td></tr>
+          <tr><td>LCP mobile simulé</td><td>2,7 – 3,3 s</td><td class="warn">2,9 – 4,0 s</td><td>0,6 – 0,8 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Nouvelle version mesurée sur un build de production local ; « en ligne » mesuré sur riodistrict.store (réseau réel). L'accueil perd quelques points (plus de photos et la police de titre au premier écran) ; l'objectif LCP &lt; 2,5 s n'est pas atteint en mobile simulé. Recette d'interactions : 15/15 (ajout, pack, tailles, panier, commande sans envoi, menu, clavier).</p>
+  </section>
+
+  <section aria-labelledby="h-open">
+    <h2 id="h-open">À valider avant mise en ligne</h2>
+    <div class="two">
+      <div class="card">
+        <ul class="list">
+          <li><span><b>La nouvelle version</b> (accueil, fiche, panier, commande, retours) avant fusion et déploiement.</span></li>
+          <li><span><b>Conditions de retour</b> : frais, emballage, délai de remboursement, échange, colis abîmé, erreur d'article.</span></li>
+          <li><span><b>Expédition</b> : délai réel de préparation, transporteur, heure limite de commande.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <ul class="list">
+          <li><span><b>Stock</b> : quantités réelles par taille pour afficher « Plus que N articles ».</span></li>
+          <li><span><b>Paiement</b> : prestataire et moyens acceptés ; d'ici là, « rien à payer aujourd'hui ».</span></li>
+          <li><span><b>Service client</b> : délai de réponse ; <b>mentions légales et CGV</b> à créer.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const K = "ref/", B = "before/", A = "after/";
+  const VIEWS = {
+    home: { cap: "Premier écran de l'accueil à 390 px.", items: [[K + "mobile-390-accueil-0-premier-ecran.jpg", "KALT", "Les 6 vestes, les prix, les avis."], [B + "mobile-390-accueil.jpg", "Avant", "Une veste, un titre sur 4 lignes, pas de prix."], [A + "mobile-390-accueil.jpg", "Après", "Titre, line-up des 6 coloris, note réelle, 19,99 € / 24,95 €, 2 boutons.", 1]] },
+    pdp: { cap: "Premier écran de la fiche produit à 390 px.", items: [[K + "mobile-390-veste-vert-0-premier-ecran.jpg", "KALT", "Note et stock « démo », date de livraison."], [B + "mobile-390-produit.jpg", "Avant", "La photo occupe l'écran."], [A + "mobile-390-produit.jpg", "Après", "Nom, note, prix, pack, stock et date de livraison visibles.", 1]] },
+    buy: { cap: "Choisir et acheter : taille, pack 2 vestes, bouton et réassurance.", items: [[A + "mobile-390-produit-selection.jpg", "Taille choisie", "Offre 1 / 2 vestes, couleurs, tailles 48 px, stock par taille.", 1], [A + "mobile-390-produit-pack.jpg", "Pack", "Couleur et taille pour chaque veste, économie visible.", 1], [A + "mobile-390-produit-achat.jpg", "Bouton et confiance", "Retour 15 jours sous le bouton, frise datée, garanties.", 1]] },
+    reviews: { cap: "Avis (28 avis publiés en production, aperçu local étiqueté) et menu mobile.", items: [[B + "mobile-390-produit-avis.jpg", "Avant", "Avis tout en bas."], [A + "mobile-390-produit-avis.jpg", "Après", "Note + répartition côte à côte, carrousel lisible.", 1], [A + "mobile-390-menu-mobile.jpg", "Menu après", "Les 6 vestes, le pack, l'aide.", 1]] },
+    cart: { cap: "Tiroir panier juste après l'ajout, puis la commande.", items: [[B + "mobile-390-tiroir-panier.jpg", "Avant", "Pas de confirmation."], [A + "mobile-390-tiroir-panier.jpg", "Après", "« Ajouté au panier » + variantes, date, retour 15 jours, « Continuer mes achats ».", 1], [A + "mobile-390-commande.jpg", "Commande après", "Claviers adaptés, étiquettes visibles, rien à payer aujourd'hui.", 1]] },
+    returns: { cap: "Nouvelle page Retours & remboursements (les points non confirmés ne s'affichent pas en ligne).", items: [[A + "mobile-390-retours-remboursements-complet.jpg", "Mobile", "15 jours, démarche, tes droits, contact.", 1, 1], [A + "desktop-1440-retours-remboursements.jpg", "Ordinateur", "Même contenu.", 1]] },
+    desk: { cap: "À 1440 px.", items: [[A + "desktop-1440-accueil.jpg", "Accueil", "Texte + line-up.", 1], [A + "desktop-1440-produit.jpg", "Fiche", "Photo collante, colonne d'achat.", 1], [A + "desktop-1440-produit-pack.jpg", "Pack", "Choix 1 / 2 vestes.", 1], [A + "desktop-1440-panier.jpg", "Panier", "Récapitulatif et réassurance.", 1], [A + "desktop-1440-commande.jpg", "Commande", "Formulaire et résumé.", 1], [A + "desktop-1440-tiroir-panier.jpg", "Tiroir", "Confirmation d'ajout.", 1]] },
+    full: { cap: "Pages complètes à 390 px (faire défiler dans chaque capture).", items: [[B + "mobile-390-accueil-complet.jpg", "Accueil avant", "", 0, 1], [A + "mobile-390-accueil-complet.jpg", "Accueil après", "", 1, 1], [A + "mobile-390-produit-complet.jpg", "Fiche après", "", 1, 1]] },
+  };
+  const board = document.getElementById("board"), caption = document.getElementById("caption");
+  function show(v) {
+    const view = VIEWS[v];
+    caption.textContent = view.cap;
+    board.style.setProperty("--n", Math.min(3, view.items.length));
+    board.innerHTML = view.items.map(([src, title, text, after, tall]) =>
+      `<figure><div class="shot${tall ? " tall" : ""}"><img src="${src}" alt="${title}" loading="lazy"></div><figcaption><b class="${after ? "after" : ""}">${title}</b>${text}</figcaption></figure>`).join("");
+    document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.view === v)));
+    board.setAttribute("aria-labelledby", "t-" + v);
+    try { localStorage.setItem("rd-redesign-view", v); } catch {}
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => show(b.dataset.view)));
+  let start = "home";
+  try { const s = localStorage.getItem("rd-redesign-view"); if (s && VIEWS[s]) start = s; } catch {}
+  show(start);
+</script>

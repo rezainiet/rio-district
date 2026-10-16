@@ -1,0 +1,464 @@
+{
+  "accueil@320": {
+    "overflow": false,
+    "scrollWidth": 320,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7482,
+    "errors": []
+  },
+  "accueil@375": {
+    "overflow": false,
+    "scrollWidth": 375,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7223,
+    "errors": []
+  },
+  "accueil@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7258,
+    "errors": []
+  },
+  "accueil@414": {
+    "overflow": false,
+    "scrollWidth": 414,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7316,
+    "errors": []
+  },
+  "accueil@768": {
+    "overflow": false,
+    "scrollWidth": 753,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7775,
+    "errors": []
+  },
+  "accueil@1024": {
+    "overflow": false,
+    "scrollWidth": 1009,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact"
+    ],
+    "smallCount": 5,
+    "height": 6301,
+    "errors": []
+  },
+  "accueil@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact"
+    ],
+    "smallCount": 5,
+    "height": 6376,
+    "errors": []
+  },
+  "produit@320": {
+    "overflow": false,
+    "scrollWidth": 320,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5793,
+    "errors": []
+  },
+  "produit@375": {
+    "overflow": false,
+    "scrollWidth": 375,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "294x39 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5580,
+    "errors": []
+  },
+  "produit@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5554,
+    "errors": []
+  },
+  "produit@414": {
+    "overflow": false,
+    "scrollWidth": 414,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5579,
+    "errors": []
+  },
+  "produit@768": {
+    "overflow": false,
+    "scrollWidth": 753,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "44x18 Accueil",
+      "62x18 Collection",
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 5,
+    "height": 6521,
+    "errors": []
+  },
+  "produit@1024": {
+    "overflow": false,
+    "scrollWidth": 1009,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "44x18 Accueil",
+      "62x18 Collection",
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 10,
+    "height": 5041,
+    "errors": []
+  },
+  "produit@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "44x18 Accueil",
+      "62x18 Collection",
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 10,
+    "height": 5105,
+    "errors": []
+  },
+  "produit-pack@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5872,
+    "errors": []
+  },
+  "produit-pack@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "44x18 Accueil",
+      "62x18 Collection",
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 10,
+    "height": 5444,
+    "errors": []
+  },
+  "produit-selection@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5584,
+    "errors": []
+  },
+  "produit-achat@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5554,
+    "errors": []
+  },
+  "produit-avis@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements"
+    ],
+    "smallCount": 3,
+    "height": 5554,
+    "errors": []
+  },
+  "tiroir-panier@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements",
+      "87x18 panier détaillé"
+    ],
+    "smallCount": 4,
+    "height": 5932,
+    "errors": []
+  },
+  "tiroir-panier@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "44x18 Accueil",
+      "62x18 Collection",
+      "69x19 Conditions",
+      "68x19 Écris-nous",
+      "176x19 Retours & remboursements",
+      "87x18 panier détaillé"
+    ],
+    "smallCount": 11,
+    "height": 5504,
+    "errors": []
+  },
+  "panier@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 1830,
+    "errors": []
+  },
+  "panier@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact"
+    ],
+    "smallCount": 5,
+    "height": 1121,
+    "errors": []
+  },
+  "commande@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "54x19 Panier",
+      "358x23 Nom complet",
+      "358x23 E-mail",
+      "358x23 Téléphone",
+      "358x23 Adresse",
+      "358x23 Complément d'adresseFacu",
+      "358x23 Code postal",
+      "358x23 Ville",
+      "358x23 Pays",
+      "358x23 Notes de commandeFaculta"
+    ],
+    "smallCount": 10,
+    "height": 3106,
+    "errors": []
+  },
+  "commande@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "54x19 Panier",
+      "730x23 Nom complet",
+      "357x23 E-mail",
+      "357x23 Téléphone",
+      "730x23 Adresse",
+      "730x23 Complément d'adresseFacu",
+      "233x23 Code postal"
+    ],
+    "smallCount": 15,
+    "height": 1751,
+    "errors": []
+  },
+  "livraison-retours@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "201x22 Retours & remboursements"
+    ],
+    "smallCount": 1,
+    "height": 2138,
+    "errors": []
+  },
+  "livraison-retours@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "201x22 Retours & remboursements",
+      "162x21 contact@kaltshop.club"
+    ],
+    "smallCount": 7,
+    "height": 1558,
+    "errors": []
+  },
+  "retours-remboursements@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "159x22 formulaire de contact"
+    ],
+    "smallCount": 1,
+    "height": 3450,
+    "errors": []
+  },
+  "retours-remboursements@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "73x29 Collection",
+      "95x29 Pack 2 vestes",
+      "29x29 Avis",
+      "29x29 FAQ",
+      "57x29 Contact",
+      "159x22 formulaire de contact"
+    ],
+    "smallCount": 6,
+    "height": 2401,
+    "errors": []
+  },
+  "faq-contact@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [
+      "316x23 Ton e-mail",
+      "316x23 Ton message"
+    ],
+    "smallCount": 2,
+    "height": 7272,
+    "errors": []
+  },
+  "menu-mobile@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [],
+    "tinyCount": 0,
+    "smallTargets": [],
+    "smallCount": 0,
+    "height": 7258,
+    "errors": []
+  }
+}

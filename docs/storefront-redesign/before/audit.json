@@ -1,0 +1,853 @@
+{
+  "accueil@320": {
+    "overflow": true,
+    "scrollWidth": 372,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6660,
+    "errors": []
+  },
+  "accueil@375": {
+    "overflow": false,
+    "scrollWidth": 375,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6639,
+    "errors": []
+  },
+  "accueil@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6671,
+    "errors": []
+  },
+  "accueil@414": {
+    "overflow": false,
+    "scrollWidth": 414,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6634,
+    "errors": []
+  },
+  "accueil@768": {
+    "overflow": false,
+    "scrollWidth": 753,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6970,
+    "errors": []
+  },
+  "accueil@1024": {
+    "overflow": false,
+    "scrollWidth": 1009,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "65x27 Collection",
+      "36x47 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "161x20 ↓ Faire défiler la colle",
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 12,
+    "height": 5678,
+    "errors": []
+  },
+  "accueil@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "161x20 ↓ Faire défiler la colle",
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune"
+    ],
+    "smallCount": 13,
+    "height": 5731,
+    "errors": []
+  },
+  "produit@320": {
+    "overflow": true,
+    "scrollWidth": 354,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5220,
+    "errors": []
+  },
+  "produit@375": {
+    "overflow": false,
+    "scrollWidth": 375,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5189,
+    "errors": []
+  },
+  "produit@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5226,
+    "errors": []
+  },
+  "produit@414": {
+    "overflow": false,
+    "scrollWidth": 414,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5191,
+    "errors": []
+  },
+  "produit@768": {
+    "overflow": false,
+    "scrollWidth": 753,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5451,
+    "errors": []
+  },
+  "produit@1024": {
+    "overflow": false,
+    "scrollWidth": 1009,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "65x27 Collection",
+      "36x47 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 4218,
+    "errors": []
+  },
+  "produit@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 8,
+    "height": 4101,
+    "errors": []
+  },
+  "produit-pack@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5462,
+    "errors": []
+  },
+  "produit-pack@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 8,
+    "height": 4330,
+    "errors": []
+  },
+  "produit-selection@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5226,
+    "errors": []
+  },
+  "produit-achat@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5226,
+    "errors": []
+  },
+  "produit-avis@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ"
+    ],
+    "smallCount": 3,
+    "height": 5226,
+    "errors": []
+  },
+  "tiroir-panier@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 16,
+    "smallTargets": [
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ",
+      "350x36 Voir le panier détaillé"
+    ],
+    "smallCount": 4,
+    "height": 5462,
+    "errors": []
+  },
+  "tiroir-panier@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: −",
+      "11px: 38",
+      "11px: %",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: Avis clients",
+      "11px: Les autres coloris",
+      "11px: FAQ",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 16,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "42x17 Accueil",
+      "58x17 Collection",
+      "26x44 FAQ",
+      "400x36 Voir le panier détaillé"
+    ],
+    "smallCount": 9,
+    "height": 4330,
+    "errors": []
+  },
+  "panier@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: Veste 1",
+      "11px: Veste 2",
+      "11px: Récapitulatif",
+      "11px: Total TTC",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 7,
+    "smallTargets": [
+      "26x44 FAQ"
+    ],
+    "smallCount": 1,
+    "height": 1843,
+    "errors": []
+  },
+  "panier@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: Veste 1",
+      "11px: Veste 2",
+      "11px: Récapitulatif",
+      "11px: Total TTC",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 7,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "26x44 FAQ"
+    ],
+    "smallCount": 6,
+    "height": 1175,
+    "errors": []
+  },
+  "commande@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: Panier",
+      "11px: Coordonnées",
+      "11px: Confirmation",
+      "11px: 01 · Tes coordonnées",
+      "11px: 02 · Livraison",
+      "11px: 03 · Ta commande",
+      "11px: Total TTC",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 10,
+    "smallTargets": [
+      "52x17 Panier",
+      "358x20 Nom complet",
+      "358x20 E-mail",
+      "358x20 Téléphone",
+      "358x20 Adresse",
+      "358x20 Complément d'adresseFacu",
+      "358x20 Code postal",
+      "358x20 Ville",
+      "358x20 Pays",
+      "358x20 Notes de commandeFaculta",
+      "26x44 FAQ"
+    ],
+    "smallCount": 11,
+    "height": 2925,
+    "errors": []
+  },
+  "commande@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: Panier",
+      "11px: Coordonnées",
+      "11px: Confirmation",
+      "11px: 01 · Tes coordonnées",
+      "11px: 02 · Livraison",
+      "11px: 03 · Ta commande",
+      "11px: Total TTC",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 10,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "52x17 Panier",
+      "730x20 Nom complet",
+      "357x20 E-mail",
+      "357x20 Téléphone",
+      "730x20 Adresse",
+      "730x20 Complément d'adresseFacu",
+      "233x20 Code postal"
+    ],
+    "smallCount": 16,
+    "height": 1791,
+    "errors": []
+  },
+  "livraison-retours@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: Livraison",
+      "11px: Retours & échanges",
+      "11px: Paiement",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 6,
+    "smallTargets": [
+      "151x19 contact@kaltshop.club",
+      "26x44 FAQ"
+    ],
+    "smallCount": 2,
+    "height": 1807,
+    "errors": []
+  },
+  "livraison-retours@1440": {
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tiny": [
+      "11px: Livraison",
+      "11px: Retours & échanges",
+      "11px: Paiement",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 6,
+    "smallTargets": [
+      "65x27 Collection",
+      "88x27 Pack 2 vestes",
+      "54x27 La veste",
+      "26x27 FAQ",
+      "54x27 Contact",
+      "151x19 contact@kaltshop.club",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 1380,
+    "errors": []
+  },
+  "retours-remboursements@390": {
+    "status": 404
+  },
+  "retours-remboursements@1440": {
+    "status": 404
+  },
+  "faq-contact@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes",
+      "11px: La veste",
+      "11px: FAQ",
+      "11px: Contact",
+      "11px: Coloris",
+      "11px: Aide",
+      "11px: Suivre"
+    ],
+    "tinyCount": 12,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6671,
+    "errors": []
+  },
+  "menu-mobile@390": {
+    "overflow": false,
+    "scrollWidth": 390,
+    "tiny": [
+      "11px: 0",
+      "11px: 1",
+      "11px: 2",
+      "11px: 3",
+      "11px: 4",
+      "11px: 5",
+      "11px: Collection Brésil —",
+      "11px: 6",
+      "11px: coloris",
+      "11px: Veste Brésil Noir",
+      "11px: coloris · une coupe",
+      "11px: Pack 2 vestes"
+    ],
+    "tinyCount": 18,
+    "smallTargets": [
+      "26x26 Veste Brésil Vert",
+      "26x26 Veste Brésil Rose",
+      "26x26 Veste Brésil Noir",
+      "26x26 Veste Brésil Blanc",
+      "26x26 Veste Brésil Bleu",
+      "26x26 Veste Brésil Jaune",
+      "26x44 FAQ"
+    ],
+    "smallCount": 7,
+    "height": 6671,
+    "errors": []
+  }
+}

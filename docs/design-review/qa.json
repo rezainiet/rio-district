@@ -1,13 +1,13 @@
 [
   {
     "ok": true,
-    "msg": "product-01 @375: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":true,\"rating\":true,\"price\":false,\"stock\":false}",
+    "msg": "product-01 @375: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":true,\"rating\":true,\"price\":true,\"stock\":false}",
     "key": "product-01",
     "w": 375,
     "first": {
       "h1": true,
       "rating": true,
-      "price": false,
+      "price": true,
       "stock": false
     },
     "small": []
@@ -44,11 +44,6 @@
   {
     "ok": true,
     "msg": "product-01 @390: compte à rebours stable au rechargement (Fin de l'offre le dimanche 18 octobre à 23:59), absent sans campagne réelle ; aucune fausse quantité/paiement ; 15 jours partout"
-  },
-  {
-    "ok": true,
-    "msg": "product-01 @768: ⚠ débordement horizontal causé par le pied de page existant (même défaut sur la fiche en ligne)",
-    "footerOverflow": true
   },
   {
     "ok": true,
@@ -107,11 +102,11 @@
   },
   {
     "ok": true,
-    "msg": "product-02 @390: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":false,\"rating\":true,\"price\":true,\"stock\":false}",
+    "msg": "product-02 @390: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":true,\"rating\":true,\"price\":true,\"stock\":false}",
     "key": "product-02",
     "w": 390,
     "first": {
-      "h1": false,
+      "h1": true,
       "rating": true,
       "price": true,
       "stock": false
@@ -129,11 +124,6 @@
   {
     "ok": true,
     "msg": "product-02 @390: compte à rebours stable au rechargement (Fin de l'offre le dimanche 18 octobre à 23:59), absent sans campagne réelle ; aucune fausse quantité/paiement ; 15 jours partout"
-  },
-  {
-    "ok": true,
-    "msg": "product-02 @768: ⚠ débordement horizontal causé par le pied de page existant (même défaut sur la fiche en ligne)",
-    "footerOverflow": true
   },
   {
     "ok": true,
@@ -171,11 +161,11 @@
   },
   {
     "ok": true,
-    "msg": "product-03 @375: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":false,\"rating\":true,\"price\":true,\"stock\":false}",
+    "msg": "product-03 @375: pas de défilement horizontal, titres OK, aucun texte < 11 px · 1er écran {\"h1\":true,\"rating\":true,\"price\":true,\"stock\":false}",
     "key": "product-03",
     "w": 375,
     "first": {
-      "h1": false,
+      "h1": true,
       "rating": true,
       "price": true,
       "stock": false
@@ -214,11 +204,6 @@
   {
     "ok": true,
     "msg": "product-03 @390: compte à rebours stable au rechargement (Fin de l'offre le dimanche 18 octobre à 23:59), absent sans campagne réelle ; aucune fausse quantité/paiement ; 15 jours partout"
-  },
-  {
-    "ok": true,
-    "msg": "product-03 @768: ⚠ débordement horizontal causé par le pied de page existant (même défaut sur la fiche en ligne)",
-    "footerOverflow": true
   },
   {
     "ok": true,
