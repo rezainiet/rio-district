@@ -10,7 +10,7 @@ sans paiement** et espace d'administration complet.
 
 ## Démarrage rapide (local)
 
-Prérequis : Node.js ≥ 20.9 (testé en 22.13), npm.
+Prérequis : Node.js ≥ 20.19.0 (Node 22 LTS recommandé ; testé en 22.13.1), npm. Voir le [guide complet pour un nouvel ordinateur Windows](SETUP_NEW_COMPUTER.md).
 
 ```bash
 npm install
