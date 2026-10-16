@@ -100,6 +100,28 @@ async function noPopupsByDefault(browser: Browser) {
   await ctx.close();
 }
 
+/** Every image inside `scope` is brought into view and must actually load (thumbnails included). */
+async function imagesLoaded(p: Page, scope: string) {
+  const results = (await p.evaluate(`(async () => {
+    const imgs = [...document.querySelectorAll(${JSON.stringify(scope)} + " img")];
+    const out = [];
+    for (const i of imgs) {
+      i.scrollIntoView({ block: "center" });
+      const ok = await new Promise((r) => {
+        if (i.complete && i.naturalWidth) return r(true);
+        i.addEventListener("load", () => r(i.naturalWidth > 0), { once: true });
+        i.addEventListener("error", () => r(false), { once: true });
+        setTimeout(() => r(i.naturalWidth > 0), 6000);
+      });
+      out.push({ src: i.currentSrc || i.src, ok });
+    }
+    return out;
+  })()`)) as { src: string; ok: boolean }[];
+  assert.ok(results.length > 0, `aucune image dans ${scope}`);
+  for (const r of results) assert.ok(r.ok, `image non chargée dans ${scope} : ${r.src}`);
+  return results.length;
+}
+
 async function purchaseFlow(browser: Browser) {
   const ctx = await browser.newContext(opts("mobile-390"));
   const p = await ctx.newPage();
@@ -118,8 +140,13 @@ async function purchaseFlow(browser: Browser) {
   await p.waitForTimeout(400);
   const drawer = await p.locator('[aria-labelledby="cart-title"]').innerText();
   assert.ok(drawer.includes("24,95") && drawer.includes("44,94"), "single + pack = 44,94 €");
+  const drawerImgs = await imagesLoaded(p, '[aria-labelledby="cart-title"]');
+  await p.locator('[aria-labelledby="cart-title"] h2').scrollIntoViewIfNeeded();
   await shot(p, "mobile-390-05-tiroir-panier");
   await p.goto(`${BASE}/commande`, { waitUntil: "networkidle" });
+  const checkoutImgs = await imagesLoaded(p, "main");
+  await p.evaluate(`scrollTo(0, 0)`);
+  ok(`miniatures chargées : tiroir panier (${drawerImgs}), commande (${checkoutImgs})`);
   await p.fill("#co-fullName", "Recette Production");
   await p.fill("#co-email", "recette.production@example.com");
   await p.fill("#co-phone", "0612345678");
@@ -148,6 +175,10 @@ async function reviewAndContact(browser: Browser) {
   await p.fill("#rv-name", "Recette Prod");
   await p.fill("#rv-email", "recette.avis@example.com");
   await p.check('input[name="consent"]');
+  // A real (small) photo, to check storage, moderation gating and persistence after a restart.
+  const sharp = (await import("sharp")).default;
+  const photo = await sharp({ create: { width: 320, height: 400, channels: 3, background: "#c8a96a" } }).jpeg().toBuffer();
+  await p.locator('input[name="photos"]').setInputFiles({ name: "recette.jpg", mimeType: "image/jpeg", buffer: photo });
   await p.getByRole("button", { name: "Envoyer mon avis" }).click();
   await p.waitForSelector("text=Merci !");
   await p.keyboard.press("Escape");
@@ -179,7 +210,45 @@ async function admin(browser: Browser) {
   assert.match(await visibleText(p), /RD-\d{5}/);
   await p.goto(`${BASE}/admin/produits`, { waitUntil: "networkidle" });
   assert.equal(await p.locator("tbody tr, ul li").filter({ hasText: "Veste Brésil" }).count() >= 6, true);
+  const adminThumbs = await imagesLoaded(p, "main");
+  await p.evaluate(`scrollTo(0, 0)`);
   await shot(p, "desktop-1440-11-admin-produits");
+  ok(`admin : ${adminThumbs} miniatures produits chargées`);
+
+  // Product management + inventory: edit the blue jacket, track its stock, order one, check the decrement, restore.
+  await p.getByRole("link", { name: "Veste Brésil Bleu" }).click();
+  await p.waitForURL(/\/admin\/produits\/[a-f0-9]{24}$/);
+  const productId = p.url().split("/").pop()!;
+  const taglineBefore = await p.inputValue("#p-tagline");
+  const priceBefore = await p.inputValue("#p-price");
+  await p.fill("#p-tagline", "Accroche modifiée pendant la recette");
+  await p.fill('input[aria-label="Stock M"]', "5");
+  await p.getByRole("button", { name: "Enregistrer" }).click();
+  await p.waitForSelector("text=Produit enregistré.");
+  const shopPage = await ctx.newPage();
+  await shopPage.goto(`${BASE}/produit/veste-bresil-bleu`, { waitUntil: "networkidle" });
+  assert.ok((await visibleText(shopPage)).includes("Accroche modifiée pendant la recette"), "admin edit visible on the shop");
+  const order = await p.request.post(`${BASE}/api/orders`, {
+    headers: { Origin: BASE, "Content-Type": "application/json" },
+    data: {
+      idempotencyKey: `recette-stock-${Date.now()}`,
+      lines: [{ kind: "single", productId, size: "M", quantity: 1, unitPriceCents: 1 }],
+      customer: { fullName: "Recette Stock", email: "recette.stock@example.com", phone: "0612345678", address: "1 rue du Stock", postalCode: "75001", city: "Paris", country: "FR" },
+    },
+  });
+  assert.equal(order.status(), 201);
+  assert.equal((await order.json()).order.totalCents, 1999, "server price, client price ignored");
+  await p.reload({ waitUntil: "networkidle" });
+  assert.equal(await p.inputValue('input[aria-label="Stock M"]'), "4", "stock decremented by the order");
+  await p.fill("#p-tagline", taglineBefore);
+  await p.fill('input[aria-label="Stock M"]', "");
+  await p.getByRole("button", { name: "Enregistrer" }).click();
+  await p.waitForSelector("text=Produit enregistré.");
+  await p.reload({ waitUntil: "networkidle" });
+  assert.equal(await p.inputValue("#p-tagline"), taglineBefore);
+  assert.equal(await p.inputValue("#p-price"), priceBefore, "price untouched");
+  await shopPage.close();
+  ok("gestion produit : modification visible en boutique, stock suivi 5 → 4 après commande, prix serveur, valeurs restaurées");
 
   await p.goto(`${BASE}/admin/avis?statut=pending`, { waitUntil: "networkidle" });
   const reviews = await visibleText(p);
@@ -193,13 +262,11 @@ async function admin(browser: Browser) {
   const shop = await ctx.newPage();
   await shop.goto(`${BASE}/produit/veste-bresil-bleu`, { waitUntil: "networkidle" });
   assert.ok((await visibleText(shop)).includes("Recette P."), "published review shown (first name + initial)");
-  await p.goto(`${BASE}/admin/avis?statut=published`, { waitUntil: "networkidle" });
-  p.once("dialog", (d) => d.accept());
-  await p.locator("li", { hasText: "Recette de production" }).getByRole("button", { name: "Rejeter" }).click();
-  await p.waitForTimeout(800);
-  await shop.reload({ waitUntil: "networkidle" });
-  assert.ok(!/recette de production/i.test(await visibleText(shop)));
-  ok("admin : cookie sécurisé, commandes RD-, 6 produits, avis importés en attente sans date, publication puis rejet");
+  const reviewPhoto = await shop.locator('#avis img[src^="/uploads/reviews/"]').first().getAttribute("src");
+  assert.ok(reviewPhoto, "review photo shown once published");
+  assert.equal((await fetch(`${BASE}${reviewPhoto}`)).status, 200, "published review photo is public");
+  writeFileSync(".data/qa-production-review-photo.txt", reviewPhoto!);
+  ok("admin : cookie sécurisé, commandes RD-, 6 produits, avis importés en attente sans date, avis client publié avec sa photo");
 
   // Image upload into UPLOAD_DIR.
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");

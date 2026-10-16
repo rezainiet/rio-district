@@ -26,13 +26,13 @@
   },
   "authorization": {
     "$comment": "À remplir UNIQUEMENT avec une confirmation écrite du client. Tant que status ≠ confirmed, les avis sont importés non publiés et les photos ne sont pas téléchargées.",
-    "status": "pending",
-    "reviewsAreGenuine": null,
-    "reuseAuthorized": null,
-    "photosAuthorized": null,
-    "confirmedBy": null,
-    "confirmedAt": null,
-    "evidence": null
+    "status": "confirmed",
+    "reviewsAreGenuine": true,
+    "reuseAuthorized": true,
+    "photosAuthorized": true,
+    "confirmedBy": "Rio District project owner (deployment chat)",
+    "confirmedAt": "2026-10-16T12:11:59.000Z",
+    "evidence": "Written confirmation in the deployment chat on 2026-10-16: the reference-store reviews are from real customers and Rio District may reuse their text and photos."
   },
   "reviews": [
     {
@@ -44,7 +44,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-5.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-92ef2f9c3b9aa469",
@@ -55,7 +55,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-6.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-c3c5bcfa1c8de393",
@@ -66,7 +66,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-7.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-daa2fafb8bdd3e71",
@@ -77,7 +77,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-8.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-ff4996382be82fb7",
@@ -88,7 +88,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-9.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-92d441587c3bc815",
@@ -99,7 +99,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/photo-10.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-14aaa94c117d8766",
@@ -110,7 +110,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-2.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-c059aa409411b50e",
@@ -121,7 +121,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-3.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-95d0378b88fcf2bd",
@@ -132,7 +132,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-4.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-4c35997593e00be4",
@@ -143,7 +143,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-5.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-afe8c21def8cd812",
@@ -154,7 +154,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-6.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-148529789ed40376",
@@ -165,7 +165,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-7.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-59eb785c25ebe484",
@@ -176,7 +176,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-8.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-ea7db1b222cf815a",
@@ -187,7 +187,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-9.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-7af8e7e1503a822e",
@@ -198,7 +198,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-11.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-4ecf594c61bd9383",
@@ -209,7 +209,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-13.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-68ba57fdf2d02a6d",
@@ -220,7 +220,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-14.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-1179d8fe5dbc7df2",
@@ -231,7 +231,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-15.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-9fd79282972d59c9",
@@ -242,7 +242,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-16.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-5180fb6ffee2a0c4",
@@ -253,7 +253,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-17.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-2a1ed632a390d843",
@@ -264,7 +264,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-18.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-ff556bc0becb8c4d",
@@ -275,7 +275,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-19.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-0017b5aa4f45df06",
@@ -286,7 +286,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": "https://www.kaltshop.club/temoignages/ziyva-20.jpg",
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-f5ed72c5d65de296",
@@ -297,7 +297,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": null,
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-210ec0587051e376",
@@ -308,7 +308,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": null,
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-6f30b75301c6c54b",
@@ -319,7 +319,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": null,
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-62b9ad52bd60f3b7",
@@ -330,7 +330,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": null,
-      "approved": false
+      "approved": true
     },
     {
       "key": "kaltshop-43b410d3dd547a92",
@@ -341,7 +341,7 @@
       "model": "veste-bresil",
       "date": null,
       "photoSource": null,
-      "approved": false
+      "approved": true
     }
   ]
 }

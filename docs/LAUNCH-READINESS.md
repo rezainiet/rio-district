@@ -137,6 +137,7 @@ dans une base séparée puis bascule. Migration : `migrate:prod rollback`.
 | 6 | Infrastructure : VPS, domaine, DNS, SSH, stockage des sauvegardes | Déploiement |
 | 7 | Campagnes réelles (dates, textes) si un compte à rebours ou des pop-ups doivent être actifs | Activation |
 | 8 | Prestataire de paiement (phase ultérieure) — aujourd'hui : demandes de commande non payées | Paiement en ligne |
+| 9 | **Quantités en stock réelles** : les 6 produits sont en « stock non suivi » (disponibilité illimitée). Le suivi par taille fonctionne (vérifié), il faut les vrais chiffres. | Ventes sans survente |
 
 ## 13. Résultats des tests (16/10/2026)
 
@@ -149,8 +150,8 @@ dans une base séparée puis bascule. Migration : `migrate:prod rollback`.
 | Build de production | ✓ |
 | Recette navigateur avis/campagnes (`qa:marketing`, base démo) | ✓ 18/18 |
 | Recette mobile (`qa:mobile`, 375/390) | ✓ barre collante, menu, tiroir sans régression |
-| **Répétition en mode production** (`qa-production`, build + `APP_ENV=production` sur base migrée) | ✓ 8/8 : santé, en-têtes, aucun texte démo/KALT ni compte à rebours à 4 largeurs, images servies par l'application, veste + pack = 44,94 €, commande « Non payée » RD-xxxxx, avis en attente, contact, admin (cookie Secure/HttpOnly/Lax), 6 produits, publication puis rejet d'un avis, téléversement, activation/fermeture d'un pop-up, compte à rebours expiré seul |
-| Persistance | ✓ image téléversée toujours servie après redémarrage du serveur |
+| **Répétition en mode production** (`qa-production`, build + `APP_ENV=production` sur base migrée) | ✓ 11/11 : santé, en-têtes, aucun texte démo/KALT ni compte à rebours à 4 largeurs, images servies par l'application, miniatures du tiroir panier, de la commande et de l'admin chargées, veste + pack = 44,94 €, commande « Non payée » RD-xxxxx, avis avec photo en attente, contact, admin (cookie Secure/HttpOnly/Lax), modification d'un produit visible en boutique, stock suivi 5 → 4 après commande (prix serveur), publication d'un avis avec sa photo, téléversement, activation/fermeture d'un pop-up, compte à rebours expiré seul |
+| Persistance | ✓ image téléversée par l'admin **et** photo d'avis toujours servies après redémarrage du serveur |
 | Garde-fous | ✓ mot de passe admin faible refusé en production ; démarrage averti sans authentification MongoDB |
 
 Non testé : Safari et appareils réels, Lighthouse, charge, déploiement sur un vrai VPS.
@@ -160,7 +161,8 @@ Non testé : Safari et appareils réels, Lighthouse, charge, déploiement sur un
 | Élément | Implémenté et testé | Configuré production | Attente client | Bloqué | Prêt au lancement |
 |---|:-:|:-:|:-:|:-:|:-:|
 | Boutique, panier, pack, commande non payée | ✓ | ✓ | | | ✓ |
-| Admin (commandes, produits, stocks, messages, réglages) | ✓ | ✓ | | | ✓ |
+| Admin (commandes, produits, messages, réglages) | ✓ | ✓ | | | ✓ |
+| Stocks par taille | ✓ | non suivi (aucun chiffre fourni) | ✓ quantités réelles | | |
 | Sécurité (sessions, CSRF, débit, en-têtes, noindex admin) | ✓ | ✓ | | | ✓ |
 | Migration de production (export/import/rollback) | ✓ | ✓ | | | ✓ |
 | Modèles VPS (systemd, nginx, sonde, sauvegarde) | ✓ | ✓ (modèles) | | ✓ infrastructure absente | |
