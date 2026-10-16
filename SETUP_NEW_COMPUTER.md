@@ -339,7 +339,7 @@ npm run dev
 | Design-review previews (dev only) | http://localhost:3000/design-review |
 
 Stop the server with **Ctrl+C** in its terminal (answer `Y` if Windows asks to terminate the batch job).
-Stop `db:local` the same way. Another port: `npm run dev -- -p 3001`.
+Stop `db:local` the same way. Another port: `npx next dev -p 3001`.
 
 ---
 
@@ -471,7 +471,7 @@ curl.exe http://localhost:3000/api/health     # server + DB reachable? ({"ok":tr
 | Countdown not visible | Needs: enabled + title + **future** end date + placement (home/product) in Admin → Promotions; rules in `src/lib/marketing.ts` (`isCountdownLive`) |
 | Pop-up not showing | Enabled + title + text + inside its dates; never on cart/checkout; shown once per `frequencyDays` per browser — clear `rd.popup.*` in Local Storage |
 | Change not visible in dev | OneDrive/file-sync folder → re-save or restart `npm run dev`; delete `.next` if the cache is stuck (safe) |
-| Port 3000 in use | Another dev server is running: `npm run dev -- -p 3001`, or stop it (`Get-NetTCPConnection -LocalPort 3000` → owning process) |
+| Port 3000 in use | Another dev server is running: `npx next dev -p 3001`, or stop it (`Get-NetTCPConnection -LocalPort 3000` → owning process) |
 
 ---
 
@@ -498,7 +498,7 @@ For ✍️ scripts, use a dedicated database, e.g. start a second `db:local` and
 
 ```powershell
 $env:LOCAL_MONGO_PORT = "27018"; npm run db:local                     # terminal A, from a separate checkout (its .data/mongo is isolated)
-$env:MONGODB_URI = "mongodb://127.0.0.1:27018/rio_test"; npm run seed; npm run dev -- -p 3002   # terminal B, same separate checkout
+$env:MONGODB_URI = "mongodb://127.0.0.1:27018/rio_test"; npm run seed; npx next dev -p 3002   # terminal B, same separate checkout
 $env:MONGODB_URI = "mongodb://127.0.0.1:27018/rio_test"; $env:SMOKE_BASE_URL = "http://localhost:3002"; npm run test:smoke  # terminal C, same separate checkout
 ```
 
@@ -588,7 +588,7 @@ uploaded files in `.data/uploads`, `node_modules`, or `.next`.
 
 ```powershell
 mongodump --uri="mongodb://127.0.0.1:27017/kalt" --archive=rio-dev.archive.gz --gzip     # Computer A
-mongorestore --uri="mongodb://127.0.0.1:27017" --archive=rio-dev.archive.gz --gzip --drop  # Computer B (⚠️ --drop replaces the local collections)
+mongorestore --uri="mongodb://127.0.0.1:27017" --archive=rio-dev.archive.gz --gzip --nsFrom='kalt.*' --nsTo='rio_imported.*'  # Computer B: use a new, empty database
 ```
 
 Only do this with **development/test** data. Never copy a dump containing real customer orders or
@@ -615,6 +615,10 @@ personal data, never commit dumps to Git (the repository is public), and delete 
 
 ### Validation of this guide
 
-Validation results for this handover are reported alongside the commit. Installing Node, Git, Chrome,
-or MongoDB Community Server from scratch was not tested on this computer; their installation steps
-must be confirmed on the new computer. Run the checklist above after cloning.
+Validated on 17 Oct 2026 on Windows with Node 22.13.1 and npm 10.9.2 in a fresh local clone and
+an isolated MongoDB database on port 27018: `npm ci`, `npm run db:local`, `npm run seed` twice,
+`npx next dev -p 3002`, nine HTTP smoke checks, 15 storefront browser checks, screenshot/overflow
+audit, local admin login, TypeScript, ESLint, 25 unit tests, and `npm run build`. The cloned server
+returned HTTP 200 for health, Returns & Refunds, and the authenticated admin dashboard.
+The production server and clean installation of Node, Git, Chrome, or MongoDB Community Server were
+not tested on this computer. Run the checklist above after cloning from GitHub.
