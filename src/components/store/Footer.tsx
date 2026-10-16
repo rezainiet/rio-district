@@ -23,8 +23,9 @@ export function Footer({
   const linkCls = "link-underline inline-flex min-h-11 items-center text-ink-2 hover:text-ink";
   return (
     <footer className="mt-auto border-t border-line">
-      <div className="container-x grid gap-10 pb-8 pt-16 md:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div>
+      {/* Tablet: the wordmark (no-wrap) gets its own row; four columns from lg, where it fits. */}
+      <div className="container-x grid gap-10 pb-8 pt-16 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="md:col-span-3 lg:col-span-1">
           <Logo name={storeName} className="whitespace-nowrap text-[28px] sm:text-[34px] lg:text-[40px]" />
           <p className="mt-3 max-w-sm text-sm text-muted">{tagline}</p>
         </div>
@@ -63,7 +64,7 @@ export function Footer({
           </ul>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-line pt-5 text-[12.5px] text-muted sm:flex-row sm:justify-between md:col-span-4">
+        <div className="flex flex-col gap-2 border-t border-line pt-5 text-[12.5px] text-muted sm:flex-row sm:justify-between md:col-span-3 lg:col-span-4">
           <p>© {year} {storeName}. Tous droits réservés.</p>
           <p>Prix TTC · Paiement en ligne bientôt disponible</p>
         </div>
