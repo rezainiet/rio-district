@@ -100,6 +100,7 @@ test ! -L "$release/.env.local"
 ln -s "$environment" "$release/.env.local"
 printf '%s\n' "$revision" > "$release/REVISION"
 cp "$release/REVISION" "$release/APPLICATION_REVISION"
+chmod 644 "$release/REVISION" "$release/APPLICATION_REVISION"
 cd "$release"
 if ! runuser -u riodistrict -- env MONGOMS_DISABLE_POSTINSTALL=1 NEXT_TELEMETRY_DISABLED=1 npm ci --no-audit --no-fund > "$backup/install.private.log" 2>&1; then
   echo "Dependency installation failed; see $backup/install.private.log on the VPS." >&2
