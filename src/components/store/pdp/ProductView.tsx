@@ -14,10 +14,10 @@ import { FaqList, RelatedColours, StickyBar, SupportCard } from "./blocks";
 import { CompactPurchase } from "./CompactPurchase";
 import { ProductSocialProof } from "./ProductSocialProof";
 import type { PreviewData } from "./types";
-import { usePurchase, type Offer } from "./usePurchase";
+import { usePurchase, type Offer, type Purchase } from "./usePurchase";
 
 /** Mobile photo: shorter than the screen so the essentials stay visible; colour dots switch the jacket. */
-function MobilePhoto({ d, basePath }: { d: PreviewData; basePath: string }) {
+function MobilePhoto({ d, p }: { d: PreviewData; p: Purchase }) {
   const [zoom, setZoom] = useState(false);
   const img = d.product.images[0];
   return (
@@ -37,7 +37,7 @@ function MobilePhoto({ d, basePath }: { d: PreviewData; basePath: string }) {
             {d.siblings.map((s) => (
               <li key={s.id}>
                 <Link
-                  href={`${basePath}/${s.slug}`}
+                  href={p.colourHref(s)}
                   scroll={false}
                   aria-label={`Coloris ${s.color.name}`}
                   aria-current={s.id === d.product.id ? "true" : undefined}
@@ -88,7 +88,7 @@ export function ProductView({
 
       <section className="container-x pdp-main">
         <div className="pdp-gallery">
-          <MobilePhoto d={d} basePath={basePath} />
+          <MobilePhoto d={d} p={p} />
           <div className="pdp-desktop-gallery">
             <Gallery key={d.product.id} images={d.product.images} name={d.product.name} />
           </div>

@@ -112,15 +112,19 @@ export function usePurchase({
     updateSlot(i, { productId: np.id, size: keep ? current.size : null });
   };
 
-  const goToColour = (p: PublicProduct) => {
-    if (p.id === product.id) return;
-    const params = new URLSearchParams(window.location.search);
+  const colourHref = (p: PublicProduct, search = "") => {
+    const params = new URLSearchParams(search);
     if (offer === "bundle") params.set("offre", "pack");
     else params.delete("offre");
     if (size && p.sizes.some((s) => s.label === size && s.available)) params.set("taille", size);
     else params.delete("taille");
     const q = params.toString();
-    router.push(`${basePath}/${p.slug}${q ? `?${q}` : ""}`, { scroll: false });
+    return `${basePath}/${p.slug}${q ? `?${q}` : ""}`;
+  };
+
+  const goToColour = (p: PublicProduct) => {
+    if (p.id === product.id) return;
+    router.push(colourHref(p, window.location.search), { scroll: false });
   };
 
   /** Sizes still missing, in order (used by the sticky bar: "Choisir ma taille"). */
@@ -159,6 +163,7 @@ export function usePurchase({
     slotProducts,
     updateSlot,
     selectSlotColour,
+    colourHref,
     goToColour,
     errors,
     guideFor,

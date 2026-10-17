@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +12,7 @@ import { checkoutCustomerSchema, COUNTRIES, type CheckoutCustomer } from "@/lib/
 import { formatEUR } from "@/lib/money";
 import type { CartQuote } from "@/lib/types";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { CheckIcon, InfoIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
+import { CheckIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import { eligibleOffer } from "@/lib/payments/everflow";
 import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
@@ -73,8 +72,7 @@ function Field({
 }
 
 export function CheckoutView() {
-  const router = useRouter();
-  const { lines, quote: localQuote, hydrated, config, clear, productMap } = useStore();
+  const { lines, quote: localQuote, hydrated, config, productMap } = useStore();
   const [serverResult, setServerResult] = useState<{ sig: string; quote: CartQuote | null } | null>(null);
   const [submitError, setSubmitError] = useState("");
   const [resumeToken, setResumeToken] = useState("");
@@ -82,6 +80,7 @@ export function CheckoutView() {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const sending = useRef(false);
   const hosted = !!config.checkout && config.checkout.mode !== "request";
+  const paymentAvailable = hosted && config.checkout?.available === true;
   const mock = config.checkout?.mode === "mock";
   useEffect(() => {
     queueMicrotask(() => { try { const saved = JSON.parse(sessionStorage.getItem("rd.checkout.pending") ?? "null"); if (saved?.token && /^[A-Za-z0-9_-]{24}$/.test(saved.token)) setResumeToken(saved.token); } catch {} });
@@ -126,19 +125,23 @@ export function CheckoutView() {
   const quote = serverQuote ?? localQuote;
   const cartInvalid = (serverQuote?.errors.length ?? 0) > 0 || localQuote.errors.length > 0;
   let offerError = "";
-  if (hosted && !cartInvalid) {
+  if (!cartInvalid) {
     try { eligibleOffer(quote); } catch (error) { offerError = (error as Error).message; }
   }
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => handleSubmit(async (customer) => {
     if (sending.current || navigating) return;
+    if (!paymentAvailable) {
+      setSubmitError("Le paiement est momentanément indisponible. Réessaie plus tard.");
+      return;
+    }
     sending.current = true;
     try {
     setSubmitError("");
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(signature), lines: inputs, customer, marketingConsent, website: "" }),
+      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(signature), lines: inputs, customer, marketingConsent, requireCheckout: true, website: "" }),
     }).catch(() => null);
 
     if (!res) {
@@ -159,12 +162,7 @@ export function CheckoutView() {
         window.location.assign(destination.href);
         return;
       }
-      try {
-        sessionStorage.removeItem(KEY_STORAGE);
-      } catch {}
-      volatileKeys.delete(signature);
-      clear();
-      router.replace(`/commande/confirmation/${data.order.token}`);
+      setSubmitError("Le paiement est momentanément indisponible. Réessaie avec la même commande.");
       return;
     }
     setSubmitError(data?.error ?? "La réponse n’a pas pu être confirmée. Réessaie avec la même demande.");
@@ -205,16 +203,9 @@ export function CheckoutView() {
         <span aria-hidden>→</span>
         <span className="text-ink" aria-current="step">Coordonnées</span>
         <span aria-hidden>→</span>
-        <span>{hosted ? "Paiement externe" : "Confirmation"}</span>
+        <span>Paiement</span>
       </nav>
       <h1 className="display t-title mt-3 uppercase">Finaliser ma commande</h1>
-
-      <div className="mt-5 flex gap-3 rounded-[var(--radius-md)] border border-[#4a3f2a] bg-[#17140f] p-4 text-[15px] leading-relaxed text-ink-2">
-        <InfoIcon className="mt-0.5 shrink-0 text-brand" />
-        <p>
-          {hosted ? <><strong className="font-semibold text-ink">{mock ? "Simulation locale · aucun paiement réel." : "Un dernier pas vers le paiement."}</strong> {mock ? "Le partenaire est simulé sur ce site. Aucune coordonnée n’est envoyée à Everflow." : "Vous serez redirigé vers notre partenaire de paiement pour finaliser votre commande. Aucune donnée bancaire n’est collectée par Rio District."}</> : <><strong className="font-semibold text-ink">Rien à payer aujourd&apos;hui.</strong> Tu envoies une demande de commande : nous la confirmons par e-mail et t&apos;indiquons comment régler. Aucune donnée bancaire n&apos;est demandée.</>}
-        </p>
-      </div>
 
       {hosted && config.checkout?.error && <p role="alert" className="mt-4 rounded-xl border border-danger p-4 text-danger">{config.checkout.error}</p>}
       {hosted && resumeToken && <div className="mt-4 rounded-xl border border-line p-4"><p className="mb-3 text-sm text-ink-2">Une commande est déjà en attente. Vérifie son statut avant de lancer un autre paiement.</p><ResumeCheckout token={resumeToken} /><Link className="mt-3 block text-sm underline" href={`/commande/confirmation/${resumeToken}`}>Retrouver cette commande</Link></div>}
@@ -346,14 +337,14 @@ export function CheckoutView() {
                 </p>
               )}
               {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href="/panier" className="underline">Modifier le panier</Link></p>}
-              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || config.checkout?.available === false}>
-                {isSubmitting || navigating ? (hosted ? "Préparation du paiement…" : "Envoi de ta demande…") : hosted ? "Continuer vers le paiement ↗" : `Envoyer ma demande · ${formatEUR(quote.totalCents)}`}
+              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || !paymentAvailable}>
+                {isSubmitting || navigating ? "Préparation du paiement…" : "Continuer vers le paiement ↗"}
               </Button>
-              <p className="mt-3 text-center text-sm text-muted">{hosted ? (mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe") : "Aucun paiement ne sera prélevé maintenant."}</p>
+              <p className="mt-3 text-center text-sm text-muted">{!paymentAvailable ? "Le paiement est momentanément indisponible." : mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe"}</p>
               <div className="mt-5 border-t border-line pt-4">
-                <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Après l&apos;envoi</p>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Après le paiement</p>
                 <ol className="mt-3 grid gap-2.5 text-[15px] text-ink-2">
-                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> {hosted ? "Ta sélection est enregistrée. Le paiement reste en attente jusqu’à vérification par la boutique." : "Tu reçois un e-mail qui confirme ta commande et t’indique comment régler."}</li>
+                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Ta commande est enregistrée. Son paiement sera vérifié avant l’expédition.</li>
                   <li className="flex gap-2.5"><TruckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Expédition suivie, livraison estimée {config.deliveryEstimate}.</li>
                   <li className="flex gap-2.5"><ReturnIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception.</li>
                 </ol>

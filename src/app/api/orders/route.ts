@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const hosted = readEverflowConfig(process.env);
+    if (body.data.requireCheckout && !hosted) {
+      throw new HostedCheckoutError("Le paiement est momentanément indisponible. Réessaie plus tard.");
+    }
     const { order, duplicate } = await createOrderRequest(body.data, {
       ip,
       userAgent: req.headers.get("user-agent") ?? undefined,

@@ -72,6 +72,8 @@ export const orderRequestSchema = z.object({
   lines: cartSchema,
   customer: checkoutCustomerSchema,
   marketingConsent: z.boolean().optional().default(false),
+  /** Payment checkout must never silently create a request-only order. */
+  requireCheckout: z.boolean().optional().default(false),
   /** Honeypot: must stay empty. */
   website: z.string().max(0).optional().default(""),
 });

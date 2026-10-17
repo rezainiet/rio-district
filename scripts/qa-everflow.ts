@@ -60,7 +60,7 @@ async function main() {
       await page.getByLabel("Adresse", { exact: true }).fill("12 rue de la Fiction");
       await page.getByLabel("Code postal", { exact: true }).fill("75001");
       await page.getByLabel("Ville", { exact: true }).fill("Paris");
-      assert.ok(await page.getByText("Simulation locale · aucun paiement réel.", { exact: true }).isVisible());
+      assert.ok(await page.getByText("Mode test · aucun débit possible", { exact: true }).isVisible());
       assert.ok(await page.getByRole("button", { name: /Continuer vers le paiement/ }).isEnabled());
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
       await page.screenshot({ path: `.data/everflow-qa/checkout-${width}.png`, fullPage: true });

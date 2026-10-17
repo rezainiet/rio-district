@@ -26,7 +26,7 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     const payload = (lines: unknown = single()) => ({ idempotencyKey: randomUUID(), lines, customer, website: "" });
     const submit = async (body: unknown) => { const response = await POST(request("/api/orders", body)); return { status: response.status, data: await response.json() }; };
     const stock = async (index: number, size: string) => (await Product.findById(fixture.products[index].id).lean())!.sizes.find(s => s.label === size)!.stock!;
-    const key = payload(); const before = await stock(0, "M");
+    const key = { ...payload(), requireCheckout: true }; const before = await stock(0, "M");
     const simultaneous = await Promise.all(Array.from({ length: 5 }, () => submit(key)));
     assert.ok(simultaneous.every(r => r.status === 200 || r.status === 201));
     assert.equal(new Set(simultaneous.map(r => r.data.order.token)).size, 1);
@@ -107,6 +107,13 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     assert.equal(await stock(0, "M"), before - 1); // one other Green/M bundle remains reserved
     // Disabled integration deliberately uses original unpaid request flow on THIS isolated DB.
     process.env.EVERFLOW_ENABLED = "false";
+    const beforeDisabledCheckout = await Order.countDocuments();
+    const stockBeforeDisabledCheckout = await stock(0, "M");
+    const disabledCheckout = await submit({ ...payload(), requireCheckout: true });
+    assert.equal(disabledCheckout.status, 409);
+    assert.equal(disabledCheckout.data.code, "hosted_checkout_unavailable");
+    assert.equal(await Order.countDocuments(), beforeDisabledCheckout);
+    assert.equal(await stock(0, "M"), stockBeforeDisabledCheckout);
     const fallback = await submit(payload()); assert.equal(fallback.status, 201); assert.equal(fallback.data.checkout, null);
     assert.equal(fallback.data.order.paymentStatus, "awaiting_payment_setup");
     assert.equal(await PaymentAttempt.countDocuments({ order: (await Order.findOne({ publicToken: fallback.data.order.token }))!._id }), 0);
