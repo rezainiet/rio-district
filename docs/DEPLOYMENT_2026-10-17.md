@@ -51,11 +51,19 @@ The existing 15-day return-request policy and disabled countdown were retained. 
 subsequently approved the customer-service email `sales@rio-district.store`; only that setting
 was updated. Return shipping costs and refund deadlines were not invented.
 
+The owner subsequently authorized resetting the existing admin password to the value in a
+private credential file. The account ID, email, name, role and active state were preserved;
+its one old session was invalidated. Live browser sign-in and the protected product, order,
+review and promotion pages then passed. No credential values were logged or committed.
+
 Private launch backup: `/var/backups/rio-district/20261017-launch` contains code, environment,
 database, uploads and recovery configuration. Archives passed checksum/readability checks. A
 separate temporary MongoDB restored the backup; every document hash and count matched. An
 SSH-transferred private copy of the full backup is also held outside the local Git repository.
 These files contain private data and credentials and must never be committed or served publicly.
+The final backup at `/var/backups/rio-district/20261017-final` includes the approved contact
+email. The subsequent `/var/backups/rio-district/20261017-admin-recovery` checkpoint captures
+the authorized password reset and updated documentation, with a private off-server copy.
 
 ## Verification results
 
@@ -73,7 +81,7 @@ These files contain private data and credentials and must never be committed or 
 | Responsive homepage and product | 375 / 390 / 414 / 768 / 1440 px; no horizontal overflow or visible broken images |
 | Community videos | One muted clip playing, other two clips unloaded |
 | Browser / application errors | No captured browser console errors or critical server error events |
-| Admin authentication | Login page accessible; supplied password rejected; account recovery awaits owner instruction |
+| Admin authentication | Authorized password reset completed; live sign-in and protected products, orders, reviews and promotions verified |
 
 Lighthouse 12.8.2, mobile simulation, actual public HTTPS homepage:
 
