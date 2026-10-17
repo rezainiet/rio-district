@@ -1,0 +1,83 @@
+/* Compact checkout rhythm; other storefront forms retain their existing scale. */
+.checkout-page {
+  max-width: 1160px;
+  padding-block: 18px 32px;
+}
+.checkout-steps {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.store-dark .checkout-title {
+  margin-top: 10px;
+  font-size: clamp(26px, 5.5vw, 36px);
+  line-height: 1.05;
+}
+.checkout-mobile-summary { margin-top: 18px; }
+.checkout-form { margin-top: 22px; gap: 24px; }
+.checkout-fields { display: grid; align-content: start; gap: 24px; min-width: 0; }
+.checkout-fields fieldset { min-width: 0; }
+.checkout-section-title {
+  margin-bottom: 12px;
+  color: var(--color-brand);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.checkout-contact-grid, .checkout-delivery-grid {
+  display: grid;
+  gap: 12px;
+}
+.checkout-contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.checkout-contact-wide { grid-column: span 2; }
+.checkout-delivery-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.checkout-city { grid-column: span 4; }
+.checkout-country { grid-column: span 6; }
+.checkout-field { min-width: 0; }
+.checkout-field-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.checkout-page .field {
+  min-width: 0;
+  min-height: 48px;
+  height: 48px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 16px;
+  scroll-margin-top: 120px;
+}
+.checkout-page textarea.field { height: auto; min-height: 80px; }
+.checkout-optional-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink-2);
+}
+.checkout-optional-toggle:hover { color: var(--color-brand); }
+.checkout-optional-fields:not([hidden]) { display: grid; gap: 12px; padding-top: 8px; }
+.checkout-privacy { font-size: 12px; line-height: 1.6; }
+.checkout-payment-card { padding: 18px; }
+.checkout-reassurance { margin-top: 16px; padding-top: 14px; }
+@media (min-width: 480px) {
+  .checkout-contact-wide { grid-column: span 1; }
+  .checkout-city, .checkout-country { grid-column: span 2; }
+}
+@media (min-width: 1024px) {
+  .checkout-page { padding-block: 28px 48px; }
+  .checkout-form { margin-top: 26px; gap: 40px; }
+  .checkout-payment-card { padding: 22px; }
+}

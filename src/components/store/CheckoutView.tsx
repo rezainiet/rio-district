@@ -12,10 +12,11 @@ import { checkoutCustomerSchema, COUNTRIES, type CheckoutCustomer } from "@/lib/
 import { formatEUR } from "@/lib/money";
 import type { CartQuote } from "@/lib/types";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { CheckIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
+import { PlusIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import { eligibleOffer } from "@/lib/payments/everflow";
 import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
+import "./checkout.css";
 
 const KEY_STORAGE = "rd.checkout.key";
 const volatileKeys = new Map<string, string>();
@@ -56,8 +57,8 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className={className}>
-      <label htmlFor={id} className="mb-1.5 flex items-baseline justify-between text-[15px] font-medium">
+    <div className={clsx("checkout-field", className)}>
+      <label htmlFor={id} className="checkout-field-label">
         {label}
         {optional && <span className="text-[13px] font-normal text-muted">Facultatif</span>}
       </label>
@@ -78,6 +79,7 @@ export function CheckoutView() {
   const [resumeToken, setResumeToken] = useState("");
   const [navigating, setNavigating] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const [optionalOpen, setOptionalOpen] = useState(false);
   const sending = useRef(false);
   const hosted = !!config.checkout && config.checkout.mode !== "request";
   const paymentAvailable = hosted && config.checkout?.available === true;
@@ -168,6 +170,8 @@ export function CheckoutView() {
     setSubmitError(data?.error ?? "La réponse n’a pas pu être confirmée. Réessaie avec la même demande.");
     } catch { setNavigating(false); setSubmitError("Redirection interrompue. Retrouve ta commande en attente pour réessayer sans la dupliquer."); }
     finally { sending.current = false; }
+  }, (invalid) => {
+    if (invalid.address2 || invalid.notes) setOptionalOpen(true);
   })(event);
 
   if (!hydrated) {
@@ -195,17 +199,18 @@ export function CheckoutView() {
     "aria-describedby": errors[name] ? `co-${name}-error` : undefined,
     ...register(name),
   });
+  const showOptional = optionalOpen || Boolean(errors.address2 || errors.notes);
 
   return (
-    <div className="container-x py-6 md:py-12">
-      <nav aria-label="Étapes" className="eyebrow flex flex-wrap items-center gap-2 text-muted">
+    <div className="container-x checkout-page">
+      <nav aria-label="Étapes" className="checkout-steps flex flex-wrap items-center gap-2 text-muted">
         <Link href="/panier" className="hover:text-ink">Panier</Link>
         <span aria-hidden>→</span>
         <span className="text-ink" aria-current="step">Coordonnées</span>
         <span aria-hidden>→</span>
         <span>Paiement</span>
       </nav>
-      <h1 className="display t-title mt-3 uppercase">Finaliser ma commande</h1>
+      <h1 className="display checkout-title">Finaliser ma commande</h1>
 
       {hosted && config.checkout?.error && <p role="alert" className="mt-4 rounded-xl border border-danger p-4 text-danger">{config.checkout.error}</p>}
       {hosted && resumeToken && <div className="mt-4 rounded-xl border border-line p-4"><p className="mb-3 text-sm text-ink-2">Une commande est déjà en attente. Vérifie son statut avant de lancer un autre paiement.</p><ResumeCheckout token={resumeToken} /><Link className="mt-3 block text-sm underline" href={`/commande/confirmation/${resumeToken}`}>Retrouver cette commande</Link></div>}
@@ -214,9 +219,9 @@ export function CheckoutView() {
       ) : (
         <>
         {/* Mobile: the order and its total stay visible before the form. */}
-        <details className="faq group mt-6 rounded-[var(--radius-md)] border border-line bg-paper-2 lg:hidden">
-          <summary className="flex min-h-14 list-none items-center justify-between gap-3 px-4">
-            <span className="flex items-center gap-2 text-[15px] font-semibold">
+        <details className="checkout-mobile-summary faq group rounded-[var(--radius-md)] border border-line bg-paper-2 lg:hidden">
+          <summary className="flex min-h-12 list-none items-center justify-between gap-3 px-4">
+            <span className="flex items-center gap-2 text-sm font-semibold">
               Ta commande · {quote.itemsCount} article{quote.itemsCount > 1 ? "s" : ""}
               <span className="faq-icon text-lg leading-none text-muted transition-transform" aria-hidden>+</span>
             </span>
@@ -234,69 +239,76 @@ export function CheckoutView() {
               </li>
             ))}
           </ul>
-          {quote.discountCents > 0 && (
-            <p className="border-t border-line px-4 py-2.5 text-sm text-[#8fd9ad]">Remise pack incluse : −{formatEUR(quote.discountCents)}</p>
-          )}
+          <div className="border-t border-line px-4 py-3"><CartSummary quote={quote} /></div>
           <Link href="/panier" className="flex min-h-11 items-center border-t border-line px-4 text-sm underline underline-offset-4">
             Modifier le panier
           </Link>
         </details>
-        <form onSubmit={onSubmit} noValidate className="mt-8 grid gap-10 lg:mt-10 lg:grid-cols-12">
-          <div className="space-y-10 lg:col-span-7">
+        <form onSubmit={onSubmit} noValidate className="checkout-form grid lg:grid-cols-12">
+          <div className="checkout-fields lg:col-span-7">
             <fieldset>
-              <legend className="eyebrow mb-5 text-muted">01 · Tes coordonnées</legend>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <legend className="checkout-section-title">01 · Tes coordonnées</legend>
+              <div className="checkout-contact-grid">
                 <Field id="co-firstName" label="Prénom" error={errors.firstName?.message}>
                   <input className="field" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("firstName")} />
                 </Field>
                 <Field id="co-lastName" label="Nom" error={errors.lastName?.message}>
                   <input className="field" autoComplete="family-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("lastName")} />
                 </Field>
-                <Field id="co-email" label="E-mail" error={errors.email?.message}>
+                <Field id="co-email" label="E-mail" error={errors.email?.message} className="checkout-contact-wide">
                   <input className="field" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" {...fieldProps("email")} />
                 </Field>
-                <Field id="co-phone" label="Téléphone" error={errors.phone?.message}>
+                <Field id="co-phone" label="Téléphone" error={errors.phone?.message} className="checkout-contact-wide">
                   <input className="field" type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" enterKeyHint="next" {...fieldProps("phone")} />
                 </Field>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend className="eyebrow mb-5 text-muted">02 · Livraison</legend>
-              <div className="grid gap-4 sm:grid-cols-6">
-                <Field id="co-address" label="Adresse" error={errors.address?.message} className="sm:col-span-6">
+              <legend className="checkout-section-title">02 · Livraison</legend>
+              <div className="checkout-delivery-grid">
+                <Field id="co-address" label="Adresse" error={errors.address?.message} className="col-span-6">
                   <input className="field" autoComplete="address-line1" placeholder="Numéro et rue" {...fieldProps("address")} />
                 </Field>
-                <Field id="co-address2" label="Complément d'adresse" optional error={errors.address2?.message} className="sm:col-span-6">
-                  <input className="field" autoComplete="address-line2" placeholder="Bâtiment, étage, digicode…" {...fieldProps("address2")} />
-                </Field>
-                <Field id="co-postalCode" label="Code postal" error={errors.postalCode?.message} className="sm:col-span-2">
+                <Field id="co-postalCode" label="Code postal" error={errors.postalCode?.message} className="col-span-2">
                   <input className="field" autoComplete="postal-code" inputMode="numeric" enterKeyHint="next" {...fieldProps("postalCode")} />
                 </Field>
-                <Field id="co-city" label="Ville" error={errors.city?.message} className="sm:col-span-4">
+                <Field id="co-city" label="Ville" error={errors.city?.message} className="checkout-city">
                   <input className="field" autoComplete="address-level2" autoCapitalize="words" enterKeyHint="next" {...fieldProps("city")} />
                 </Field>
-                <Field id="co-country" label="Pays" error={errors.country?.message} className="sm:col-span-6">
+                <Field id="co-country" label="Pays" error={errors.country?.message} className="checkout-country">
                   <select className="field" autoComplete="country" {...fieldProps("country")}>
                     {COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>{c.label}</option>
                     ))}
                   </select>
                 </Field>
-                <Field id="co-notes" label="Notes de commande" optional error={errors.notes?.message} className="sm:col-span-6">
-                  <textarea className="field resize-y" rows={3} placeholder="Une précision pour la livraison ?" {...fieldProps("notes")} />
-                </Field>
+                <div className="col-span-6">
+                  <button type="button" className="checkout-optional-toggle" aria-expanded={showOptional} aria-controls="checkout-optional-fields" onClick={() => setOptionalOpen(!showOptional)}>
+                    <span>Complément d’adresse ou note <span className="text-muted">· facultatif</span></span>
+                    <PlusIcon width={16} height={16} className={clsx("shrink-0 transition-transform", showOptional && "rotate-45")} />
+                  </button>
+                  <div id="checkout-optional-fields" className="checkout-optional-fields" hidden={!showOptional}>
+                    <Field id="co-address2" label="Complément d'adresse" optional error={errors.address2?.message}>
+                      <input className="field" autoComplete="address-line2" placeholder="Bâtiment, étage, digicode…" {...fieldProps("address2")} />
+                    </Field>
+                    <Field id="co-notes" label="Notes de commande" optional error={errors.notes?.message}>
+                      <textarea className="field resize-y" rows={2} placeholder="Une précision pour la livraison ?" {...fieldProps("notes")} />
+                    </Field>
+                  </div>
+                </div>
               </div>
             </fieldset>
-            <p className="text-sm leading-relaxed text-muted">
+            <p className="checkout-privacy text-muted">
               {hosted ? (mock ? "Utilise uniquement des coordonnées fictives pour cette simulation locale." : "En continuant, tes nom, coordonnées et adresse seront transmis au partenaire via un lien externe sur www.molipy8trk.com. Ces informations peuvent être conservées dans l’historique du navigateur et les journaux du partenaire. Consulte notre politique de confidentialité avant de continuer.") : "Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire n’est demandée."}
             </p>
             {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte le suivi publicitaire facultatif du partenaire pour ce paiement. Mon choix n’empêche pas de commander.</label>}
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">
-            <div className="rounded-[var(--radius-md)] border border-line bg-paper-2 p-5 md:p-6 lg:sticky lg:top-24">
-              <h2 className="eyebrow mb-4 text-muted">03 · Ta commande</h2>
+            <div className="checkout-payment-card rounded-[var(--radius-md)] border border-line bg-paper-2 lg:sticky lg:top-24">
+              <div className="hidden lg:block">
+              <h2 className="checkout-section-title">03 · Ta commande</h2>
               <ul className="divide-y divide-line border-y border-line" aria-busy={quoteState === "loading"}>
                 {quote.lines.map((l, i) => (
                   <li key={i} className="flex gap-3 py-3">
@@ -322,6 +334,11 @@ export function CheckoutView() {
               <div className={clsx("mt-4 transition-opacity", quoteState === "loading" && "opacity-60")}>
                 <CartSummary quote={quote} />
               </div>
+              </div>
+              <div className="flex items-baseline justify-between lg:hidden" aria-busy={quoteState === "loading"}>
+                <span className="text-sm font-semibold">Total à régler <span className="font-normal text-muted">TTC</span></span>
+                <span className="price text-[28px] leading-none">{formatEUR(quote.totalCents)}</span>
+              </div>
               {quoteState === "error" && (
                 <p className="mt-2 text-sm text-warning">Vérification des prix impossible pour l&apos;instant : le total définitif sera calculé à l&apos;envoi.</p>
               )}
@@ -337,17 +354,16 @@ export function CheckoutView() {
                 </p>
               )}
               {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href="/panier" className="underline">Modifier le panier</Link></p>}
-              <Button type="submit" size="lg" className="mt-5 h-14 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || !paymentAvailable}>
+              <Button type="submit" size="md" className="mt-4 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || !paymentAvailable}>
                 {isSubmitting || navigating ? "Préparation du paiement…" : "Continuer vers le paiement ↗"}
               </Button>
-              <p className="mt-3 text-center text-sm text-muted">{!paymentAvailable ? "Le paiement est momentanément indisponible." : mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe"}</p>
-              <div className="mt-5 border-t border-line pt-4">
-                <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">Après le paiement</p>
-                <ol className="mt-3 grid gap-2.5 text-[15px] text-ink-2">
-                  <li className="flex gap-2.5"><CheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Ta commande est enregistrée. Son paiement sera vérifié avant l’expédition.</li>
-                  <li className="flex gap-2.5"><TruckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Expédition suivie, livraison estimée {config.deliveryEstimate}.</li>
-                  <li className="flex gap-2.5"><ReturnIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception.</li>
-                </ol>
+              <p className="mt-2 text-center text-[13px] text-muted">{!paymentAvailable ? "Le paiement est momentanément indisponible." : mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe"}</p>
+              <div className="checkout-reassurance border-t border-line">
+                <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[13px] text-ink-2">
+                  <li className="flex items-center gap-2"><TruckIcon width={16} height={16} className="text-brand" /> {config.shippingCents === 0 ? "Livraison offerte" : "Livraison suivie"}</li>
+                  <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="text-brand" /> Retours {config.returnsWindowDays} jours</li>
+                </ul>
+                <p className="mt-2 text-[13px] leading-relaxed text-muted">Livraison estimée {config.deliveryEstimate}. Expédition après vérification du paiement.</p>
               </div>
             </div>
           </aside>
