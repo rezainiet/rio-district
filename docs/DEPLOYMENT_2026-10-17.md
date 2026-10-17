@@ -1,5 +1,9 @@
 # Rio District production deployment — 17 October 2026
 
+This record describes the initial installation. The subsequent authorized retry-fix
+rollout and current Everflow readiness are recorded in
+[EVERFLOW_ACTIVATION_READINESS.md](EVERFLOW_ACTIVATION_READINESS.md).
+
 The storefront is deployed at **https://rio-district.store**. The live site was opened and
 tested in the integrated browser. Everflow redirects and pixels remain disabled.
 

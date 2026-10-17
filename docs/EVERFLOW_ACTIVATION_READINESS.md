@@ -37,6 +37,12 @@ Geo restrictions, eligibility rules, inactive offers or routing are possibilitie
 confirm with the partner, not verified explanations. No geography/eligibility control
 was bypassed and no unsupported parameter was invented.
 
+Actual external results with fictional prefill:
+
+![Single offer ended at Google](screenshots/everflow-activation/provider-single-fictional-prefill.png)
+
+![Bundle offer ended at Google](screenshots/everflow-activation/provider-bundle-fictional-prefill.png)
+
 | Field | Parameter constructed | Single external display | Bundle external display |
 | --- | --- | --- | --- |
 | First name | `sub10` | Unverifiable: no checkout | Unverifiable: no checkout |
@@ -88,11 +94,52 @@ Local validation passed: 32 unit tests, isolated API/inventory/regression workfl
 TypeScript, ESLint and the previously rebuilt optimized Next production build. Both
 mock offers and repeated-key HTTP tests passed without duplicate orders or false paid status.
 
-Deployment status: release preparation in progress. The final deployed revision and
-production checks are recorded below after the application switch is verified.
+The retry fix was deployed on 17 October 2026 at 16:26 Asia/Dhaka:
+
+- Application build commit: `b703cd6ed64539e89be2bda4537842759f66e2cb`, fast-forwarded
+  from `devreza/everflow-production-audit` to GitHub `main` without rewriting history.
+- Release: `/srv/rio-district/releases/20261017-b703cd6`; active through the existing
+  `/srv/rio-district/current` symlink. Documentation-only follow-up revisions are
+  recorded separately in `REVISION`; `APPLICATION_REVISION` retains the build commit.
+- The unchanged lockfile was compared with the prior release and its installed
+  dependencies copied into the isolated new release; no dependency upgrade occurred.
+- Linux production build passed. The loopback candidate passed seven routes and
+  server price quotes of 1999 / 2495 cents before the application switch.
+- The old built release was retained, then only `rio-district.service` restarted.
+  Its new PID was 36309; MongoDB, nginx and SSH retained PIDs 32957, 31455 and 30498.
+- All seven live routes passed after deployment; database health is `up`. No critical
+  application errors were captured. Existing documents were compared by ID and full
+  content and preserved: six products, settings, one order, zero payment attempts,
+  28 reviews and the existing admin/session. No production test order was created.
+- The private environment was byte-compared against the backup and unchanged.
+  Everflow and pixels remain disabled. The live external-payment API still returns
+  the intentional 409 disabled response; the actual browser shows the unpaid request
+  CTA at EUR 19.99, with no external-payment CTA or captured console error.
+
+![Production after the retry fix](screenshots/everflow-activation/production-after-retry-fix.png)
 
 Fresh private backup: `/var/backups/rio-district/20261017-retry-fix` includes the current
 database, uploads, code, environment and recovery configuration; checksums and archive
 readability passed. The existing built release is retained. Its `rollback.sh` switches
 only the application symlink and restarts only `rio-district.service`; it never restores
 an older database over new orders. No unrelated service or nginx site needs modification.
+The full private backup was also downloaded outside the repository and its transfer
+SHA256 verified. Secrets, database archives and runtime uploads were not committed.
+
+## Readiness result
+
+| Milestone | Result |
+| --- | --- |
+| Retry code deployed | Yes, application commit b703cd6 |
+| Real customer redirect activated | No; readiness checks failed |
+| Actual external URLs tested | Yes, both with fictional prefill; both ended at Google |
+| External displayed fields and prices verified | No checkout was available to inspect |
+| Local prefill encoding / offer selection / variants | Verified in isolated tests |
+| Payment completed | No card entry or payment submission |
+| Payment confirmed by provider | No |
+| Reconciliation | Deferred by owner; not established for live fulfillment |
+
+The next prerequisite for the requested prefill test is a working partner-approved
+checkout/test destination (or confirmed access/traffic requirements). Before opening
+real customer traffic, merchant authorization and permission to transfer their contact
+and shipping data must be established. No safety flag is enabled merely to remove 409.

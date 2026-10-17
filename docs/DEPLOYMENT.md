@@ -3,6 +3,9 @@
 **Production actuelle (17/10/2026) : https://rio-district.store**, sur le nouveau VPS Spaceship.
 L'installation de ce nouveau serveur, le transfert vérifié des données et la recette réelle sont
 consignés dans [DEPLOYMENT_2026-10-17.md](DEPLOYMENT_2026-10-17.md). Everflow reste désactivé.
+La correction des relances a ensuite été déployée (application `b703cd6`) ; les deux liens
+externes testés avec des données fictives aboutissent à Google. Résultats actuels :
+[EVERFLOW_ACTIVATION_READINESS.md](EVERFLOW_ACTIVATION_READINESS.md).
 
 Mise à jour d’une installation existante autorisée le 17/10/2026 : suivre le §10 ci-dessous.
 Les §1–9 décrivent l’installation initiale historique et ne constituent PAS des commandes
