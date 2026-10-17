@@ -1,0 +1,91 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Finish the current deployment before starting another; the newest pending push wins.
+concurrency:
+  group: rio-district-production
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      mongo:
+        image: mongo:8.0
+        ports:
+          - 127.0.0.1:27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGOMS_DISABLE_POSTINSTALL: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22.23.3"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx next typegen
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:everflow
+      - name: Check deployment script syntax
+        run: bash -n deploy/github-actions-deploy.sh
+
+  deploy:
+    needs: checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://rio-district.store
+    steps:
+      - name: Deploy the exact main commit over restricted SSH
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${DEPLOY_HOST:?Missing production DEPLOY_HOST}"
+          : "${DEPLOY_PORT:?Missing production DEPLOY_PORT}"
+          : "${DEPLOY_USER:?Missing production DEPLOY_USER}"
+          : "${DEPLOY_KNOWN_HOSTS:?Missing production DEPLOY_KNOWN_HOSTS}"
+          : "${DEPLOY_SSH_KEY:?Missing production DEPLOY_SSH_KEY}"
+          umask 077
+          ssh_dir="$RUNNER_TEMP/rio-deploy"
+          mkdir -p "$ssh_dir"
+          trap 'rm -f "$ssh_dir/key"' EXIT
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          printf '%s\n' "$GITHUB_SHA" | ssh -T \
+            -i "$ssh_dir/key" -p "$DEPLOY_PORT" \
+            -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" \
+            -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8 \
+            "$DEPLOY_USER@$DEPLOY_HOST"
+      - name: Verify public application and database health
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 \
+            --retry-all-errors --max-time 20 https://rio-district.store/api/health \
+            | jq -e '.status == "ok" and .db == "up"'
