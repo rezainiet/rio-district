@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 import { mockEnvironment, seedTestDatabase, assertTestUri } from "../../scripts/lib/everflow-fixture";
@@ -42,6 +42,18 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     assert.match(simultaneous[0].data.checkout.redirectUrl, /^\/commande\/paiement-test\//);
     assert.equal((await submit({ ...key, customer: { ...customer, city: "Lyon" } })).status, 409);
     for (let i = 0; i < 3; i++) assert.equal((await resume(request("/api/payments/checkout", { token }))).status, 200);
+    // A derived fullName and the form resolver's explicit equivalent must reuse
+    // the same order, including orders carrying the previous fingerprint format.
+    const explicitName = { ...key, customer: { ...customer, fullName: "Élodie-Anne de la Fiction" } };
+    assert.equal((await submit(explicitName)).status, 200);
+    const legacyInput = orderRequestSchema.parse(key);
+    const legacyFingerprint = createHash("sha256").update(JSON.stringify({ lines: legacyInput.lines,
+      customer: legacyInput.customer, marketingConsent: legacyInput.marketingConsent, hosted: true })).digest("hex");
+    await Order.updateOne({ _id: order._id }, { $set: { requestFingerprint: legacyFingerprint } });
+    assert.equal((await submit(explicitName)).status, 200);
+    assert.equal((await submit(key)).status, 200);
+    assert.equal((await submit({ ...explicitName, customer: { ...explicitName.customer, city: "Lyon" } })).status, 409);
+    assert.equal(await Order.countDocuments({ idempotencyKey: key.idempotencyKey }), 1);
     assert.equal(await stock(0, "M"), before - 1); assert.equal(await PaymentAttempt.countDocuments({ order: order._id }), 1);
     assert.equal((await resume(request("/api/payments/checkout", { token: "x".repeat(24) }))).status, 404);
     assert.equal((await resume(request("/api/payments/checkout", { token: "bad" }))).status, 422);

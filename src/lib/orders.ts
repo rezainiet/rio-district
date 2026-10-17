@@ -93,9 +93,22 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
   await connectDB();
   await Order.init();
   // Bind retries to immutable cart AND customer information. No PII is stored in the hash.
-  const fingerprint = createHash("sha256").update(JSON.stringify({ lines: input.lines, customer: input.customer, marketingConsent: input.marketingConsent, hosted: Boolean(hosted) })).digest("hex");
+  // The form's resolver supplies fullName; other clients may let the API derive it.
+  // Canonical field order prevents those equivalent validated requests from conflicting.
+  const c = input.customer;
+  const customer = { firstName: c.firstName, lastName: c.lastName, fullName: c.fullName,
+    email: c.email, phone: c.phone, address: c.address, address2: c.address2,
+    postalCode: c.postalCode, city: c.city, country: c.country, notes: c.notes };
+  const hashRequest = (coordinates: typeof customer) => createHash("sha256").update(JSON.stringify({
+    lines: input.lines, customer: coordinates, marketingConsent: input.marketingConsent, hosted: Boolean(hosted),
+  })).digest("hex");
+  const fingerprint = hashRequest(customer);
+  // Preserve retries of orders created before canonicalization, where derived
+  // fullName was appended by Zod's transform instead of appearing third.
+  const { fullName, ...legacyCustomer } = customer;
+  const compatibleFingerprints = new Set([fingerprint, hashRequest({ ...legacyCustomer, fullName })]);
   async function reuse(existing: OrderDoc) {
-    if (existing.requestFingerprint !== fingerprint) throw new OrderError("idempotency_conflict", "Cette demande a déjà été enregistrée avec d’autres coordonnées. Retrouve la commande en attente ou utilise un nouveau panier.");
+    if (!existing.requestFingerprint || !compatibleFingerprints.has(existing.requestFingerprint)) throw new OrderError("idempotency_conflict", "Cette demande a déjà été enregistrée avec d’autres coordonnées. Retrouve la commande en attente ou utilise un nouveau panier.");
     for (let i = 0; existing.creationState === "preparing" && i < 40; i++) {
       await new Promise(resolve => setTimeout(resolve, 75));
       const updated = await Order.findById(existing._id).lean<OrderDoc>();
