@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useStore } from "@/components/store/StoreProvider";
 import { percentOff } from "@/lib/money";
 import type { Size } from "@/lib/sizes";
-import type { PublicProduct } from "@/lib/types";
+import type { CartLineInput, PublicProduct } from "@/lib/types";
 
 export type Offer = "single" | "bundle";
 type Slot = { productId: string; size: Size | null };
@@ -49,6 +49,7 @@ export function usePurchase({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [guideFor, setGuideFor] = useState<number | null>(null);
   const [added, setAdded] = useState(false);
+  const [buyingNow, startBuyNow] = useTransition();
   const zoneRef = useRef<HTMLDivElement>(null);
   const [zoneVisible, setZoneVisible] = useState(true);
   const [footerVisible, setFooterVisible] = useState(false);
@@ -138,17 +139,27 @@ export function usePurchase({
     const first = Object.keys(next)[0];
     if (first) {
       document.getElementById(`field-${first}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById(`size-${first}`)?.focus({ preventScroll: true });
       return false;
     }
     return true;
   };
 
+  const selectedLine = (): CartLineInput => offer === "single"
+    ? { kind: "single", productId: product.id, size: size!, quantity: 1 }
+    : { kind: "bundle", items: slots.map((s) => ({ productId: s.productId, size: s.size! })), quantity: 1 };
+
   const addToCart = () => {
     if (!config.acceptingOrders || !validate()) return;
-    if (offer === "single") add({ kind: "single", productId: product.id, size: size!, quantity: 1 });
-    else add({ kind: "bundle", items: slots.map((s) => ({ productId: s.productId, size: s.size! })), quantity: 1 });
+    add(selectedLine());
     setAdded(true);
     setDrawerOpen(true);
+  };
+
+  const buyNow = () => {
+    if (!config.acceptingOrders || buyingNow || !validate()) return;
+    const params = new URLSearchParams({ achat: JSON.stringify(selectedLine()) });
+    startBuyNow(() => router.push(`/commande?${params}`));
   };
 
   const state = {
@@ -170,6 +181,8 @@ export function usePurchase({
     setGuideFor,
     added,
     addToCart,
+    buyNow,
+    buyingNow,
     missing,
     barHidden: zoneVisible || footerVisible,
     total,

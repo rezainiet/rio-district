@@ -10,7 +10,8 @@ import { toInput, useStore } from "./StoreProvider";
 import { CartSummary } from "./CartSummary";
 import { checkoutCustomerSchema, COUNTRIES, type CheckoutCustomer } from "@/lib/validation";
 import { formatEUR } from "@/lib/money";
-import type { CartQuote } from "@/lib/types";
+import type { CartLineInput, CartQuote } from "@/lib/types";
+import { priceCart } from "@/lib/pricing";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { PlusIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import { eligibleOffer } from "@/lib/payments/everflow";
@@ -72,8 +73,8 @@ function Field({
   );
 }
 
-export function CheckoutView() {
-  const { lines, quote: localQuote, hydrated, config, productMap } = useStore();
+export function CheckoutView({ directLine = null }: { directLine?: CartLineInput | null }) {
+  const { lines, quote: cartQuote, hydrated, config, productMap } = useStore();
   const [serverResult, setServerResult] = useState<{ sig: string; quote: CartQuote | null } | null>(null);
   const [submitError, setSubmitError] = useState("");
   const [resumeToken, setResumeToken] = useState("");
@@ -88,7 +89,9 @@ export function CheckoutView() {
     queueMicrotask(() => { try { const saved = JSON.parse(sessionStorage.getItem("rd.checkout.pending") ?? "null"); if (saved?.token && /^[A-Za-z0-9_-]{24}$/.test(saved.token)) setResumeToken(saved.token); } catch {} });
   }, []);
 
-  const inputs = useMemo(() => lines.map(toInput), [lines]);
+  const inputs = useMemo(() => directLine ? [directLine] : lines.map(toInput), [directLine, lines]);
+  const localQuote = useMemo(() => directLine ? priceCart(inputs, productMap, config.bundle, config.shippingCents) : cartQuote,
+    [directLine, inputs, productMap, config.bundle, config.shippingCents, cartQuote]);
   const signature = useMemo(() => JSON.stringify(inputs), [inputs]);
 
   const {
@@ -143,7 +146,7 @@ export function CheckoutView() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(signature), lines: inputs, customer, marketingConsent, requireCheckout: true, website: "" }),
+      body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(directLine ? `direct:${signature}` : signature), lines: inputs, customer, marketingConsent, requireCheckout: true, website: "" }),
     }).catch(() => null);
 
     if (!res) {
@@ -183,7 +186,7 @@ export function CheckoutView() {
     );
   }
 
-  if (lines.length === 0) {
+  if (inputs.length === 0) {
     return (
       <div className="container-x py-20 text-center">
         <h1 className="display text-[30px] uppercase sm:text-[40px]">Commande</h1>
@@ -200,11 +203,19 @@ export function CheckoutView() {
     ...register(name),
   });
   const showOptional = optionalOpen || Boolean(errors.address2 || errors.notes);
+  const firstItem = quote.lines[0]?.items[0];
+  const selectionParams = new URLSearchParams();
+  if (directLine?.kind === "bundle") selectionParams.set("offre", "pack");
+  if (firstItem) selectionParams.set("taille", firstItem.size);
+  const selectionHref = directLine
+    ? firstItem ? `/produit/${firstItem.slug}?${selectionParams}` : "/#collection"
+    : "/panier";
+  const selectionLabel = directLine ? "Modifier la sélection" : "Modifier le panier";
 
   return (
     <div className="container-x checkout-page">
       <nav aria-label="Étapes" className="checkout-steps flex flex-wrap items-center gap-2 text-muted">
-        <Link href="/panier" className="hover:text-ink">Panier</Link>
+        <Link href={selectionHref} className="hover:text-ink">{directLine ? "Sélection" : "Panier"}</Link>
         <span aria-hidden>→</span>
         <span className="text-ink" aria-current="step">Coordonnées</span>
         <span aria-hidden>→</span>
@@ -240,8 +251,8 @@ export function CheckoutView() {
             ))}
           </ul>
           <div className="border-t border-line px-4 py-3"><CartSummary quote={quote} /></div>
-          <Link href="/panier" className="flex min-h-11 items-center border-t border-line px-4 text-sm underline underline-offset-4">
-            Modifier le panier
+          <Link href={selectionHref} className="flex min-h-11 items-center border-t border-line px-4 text-sm underline underline-offset-4">
+            {selectionLabel}
           </Link>
         </details>
         <form onSubmit={onSubmit} noValidate className="checkout-form grid lg:grid-cols-12">
@@ -345,7 +356,7 @@ export function CheckoutView() {
               {cartInvalid && (
                 <p role="alert" className="mt-3 text-sm text-danger">
                   {(serverQuote?.errors[0] ?? localQuote.errors[0])?.message}{" "}
-                  <Link href="/panier" className="underline">Modifier le panier</Link>
+                  <Link href={selectionHref} className="underline">{selectionLabel}</Link>
                 </p>
               )}
               {submitError && (
@@ -353,7 +364,7 @@ export function CheckoutView() {
                   {submitError}
                 </p>
               )}
-              {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href="/panier" className="underline">Modifier le panier</Link></p>}
+              {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href={selectionHref} className="underline">{selectionLabel}</Link></p>}
               <Button type="submit" size="md" className="mt-4 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || !paymentAvailable}>
                 {isSubmitting || navigating ? "Préparation du paiement…" : "Continuer vers le paiement ↗"}
               </Button>

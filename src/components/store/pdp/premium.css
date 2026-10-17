@@ -56,6 +56,8 @@
 .pdp-field-error { margin-top:10px; color:var(--color-danger); font-size:12px; }
 .pdp-buy-zone .pdp-add-button { margin-top:20px; height:54px; font-size:13px; }
 .pdp-payment-clarity { margin-top:9px; text-align:center; font-size:10px; line-height:1.6; color:var(--color-muted); }
+.pdp-buy-zone .pdp-buy-now-button { width:100%; min-height:48px; margin-top:12px; border-color:var(--color-brand); color:var(--color-brand); background:rgb(200 169 106 / .07); font-size:13px; }
+.pdp-buy-zone .pdp-buy-now-button:hover { background:rgb(200 169 106 / .16); color:var(--color-brand); }
 .pdp-fulfilment { margin-top:20px; border:1px solid var(--color-line); border-radius:14px; background:#121214; }
 .pdp-timeline { display:grid; grid-template-columns:repeat(3,1fr); padding:15px 10px 13px; }
 .pdp-timeline li { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; }

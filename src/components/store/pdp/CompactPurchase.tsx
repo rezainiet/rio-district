@@ -8,7 +8,8 @@ import type { PublicProduct } from "@/lib/types";
 import type { Size } from "@/lib/sizes";
 import { SizeGuide } from "@/components/store/SizeGuide";
 import { Swatches } from "@/components/store/ProductPurchase";
-import { CheckIcon, ReturnIcon, RulerIcon, TruckIcon } from "@/components/ui/icons";
+import { ArrowRight, CheckIcon, ReturnIcon, RulerIcon, TruckIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/Button";
 import { CtaButton, RatingLink, StockLine } from "./blocks";
 import type { PreviewData } from "./types";
 import type { Purchase } from "./usePurchase";
@@ -86,6 +87,9 @@ export function CompactPurchase({ p, d, zoneRef }: { p: Purchase; d: PreviewData
       <CompactSelection p={p} d={d}/>
       <CtaButton p={p} className="pdp-add-button"/>
       <p className="pdp-payment-clarity">{d.payments.online ? "Tes coordonnées ici, puis paiement chez notre partenaire externe." : "Demande confirmée par e-mail · rien à payer aujourd’hui."}</p>
+      <Button variant="outline" className="pdp-buy-now-button" onClick={p.buyNow} disabled={!p.config.acceptingOrders || p.buyingNow} aria-busy={p.buyingNow}>
+        {p.buyingNow ? "Ouverture…" : <>Acheter maintenant · {formatEUR(p.total)} <ArrowRight width={17} height={17} /></>}
+      </Button>
     </div>
     <FulfilmentSummary d={d}/>
   </div>;
