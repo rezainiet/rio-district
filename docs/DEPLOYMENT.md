@@ -1,5 +1,9 @@
 # Déploiement Rio District sur un VPS Ubuntu
 
+**Production actuelle (17/10/2026) : https://rio-district.store**, sur le nouveau VPS Spaceship.
+L'installation de ce nouveau serveur, le transfert vérifié des données et la recette réelle sont
+consignés dans [DEPLOYMENT_2026-10-17.md](DEPLOYMENT_2026-10-17.md). Everflow reste désactivé.
+
 Mise à jour d’une installation existante autorisée le 17/10/2026 : suivre le §10 ci-dessous.
 Les §1–9 décrivent l’installation initiale historique et ne constituent PAS des commandes
 à réexécuter sur le VPS existant. Ne pas réinstaller MongoDB/nginx, recréer des comptes,

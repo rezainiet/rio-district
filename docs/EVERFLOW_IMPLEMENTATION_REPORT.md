@@ -3,6 +3,8 @@
 Historical snapshot: results at completion of local implementation, before the later
 production-rollout authorization. Git/deployment status below describes that snapshot.
 For the existing-server update procedure see [DEPLOYMENT.md](DEPLOYMENT.md), §10.
+The subsequent production deployment to the new canonical domain is recorded in
+[DEPLOYMENT_2026-10-17.md](DEPLOYMENT_2026-10-17.md); live Everflow remains disabled.
 
 Branch: `feat/everflow-checkout`, based on latest fetched main
 `4b020abbf09bab6606509297ec473d0472685874`. Existing local storefront work was carried
