@@ -3,12 +3,14 @@ import { checkoutPresentation } from "@/lib/payments/hosted";
 import { PageHeader } from "@/components/admin/ui";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { EVERFLOW_OFFERS } from "@/lib/payments/everflow";
+import { forwardingFlag } from "@/lib/payments/forwarding-flag";
 
 export const metadata = { title: "Réglages" };
 
 export default async function SettingsPage() {
   const settings = await getSettings();
-  const checkout = checkoutPresentation(settings);
+  const flag = forwardingFlag();
+  const checkout = checkoutPresentation();
   const singleUrl = process.env.EVERFLOW_SINGLE_CHECKOUT_URL ?? "";
   const bundleUrl = process.env.EVERFLOW_BUNDLE_CHECKOUT_URL ?? "";
   const domain = (() => {
@@ -22,7 +24,9 @@ export default async function SettingsPage() {
     <>
       <PageHeader title="Réglages" description="Contenus et règles de la boutique. Les changements sont visibles immédiatement." />
       <SettingsForm initial={settings} paymentInfo={{
-        status: !settings.paymentRedirect.enabled ? "Désactivée par l’administration" : checkout.mode === "request" ? "Désactivée par la configuration du serveur" : checkout.available ? "Disponible" : "Configuration indisponible",
+        enabled: flag.enabled,
+        source: flag.source,
+        status: !flag.enabled ? "Désactivée" : checkout.available ? "Disponible" : "Configuration indisponible",
         mode: checkout.mode,
         error: checkout.error,
         domain,

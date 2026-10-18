@@ -22,6 +22,13 @@ release active; failures appear in the repository's Actions tab. No production d
 credentials are stored in GitHub. The deploy does not seed, migrate, restore over the
 production database, change payment flags, or restart nginx/MongoDB.
 
+The admin payment switch writes a separate persistent flag file at
+`/var/lib/rio-district/payment-control/everflow-enabled.env`. Install the narrow
+systemd drop-in from `deploy/systemd/rio-district-payment-control.conf` once, with
+the directory owned by `riodistrict` and the flag file mode `0600`. The running app
+reads the file on each checkout request; systemd loads the same value after a service
+restart. Ordinary GitHub deployments preserve it.
+
 ## Production environment configuration
 
 GitHub environment: `production`, with deployment branches restricted to `main`.

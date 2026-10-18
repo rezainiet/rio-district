@@ -3,9 +3,10 @@ import { orderRequestSchema } from "@/lib/validation";
 import { clientIp, errorJson, json, parseBody, rateLimit, sameOrigin } from "@/lib/http";
 import { createOrderRequest, OrderError } from "@/lib/orders";
 import { log } from "@/lib/log";
-import { buildEverflowUrl, HostedCheckoutError, readEverflowConfig } from "@/lib/payments/everflow";
+import { buildEverflowUrl, HostedCheckoutError } from "@/lib/payments/everflow";
 import { issueHostedCheckout } from "@/lib/payments/hosted";
-import { getProductMap, getSettings } from "@/lib/catalog";
+import { getProductMap } from "@/lib/catalog";
+import { activeEverflowConfig } from "@/lib/payments/forwarding-flag";
 
 /**
  * Creates an UNPAID order request. Prices, discounts and totals are
@@ -24,8 +25,7 @@ export async function POST(req: NextRequest) {
   if (body.data.website) return errorJson(400, "Requête invalide.");
 
   try {
-    const settings = await getSettings();
-    const hosted = settings.paymentRedirect.enabled ? readEverflowConfig(process.env) : null;
+    const hosted = activeEverflowConfig();
     if (body.data.requireCheckout && !hosted) {
       throw new HostedCheckoutError("Le paiement est momentanément indisponible. Réessaie plus tard.");
     }

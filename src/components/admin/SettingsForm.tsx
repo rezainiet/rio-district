@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card, inputCls, labelCls } from "./ui";
 
 type PaymentInfo = {
+  enabled: boolean;
+  source: "server-file" | "environment" | "invalid-file";
   status: string;
   mode: "request" | "mock" | "live";
   error?: string;
@@ -33,6 +35,28 @@ export function SettingsForm({ initial, paymentInfo }: { initial: StoreSettings;
   const [shipPrice, setShipPrice] = useState(centsToInput(initial.shipping.priceCents));
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string; fields?: Record<string, string> } | null>(null);
+  const [forwardingEnabled, setForwardingEnabled] = useState(paymentInfo.enabled);
+  const [forwardingBusy, setForwardingBusy] = useState(false);
+  const [forwardingMessage, setForwardingMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const saveForwarding = async () => {
+    setForwardingBusy(true);
+    setForwardingMessage(null);
+    const response = await fetch("/api/admin/payments/forwarding", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: forwardingEnabled }),
+    }).catch(() => null);
+    const data = await response?.json().catch(() => null);
+    setForwardingBusy(false);
+    if (response?.ok) {
+      setForwardingMessage({ ok: true, text: `Réglage serveur enregistré : redirection ${data.enabled ? "autorisée" : "désactivée"}.` });
+      router.refresh();
+    } else {
+      setForwardingEnabled(paymentInfo.enabled);
+      setForwardingMessage({ ok: false, text: data?.error ?? "Impossible de modifier le réglage serveur." });
+    }
+  };
 
   const up = <K extends keyof StoreSettings>(k: K, patch: Partial<StoreSettings[K]>) =>
     setS((p) => ({ ...p, [k]: { ...(p[k] as object), ...patch } }));
@@ -101,12 +125,17 @@ export function SettingsForm({ initial, paymentInfo }: { initial: StoreSettings;
           <textarea id="s-paynotice" rows={4} className={inputCls} value={s.orders.paymentNotice} onChange={(e) => up("orders", { paymentNotice: e.target.value })} />
           <div className="mt-5 rounded-[var(--radius-sm)] border border-line p-4 text-sm">
             <label className="flex items-start gap-3">
-              <input type="checkbox" className="mt-1 size-4" checked={s.paymentRedirect.enabled} onChange={(e) => up("paymentRedirect", { enabled: e.target.checked })} />
+              <input type="checkbox" className="mt-1 size-4" checked={forwardingEnabled} onChange={(e) => setForwardingEnabled(e.target.checked)} />
               <span><span className="font-semibold">Autoriser la redirection vers le paiement</span>
-                <span className="block text-xs text-muted">Enregistrer les réglages pour appliquer ce changement. Le serveur doit aussi disposer d’une configuration Everflow valide.</span>
+                <span className="block text-xs text-muted">Modifie le réglage serveur EVERFLOW_ENABLED. L’activation exige aussi une configuration Everflow valide.</span>
               </span>
             </label>
-            <p className="mt-3 text-xs">État enregistré : <strong>{paymentInfo.status}</strong>{paymentInfo.mode === "mock" ? " · simulation locale" : paymentInfo.mode === "live" ? " · mode réel" : ""}</p>
+            <Button type="button" size="sm" className="mt-3" disabled={forwardingBusy || forwardingEnabled === paymentInfo.enabled} onClick={saveForwarding}>
+              {forwardingBusy ? "Application…" : "Appliquer la redirection"}
+            </Button>
+            {forwardingMessage && <p role={forwardingMessage.ok ? "status" : "alert"} className={`mt-2 text-xs ${forwardingMessage.ok ? "text-emerald-700" : "text-danger"}`}>{forwardingMessage.text}</p>}
+            <p className="mt-3 text-xs">EVERFLOW_ENABLED : <strong>{paymentInfo.enabled ? "true" : "false"}</strong> · {paymentInfo.status}{paymentInfo.mode === "mock" ? " · simulation locale" : paymentInfo.mode === "live" ? " · mode réel" : ""}</p>
+            {paymentInfo.source === "invalid-file" && <p className="mt-2 text-xs text-danger">Le fichier de contrôle serveur est invalide ou inaccessible. La redirection reste désactivée.</p>}
             {paymentInfo.error && <p className="mt-2 text-xs text-danger">{paymentInfo.error}</p>}
             <p className="mt-2 text-xs text-muted">La redirection ne confirme pas le paiement. Vérifie chaque transaction auprès du partenaire.</p>
           </div>

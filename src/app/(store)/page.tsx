@@ -45,7 +45,7 @@ export default async function HomePage() {
   const promises = [
     { icon: TruckIcon, title: settings.shipping.priceCents === 0 ? "Livraison offerte et suivie" : "Livraison suivie", text: `Commandée aujourd'hui, livrée ${rangeShort(plan.deliveryFrom, plan.deliveryTo)}` },
     { icon: ReturnIcon, title: `Retour sous ${settings.returnsPolicy.windowDays} jours`, text: "Après réception, sur simple demande" },
-    { icon: MailIcon, title: paymentsEnabled(settings) ? "Paiement chez notre partenaire" : "Rien à payer aujourd'hui", text: paymentsEnabled(settings) ? "Ta sélection enregistrée avant le paiement externe" : "Commande confirmée par e-mail avant tout paiement" },
+    { icon: MailIcon, title: paymentsEnabled() ? "Paiement chez notre partenaire" : "Rien à payer aujourd'hui", text: paymentsEnabled() ? "Ta sélection enregistrée avant le paiement externe" : "Commande confirmée par e-mail avant tout paiement" },
   ];
 
   return (

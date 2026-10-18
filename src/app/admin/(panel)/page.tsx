@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   const count = (s: string) => byStatus.find((b) => b._id === s)?.n ?? 0;
   const total = byStatus.reduce((a, b) => a + b.n, 0);
   const collected = paidAgg[0]?.total ?? 0;
-  const checkout = checkoutPresentation(settings);
+  const checkout = checkoutPresentation();
 
   return (
     <>

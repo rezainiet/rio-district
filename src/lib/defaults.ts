@@ -26,7 +26,6 @@ export type StoreSettings = {
     closedMessage: string;
     paymentNotice: string;
   };
-  paymentRedirect: { enabled: boolean };
   faq: FaqItem[];
   sizeRules: SizeRule[];
   sizeChart: SizeChartRow[];
@@ -81,9 +80,6 @@ export const DEFAULT_SETTINGS: StoreSettings = {
     paymentNotice:
       "Le paiement en ligne n'est pas encore disponible. Ta demande de commande est enregistrée sans paiement : nous te contactons par e-mail pour confirmer la commande et t'indiquer comment régler. Rien n'est débité aujourd'hui.",
   },
-  // The deployment configuration remains the primary gate. This switch lets
-  // admins pause forwarding without editing server environment variables.
-  paymentRedirect: { enabled: true },
   faq: [
     {
       question: "Quels sont les délais de livraison ?",

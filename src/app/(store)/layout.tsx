@@ -30,7 +30,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
   const [settings, products] = await Promise.all([getSettings(), getActiveProducts()]);
 
   const config: StoreConfig = {
-    checkout: checkoutPresentation(settings),
+    checkout: checkoutPresentation(),
     storeName: settings.storeName,
     bundle: settings.bundle,
     shippingCents: settings.shipping.priceCents,
