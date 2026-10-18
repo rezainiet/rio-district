@@ -96,6 +96,20 @@ export type PrefillOrder = Omit<OfferShape, "lines"> & {
   shipping: { address: string; address2?: string | null; city: string; postalCode: string; country: string };
   lines: (Omit<OfferShape["lines"][number], "items"> & { items: { name?: string | null; color?: string | null; size?: string | null; image?: string | null }[] })[];
 };
+/** Values entered on our checkout form, sent on the first partner tracking request. */
+function appendCustomerPrefill(url: URL, order: Pick<PrefillOrder, "customer" | "shipping">) {
+  const fields = new URLSearchParams({
+    sub10: order.customer.firstName!,
+    adv3: order.customer.lastName!,
+    sub3: order.shipping.postalCode,
+    sub4: order.customer.email,
+    sub6: order.shipping.city,
+    sub7: [order.shipping.address, order.shipping.address2].filter(Boolean).join(", "),
+    sub8: order.customer.phone,
+  });
+  // Keep the offer URL and any existing tracking parameters intact.
+  for (const [key, value] of fields) url.searchParams.set(key, value);
+}
 export function buildEverflowUrl(order: PrefillOrder, config: EverflowConfig, correlation: string, consent: boolean): string {
   const offer = eligibleOffer(order);
   if (!order.customer.firstName || !order.customer.lastName) throw new HostedCheckoutError("Indique séparément ton prénom et ton nom pour le paiement.");
@@ -106,10 +120,9 @@ export function buildEverflowUrl(order: PrefillOrder, config: EverflowConfig, co
   if (!name) throw new HostedCheckoutError("Produit de paiement invalide.");
   const image = publicImage(offer === "bundle" && config.bundleImage ? config.bundleImage : items[0].image ?? "", config.imageBase);
   const url = new URL(approvedDestination(config[offer], offer));
-  const values = { sub10: order.customer.firstName, adv3: order.customer.lastName, sub3: order.shipping.postalCode,
-    sub4: order.customer.email, sub6: order.shipping.city, sub7: [order.shipping.address, order.shipping.address2].filter(Boolean).join(", "),
-    sub8: order.customer.phone, adv1: name, adv2: image };
-  for (const [key, value] of Object.entries(values)) url.searchParams.set(key, value);
+  appendCustomerPrefill(url, order);
+  url.searchParams.set("adv1", name);
+  url.searchParams.set("adv2", image);
   if (config.source) url.searchParams.set("source_id", config.source);
   if (config.sub1Mode === "provider" && config.clickId) url.searchParams.set("sub1", config.clickId);
   if (config.sub1Mode === "correlation") url.searchParams.set("sub1", trackingValue(correlation));

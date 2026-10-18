@@ -33,6 +33,28 @@ test("exact single and bundle routing, complete encoding and minimum personal da
     assert.equal(url.searchParams.size, 9);
   }
 });
+test("live offer URLs carry the submitted customer fields and retain tracking parameters", () => {
+  const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
+    EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
+    EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle.webp", EVERFLOW_SUB1_MODE: "provider",
+    EVERFLOW_PROVIDER_CLICK_ID: "approved-click", EVERFLOW_SOURCE_ID: "approved-source" })!;
+  for (const bundle of [false, true]) {
+    const order = fixture(bundle);
+    const url = new URL(buildEverflowUrl(order, config, "unused-reference", false));
+    assert.equal(url.origin + url.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
+    assert.deepEqual(Object.fromEntries(["sub10", "adv3", "sub3", "sub4", "sub6", "sub7", "sub8"]
+      .map(key => [key, url.searchParams.get(key)])), {
+      sub10: order.customer.firstName, adv3: order.customer.lastName, sub3: order.shipping.postalCode,
+      sub4: order.customer.email, sub6: order.shipping.city,
+      sub7: `${order.shipping.address}, ${order.shipping.address2}`, sub8: order.customer.phone,
+    });
+    assert.equal(url.searchParams.get("source_id"), "approved-source");
+    assert.equal(url.searchParams.get("sub1"), "approved-click");
+    assert.match(url.search, /sub4=fiction%2Bqa%40example\.com/);
+    assert.match(url.search, /sub8=%2B33\+6/);
+    assert.match(url.search, /sub7=.*%26/);
+  }
+});
 test("fixed offers reject mixed carts, quantities, currency, shipping and wrong amounts", () => {
   for (const mutate of [
     (o: PrefillOrder) => { o.lines.push(o.lines[0]); }, (o: PrefillOrder) => { o.lines[0].quantity = 2; },
