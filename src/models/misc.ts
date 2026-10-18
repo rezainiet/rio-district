@@ -25,6 +25,7 @@ export const Counter: Model<{ _id: string; seq: number }> =
 const AdminUserSchema = new Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     name: { type: String, default: "" },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["owner", "staff"], default: "owner" },

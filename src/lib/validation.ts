@@ -87,7 +87,10 @@ export const contactSchema = z.object({
 /* ---------- Admin ---------- */
 
 export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().pipe(z.email("Adresse e-mail invalide.")),
+  email: z.string().trim().toLowerCase().refine(
+    (value) => /^[a-z][a-z0-9_]{2,31}$/.test(value) || z.email().safeParse(value).success,
+    "Nom d’utilisateur ou adresse e-mail invalide.",
+  ),
   password: z.string().min(1, "Mot de passe requis.").max(200),
 });
 

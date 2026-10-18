@@ -33,8 +33,8 @@ export function LoginForm() {
       }}
     >
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-sm font-medium">E-mail</label>
-        <input id="email" name="email" type="email" autoComplete="username" required className="field" />
+        <label htmlFor="email" className="mb-1.5 block text-sm font-medium">Nom d’utilisateur ou e-mail</label>
+        <input id="email" name="email" type="text" autoComplete="username" required className="field" />
       </div>
       <div>
         <label htmlFor="password" className="mb-1.5 block text-sm font-medium">Mot de passe</label>

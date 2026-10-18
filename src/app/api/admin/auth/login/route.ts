@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const user = await verifyCredentials(body.data.email, body.data.password);
   if (!user) {
     log.warn("admin.login_failed", { email: body.data.email, ip });
-    return errorJson(401, "E-mail ou mot de passe incorrect.");
+    return errorJson(401, "Identifiant ou mot de passe incorrect.");
   }
   log.info("admin.login", { email: user.email, ip });
 

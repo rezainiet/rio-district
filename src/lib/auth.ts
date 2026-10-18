@@ -21,9 +21,10 @@ export async function hashPassword(password: string) {
 /** Constant work even when the user doesn't exist, to avoid user enumeration by timing. */
 let dummyHash: Promise<string> | null = null;
 
-export async function verifyCredentials(email: string, password: string) {
+export async function verifyCredentials(identifier: string, password: string) {
   await connectDB();
-  const user = await AdminUser.findOne({ email: email.toLowerCase(), active: true });
+  const value = identifier.toLowerCase();
+  const user = await AdminUser.findOne({ active: true, $or: [{ email: value }, { username: value }] });
   dummyHash ??= bcrypt.hash(randomBytes(16).toString("hex"), 12);
   const ok = await bcrypt.compare(password, user?.passwordHash ?? (await dummyHash));
   return ok && user ? user : null;
