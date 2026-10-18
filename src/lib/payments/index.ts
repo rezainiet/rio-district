@@ -1,6 +1,7 @@
 import "server-only";
 import { log } from "../log";
 import { checkoutPresentation } from "./hosted";
+import type { StoreSettings } from "../defaults";
 
 /**
  * Payment integration seam.
@@ -55,7 +56,8 @@ export function getPaymentProvider(): PaymentProvider | null {
   return null;
 }
 
-export const paymentsEnabled = () => {
-  const checkout = checkoutPresentation();
+export const paymentsEnabled = (settings: StoreSettings) => {
+  if (!settings.paymentRedirect.enabled) return false;
+  const checkout = checkoutPresentation(settings);
   return (checkout.mode !== "request" && checkout.available) || getPaymentProvider() !== null;
 };

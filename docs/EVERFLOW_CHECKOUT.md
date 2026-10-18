@@ -142,17 +142,13 @@ All are server-side; none require NEXT_PUBLIC exposure. `.env.local` is untracke
 | EVERFLOW_GOOGLE_PIXEL_LABEL | Blank; required only for Google |
 | RIO_EVERFLOW_TEST | `false`; true selects separate `.next-everflow` build output |
 
-The owner can pause or allow redirect forwarding in **Admin → Réglages → Commandes & paiement**.
-The control writes `EVERFLOW_ENABLED=true|false` to the server's private
-`/var/lib/rio-district/payment-control/everflow-enabled.env` (or an isolated `.data` file
-in local development). Runtime requests read this file immediately; the production
-systemd service also loads it on every restart. It overrides the initial value in
-`.env.local`. The admin action cannot enable a missing or invalid live provider
-configuration; it returns the specific validation error. The two offer URLs remain
-server-owned and must match the exact destinations above. Turning forwarding off blocks
+The admin can pause or allow redirect forwarding in **Admin → Réglages → Commandes & paiement**.
+This database setting is an additional gate: it cannot activate Everflow when the server
+environment is disabled or invalid. The admin page shows the configured domain, the two
+destination URLs, and the checkout fields added to the redirect query. The URLs remain
+server-owned and must match the exact approved offers above. Turning forwarding off blocks
 new order redirects and payment retries; it does not alter an already issued link or
-prove whether an earlier redirect led to a charge. The admin page shows the configured
-domain, destination URLs, and the checkout fields added to the redirect query.
+prove whether an earlier redirect led to a charge.
 
 Mock additionally requires `APP_ENV=development` and a loopback MongoDB URI whose DB
 name starts with `rio_everflow_test_`. `dev:everflow` sets these itself. It cannot use

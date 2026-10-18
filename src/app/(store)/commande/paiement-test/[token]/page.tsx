@@ -2,16 +2,18 @@ import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Order, type OrderDoc } from "@/models/Order";
 import { PaymentAttempt } from "@/models/misc";
-import { EVERFLOW_OFFERS } from "@/lib/payments/everflow";
+import { readEverflowConfig, EVERFLOW_OFFERS } from "@/lib/payments/everflow";
 import { formatEUR } from "@/lib/money";
 import { ButtonLink } from "@/components/ui/Button";
-import { activeEverflowConfig } from "@/lib/payments/forwarding-flag";
+import { getSettings } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Simulation de paiement", robots: { index: false, follow: false }, referrer: "no-referrer" as const };
 export default async function MockCheckoutPage({ params }: { params: Promise<{ token: string }> }) {
+  const settings = await getSettings();
+  if (!settings.paymentRedirect.enabled) notFound();
   let config;
-  try { config = activeEverflowConfig(); } catch { notFound(); }
+  try { config = readEverflowConfig(process.env); } catch { notFound(); }
   if (config?.mode !== "mock") notFound();
   const { token } = await params;
   if (!/^[A-Za-z0-9_-]{24}$/.test(token)) notFound();

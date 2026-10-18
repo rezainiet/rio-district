@@ -1,15 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, randomUUID } from "node:crypto";
-import { unlinkSync } from "node:fs";
-import path from "node:path";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 import { mockEnvironment, seedTestDatabase, assertTestUri } from "../../scripts/lib/everflow-fixture";
 
 test("isolated order API: variants, duplicate/concurrent submissions, retry, fallback and refusal paths", async () => {
   const uri = `mongodb://127.0.0.1:27017/rio_everflow_test_${randomUUID().replaceAll("-", "")}`;
-  const flagFile = path.resolve(process.cwd(), ".data", "payment-control", `${uri.split("/").at(-1)}.env`);
   Object.assign(process.env, mockEnvironment(uri));
   const fixture = await seedTestDatabase(uri);
   try {
@@ -108,14 +105,6 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     await updateOrderStatus(String(order._id), "cancelled", "QA-admin", "Local cancellation test");
     assert.equal((await resume(request("/api/payments/checkout", { token }))).status, 409);
     assert.equal(await stock(0, "M"), before - 1); // one other Green/M bundle remains reserved
-    const { setForwardingFlag, forwardingFlag, activeEverflowConfig } = await import("../../src/lib/payments/forwarding-flag");
-    setForwardingFlag(false);
-    assert.equal(forwardingFlag().enabled, false);
-    assert.equal(activeEverflowConfig(), null);
-    setForwardingFlag(true);
-    assert.equal(forwardingFlag().enabled, true);
-    assert.ok(activeEverflowConfig());
-    setForwardingFlag(false);
     // Disabled integration deliberately uses original unpaid request flow on THIS isolated DB.
     process.env.EVERFLOW_ENABLED = "false";
     const beforeDisabledCheckout = await Order.countDocuments();
@@ -130,7 +119,6 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     assert.equal(await PaymentAttempt.countDocuments({ order: (await Order.findOne({ publicToken: fallback.data.order.token }))!._id }), 0);
     console.log("Verified 6 variant combinations, concurrent stock/idempotency, retries, cancellation, refusals, webhook 501 and disabled fallback.");
   } finally {
-    try { unlinkSync(flagFile); } catch { /* No control file was created. */ }
     assertTestUri(uri); await mongoose.connection.dropDatabase(); await mongoose.disconnect();
   }
 });

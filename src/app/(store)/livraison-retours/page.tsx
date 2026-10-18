@@ -54,7 +54,7 @@ export default async function ShippingPage() {
         <section className="mt-10">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em]">Paiement</h2>
           <p className="mt-3 text-[16px] leading-relaxed text-ink-2">
-            {paymentsEnabled() ? "Le paiement se fait en ligne à la fin de la commande." : s.orders.paymentNotice}
+            {paymentsEnabled(s) ? "Le paiement se fait en ligne à la fin de la commande." : s.orders.paymentNotice}
           </p>
         </section>
 

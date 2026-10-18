@@ -3,14 +3,16 @@ import { createHash, randomBytes } from "node:crypto";
 import { connectDB } from "../db";
 import { Order, type OrderDoc } from "@/models/Order";
 import { PaymentAttempt } from "@/models/misc";
-import { buildEverflowUrl, eligibleOffer, HostedCheckoutError, type CheckoutPresentation, type EverflowConfig, type PrefillOrder } from "./everflow";
-import { activeEverflowConfig, forwardingFlag } from "./forwarding-flag";
+import { buildEverflowUrl, eligibleOffer, HostedCheckoutError, readEverflowConfig, type CheckoutPresentation, type EverflowConfig, type PrefillOrder } from "./everflow";
+import type { StoreSettings } from "../defaults";
+import { getSettings } from "../catalog";
 
-export function checkoutPresentation(): CheckoutPresentation {
-  const selected = forwardingFlag().enabled;
+export function checkoutPresentation(settings: StoreSettings): CheckoutPresentation {
+  if (!settings.paymentRedirect.enabled) return { mode: "request", available: false, advertising: false };
+  const selected = process.env.EVERFLOW_ENABLED === "true";
   if (!selected) return { mode: "request", available: true, advertising: false };
   try {
-    const config = activeEverflowConfig()!;
+    const config = readEverflowConfig(process.env)!;
     return { mode: config.mode, available: true, advertising: Boolean(config.pixel) };
   } catch (error) {
     return { mode: process.env.EVERFLOW_MODE === "mock" ? "mock" : "live", available: false, advertising: false,
@@ -25,7 +27,8 @@ export function validateHostedOrder(order: PrefillOrder, config: EverflowConfig)
 
 /** One opaque backend attempt per order. No external URL/PII is persisted or logged. */
 export async function issueHostedCheckout(order: OrderDoc, config: EverflowConfig) {
-  if (!forwardingFlag().enabled) throw new HostedCheckoutError("La redirection de paiement est désactivée par la boutique.");
+  const settings = await getSettings();
+  if (!settings.paymentRedirect.enabled) throw new HostedCheckoutError("La redirection de paiement est désactivée par la boutique.");
   await connectDB();
   const current = await Order.findById(order._id).lean<OrderDoc>();
   if (!current || current.creationState === "preparing" || current.status === "cancelled" || current.status === "fulfilled" ||
