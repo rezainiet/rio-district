@@ -142,6 +142,14 @@ All are server-side; none require NEXT_PUBLIC exposure. `.env.local` is untracke
 | EVERFLOW_GOOGLE_PIXEL_LABEL | Blank; required only for Google |
 | RIO_EVERFLOW_TEST | `false`; true selects separate `.next-everflow` build output |
 
+The admin can pause or allow redirect forwarding in **Admin → Réglages → Commandes & paiement**.
+This database setting is an additional gate: it cannot activate Everflow when the server
+environment is disabled or invalid. The admin page shows the configured domain, the two
+destination URLs, and the checkout fields added to the redirect query. The URLs remain
+server-owned and must match the exact approved offers above. Turning forwarding off blocks
+new order redirects and payment retries; it does not alter an already issued link or
+prove whether an earlier redirect led to a charge.
+
 Mock additionally requires `APP_ENV=development` and a loopback MongoDB URI whose DB
 name starts with `rio_everflow_test_`. `dev:everflow` sets these itself. It cannot use
 the normal `kalt` or production databases. It never returns or visits the PII-bearing

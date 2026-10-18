@@ -5,10 +5,13 @@ import { PaymentAttempt } from "@/models/misc";
 import { readEverflowConfig, EVERFLOW_OFFERS } from "@/lib/payments/everflow";
 import { formatEUR } from "@/lib/money";
 import { ButtonLink } from "@/components/ui/Button";
+import { getSettings } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Simulation de paiement", robots: { index: false, follow: false }, referrer: "no-referrer" as const };
 export default async function MockCheckoutPage({ params }: { params: Promise<{ token: string }> }) {
+  const settings = await getSettings();
+  if (!settings.paymentRedirect.enabled) notFound();
   let config;
   try { config = readEverflowConfig(process.env); } catch { notFound(); }
   if (config?.mode !== "mock") notFound();

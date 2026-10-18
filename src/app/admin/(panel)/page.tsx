@@ -32,6 +32,7 @@ export default async function DashboardPage() {
   const count = (s: string) => byStatus.find((b) => b._id === s)?.n ?? 0;
   const total = byStatus.reduce((a, b) => a + b.n, 0);
   const collected = paidAgg[0]?.total ?? 0;
+  const checkout = checkoutPresentation(settings);
 
   return (
     <>
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
           {settings.orders.acceptingOrders ? "Commandes ouvertes" : "Commandes fermées"}
         </span>
         <span className="rounded-full bg-stone-200 px-3 py-1 font-semibold text-stone-700">
-          Paiement : {checkoutPresentation().mode === "request" ? "demande non payée" : checkoutPresentation().available ? "redirection configurée · rapprochement manuel" : "redirection indisponible · vérifier la configuration"}
+          Paiement : {checkout.mode === "request" ? "demande non payée" : checkout.available ? "redirection configurée · rapprochement manuel" : "redirection indisponible · vérifier la configuration"}
         </span>
         <span className="rounded-full bg-stone-200 px-3 py-1 font-semibold text-stone-700">{activeProducts} produits en ligne</span>
       </div>

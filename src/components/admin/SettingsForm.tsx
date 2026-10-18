@@ -7,7 +7,26 @@ import { centsToInput, inputToCents } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
 import { Card, inputCls, labelCls } from "./ui";
 
-export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSettings; paymentsEnabled: boolean }) {
+type PaymentInfo = {
+  status: string;
+  mode: "request" | "mock" | "live";
+  error?: string;
+  domain: string;
+  singleUrl: string;
+  bundleUrl: string;
+  approvedDomain: string;
+  approvedSingleUrl: string;
+  approvedBundleUrl: string;
+};
+
+const redirectFields = [
+  ["sub10", "Prénom"], ["adv3", "Nom"], ["sub3", "Code postal"],
+  ["sub4", "E-mail"], ["sub6", "Ville"], ["sub7", "Adresse et complément"],
+  ["sub8", "Téléphone"], ["adv1", "Nom du produit ou du pack"],
+  ["adv2", "URL de la photo produit"],
+] as const;
+
+export function SettingsForm({ initial, paymentInfo }: { initial: StoreSettings; paymentInfo: PaymentInfo }) {
   const router = useRouter();
   const [s, setS] = useState(initial);
   const [bundlePrice, setBundlePrice] = useState(centsToInput(initial.bundle.priceCents));
@@ -80,9 +99,31 @@ export function SettingsForm({ initial, paymentsEnabled }: { initial: StoreSetti
           <textarea id="s-closed" rows={2} className={inputCls} value={s.orders.closedMessage} onChange={(e) => up("orders", { closedMessage: e.target.value })} />
           <label htmlFor="s-paynotice" className={`${labelCls} mt-4`}>Mention paiement (panier, commande, confirmation)</label>
           <textarea id="s-paynotice" rows={4} className={inputCls} value={s.orders.paymentNotice} onChange={(e) => up("orders", { paymentNotice: e.target.value })} />
-          <p className="mt-3 rounded-[var(--radius-sm)] bg-paper-2 p-3 text-xs text-muted">
-            Redirection de paiement : <strong>{paymentsEnabled ? "configurée" : "désactivée ou indisponible"}</strong>. La confirmation authentifiée Everflow n’est pas encore disponible. Voir docs/EVERFLOW_CHECKOUT.md.
-          </p>
+          <div className="mt-5 rounded-[var(--radius-sm)] border border-line p-4 text-sm">
+            <label className="flex items-start gap-3">
+              <input type="checkbox" className="mt-1 size-4" checked={s.paymentRedirect.enabled} onChange={(e) => up("paymentRedirect", { enabled: e.target.checked })} />
+              <span><span className="font-semibold">Autoriser la redirection vers le paiement</span>
+                <span className="block text-xs text-muted">Enregistrer les réglages pour appliquer ce changement. Le serveur doit aussi disposer d’une configuration Everflow valide.</span>
+              </span>
+            </label>
+            <p className="mt-3 text-xs">État enregistré : <strong>{paymentInfo.status}</strong>{paymentInfo.mode === "mock" ? " · simulation locale" : paymentInfo.mode === "live" ? " · mode réel" : ""}</p>
+            {paymentInfo.error && <p className="mt-2 text-xs text-danger">{paymentInfo.error}</p>}
+            <p className="mt-2 text-xs text-muted">La redirection ne confirme pas le paiement. Vérifie chaque transaction auprès du partenaire.</p>
+          </div>
+          <div className="mt-4 space-y-2 text-xs">
+            <p><strong>Domaine autorisé par l’application :</strong> <span className="break-all">{paymentInfo.approvedDomain}</span></p>
+            <p><strong>Domaine configuré :</strong> <span className="break-all">{paymentInfo.domain}</span></p>
+            <p><strong>Veste seule (19,99 €) :</strong> <span className="break-all">{paymentInfo.singleUrl || "Non configurée"}</span></p>
+            <p className="pl-3 text-muted">URL requise par l’application : {paymentInfo.approvedSingleUrl}</p>
+            <p><strong>Pack de 2 (24,95 €) :</strong> <span className="break-all">{paymentInfo.bundleUrl || "Non configurée"}</span></p>
+            <p className="pl-3 text-muted">URL requise par l’application : {paymentInfo.approvedBundleUrl}</p>
+            <p className="text-muted">Ces destinations sont définies sur le serveur et ne peuvent pas être modifiées ici. En mode test, le navigateur est redirigé vers la page de simulation locale.</p>
+            <p className="font-semibold">Champs ajoutés à l’URL de redirection</p>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              {redirectFields.map(([parameter, field]) => <div key={parameter} className="contents"><dt className="font-mono">{parameter}</dt><dd>{field}</dd></div>)}
+            </dl>
+            <p className="text-muted">Selon la configuration et le consentement : source_id, sub1 et sub5 peuvent aussi être ajoutés. Les données personnelles figurent dans l’URL envoyée au partenaire.</p>
+          </div>
         </Card>
 
         <Card title="Boutique">

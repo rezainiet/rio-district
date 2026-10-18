@@ -150,7 +150,7 @@ export function storeFaq(settings: StoreSettings, plan: DeliveryPlan, unitPriceC
     },
     {
       question: "Comment se passe le paiement ?",
-      answer: paymentsEnabled()
+      answer: paymentsEnabled(settings)
         ? "Tu complètes tes coordonnées sur Rio District, puis tu continues sur le site de notre partenaire externe. Le statut reste en attente jusqu’à vérification du paiement par la boutique."
         : "Le paiement en ligne n'est pas encore ouvert. Tu envoies une demande de commande, nous la confirmons par e-mail et t'indiquons comment régler. Rien n'est débité sur le site.",
     },
@@ -221,7 +221,7 @@ export async function loadProductPage(slug: string, opts: ProductPageOptions = {
     plan,
     freeShipping: settings.shipping.priceCents === 0,
     policy: settings.returnsPolicy,
-    payments: { online: paymentsEnabled() },
+    payments: { online: paymentsEnabled(settings) },
     contactEmail: settings.contactEmail,
     faq: storeFaq(settings, plan, product.priceCents),
     sizeRules: settings.sizeRules,

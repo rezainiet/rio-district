@@ -172,6 +172,7 @@ export const settingsSchema = z.object({
     closedMessage: z.string().trim().max(500),
     paymentNotice: z.string().trim().max(1000),
   }),
+  paymentRedirect: z.object({ enabled: z.boolean() }),
   faq: z.array(z.object({ question: z.string().trim().min(3).max(200), answer: z.string().trim().min(3).max(2000) })).max(30),
   sizeRules: z
     .array(z.object({ size, maxScore: z.number().min(0).max(400).nullable() }))
