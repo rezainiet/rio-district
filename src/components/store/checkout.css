@@ -32,6 +32,7 @@
 }
 .checkout-contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .checkout-contact-wide { grid-column: span 2; }
+.checkout-phone-field { grid-column: span 2; }
 .checkout-delivery-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .checkout-city { grid-column: span 4; }
 .checkout-country { grid-column: span 6; }
@@ -55,6 +56,24 @@
   scroll-margin-top: 120px;
 }
 .checkout-page textarea.field { height: auto; min-height: 80px; }
+.checkout-phone { position: relative; min-width: 0; }
+.checkout-phone-control { display: flex; align-items: stretch; min-height: 48px; border: 1px solid var(--color-line-strong); border-radius: 10px; background: var(--field-bg, #fffdf8); transition: border-color .15s, box-shadow .15s; }
+.checkout-phone-control:focus-within { border-color: var(--color-ink); box-shadow: 0 0 0 3px rgb(200 169 106 / .28); }
+.checkout-phone-control[data-invalid] { border-color: var(--color-danger); }
+.checkout-phone-country-button { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; min-width: 95px; padding: 0 9px; border-right: 1px solid var(--color-line-strong); font-size: 14px; white-space: nowrap; }
+.checkout-phone-country-button:hover { color: var(--color-brand); }
+.checkout-phone-flag { font-size: 20px; line-height: 1; }
+.checkout-phone-chevron { margin-left: auto; opacity: .65; }
+.checkout-phone-number { min-width: 0; width: 100%; min-height: 46px; padding: 10px 11px; background: transparent; color: var(--color-ink); font-size: 16px; outline: none; }
+.checkout-phone-number::placeholder { color: var(--color-muted); }
+.checkout-phone-menu { position: absolute; z-index: 30; top: calc(100% + 5px); left: 0; width: min(340px, max(100%, 240px)); max-width: min(340px, calc(100vw - 36px)); padding: 7px; border: 1px solid var(--color-line-strong); border-radius: 12px; background: var(--field-bg, #fffdf8); box-shadow: 0 14px 36px rgb(0 0 0 / .32); }
+.checkout-phone-search { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid var(--color-line-strong); border-radius: 7px; background: transparent; color: var(--color-ink); font-size: 16px; outline: none; }
+.checkout-phone-search:focus { border-color: var(--color-brand); }
+.checkout-phone-options { max-height: 240px; overflow-y: auto; overscroll-behavior: contain; margin-top: 5px; }
+.checkout-phone-option { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 42px; padding: 7px 9px; border-radius: 7px; text-align: left; font-size: 14px; }
+.checkout-phone-option:hover, .checkout-phone-option[aria-selected="true"] { background: var(--color-paper-2); }
+.checkout-phone-option-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.checkout-phone-no-results { padding: 10px; color: var(--color-muted); font-size: 14px; }
 .checkout-optional-toggle {
   display: flex;
   align-items: center;
@@ -74,6 +93,7 @@
 .checkout-reassurance { margin-top: 16px; padding-top: 14px; }
 @media (min-width: 480px) {
   .checkout-contact-wide { grid-column: span 1; }
+  .checkout-phone-field { grid-column: span 2; }
   .checkout-city, .checkout-country { grid-column: span 2; }
 }
 @media (min-width: 1024px) {

@@ -147,7 +147,8 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
       requestFingerprint: fingerprint,
       creationState: "preparing",
       marketingConsent: input.marketingConsent,
-      customer: { fullName: c.fullName, firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone },
+      customer: { fullName: c.fullName, firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone,
+        phoneCountry: c.phoneCountry, phoneE164: c.phoneE164 },
       shipping: {
         address: c.address,
         address2: c.address2 ?? "",

@@ -82,6 +82,8 @@ const OrderSchema = new Schema(
       fullName: { type: String, required: true },
       email: { type: String, required: true, lowercase: true },
       phone: { type: String, required: true },
+      phoneCountry: String,
+      phoneE164: String,
     },
     shipping: {
       address: { type: String, required: true },
@@ -128,7 +130,7 @@ OrderSchema.index({ "customer.email": 1 });
 type InferredOrder = InferSchemaType<typeof OrderSchema>;
 export type OrderDoc = Omit<InferredOrder, "customer" | "shipping"> & {
   _id: Types.ObjectId;
-  customer: { fullName: string; firstName?: string; lastName?: string; email: string; phone: string };
+  customer: { fullName: string; firstName?: string; lastName?: string; email: string; phone: string; phoneCountry?: string; phoneE164?: string };
   shipping: { address: string; address2: string; postalCode: string; city: string; country: string };
   createdAt: Date;
   updatedAt: Date;

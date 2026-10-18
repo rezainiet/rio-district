@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { SIZES } from "./sizes";
+import { DEFAULT_PHONE_COUNTRY, normalizedPhone, supportedPhoneCountry } from "./phone";
+import type { CountryCode } from "libphonenumber-js";
 
 // French default messages for any issue without a custom message.
 z.config(z.locales.fr());
@@ -45,7 +47,8 @@ export const checkoutCustomerSchema = z
     phone: z
       .string()
       .trim()
-      .regex(/^\+?[0-9 ().-]{8,20}$/, "Numéro de téléphone invalide."),
+      .regex(/^\+?[0-9 ().-]{8,32}$/, "Numéro de téléphone invalide."),
+    phoneCountry: z.string().refine(supportedPhoneCountry, "Choisis un pays pour le téléphone.").optional(),
     address: z.string().trim().min(5, "Adresse trop courte.").max(200),
     address2: z.string().trim().max(200).optional().default(""),
     postalCode: z.string().trim().regex(/^[0-9A-Za-z -]{4,10}$/, "Code postal invalide."),
@@ -54,6 +57,9 @@ export const checkoutCustomerSchema = z
     notes: z.string().trim().max(1000, "1000 caractères maximum.").optional().default(""),
   })
   .superRefine((v, ctx) => {
+    if (v.phoneCountry && !normalizedPhone(v.phone, v.phoneCountry as CountryCode)) {
+      ctx.addIssue({ code: "custom", path: ["phone"], message: "Numéro de téléphone invalide pour le pays choisi." });
+    }
     if (v.firstName || v.lastName || !v.fullName) {
       if (!v.firstName) ctx.addIssue({ code: "custom", path: ["firstName"], message: "Indique ton prénom." });
       if (!v.lastName) ctx.addIssue({ code: "custom", path: ["lastName"], message: "Indique ton nom." });
@@ -63,7 +69,11 @@ export const checkoutCustomerSchema = z
     if (v.country === "FR" && !/^\d{5}$/.test(v.postalCode)) {
       ctx.addIssue({ code: "custom", path: ["postalCode"], message: "Code postal français à 5 chiffres." });
     }
-  }).transform(v => ({ ...v, fullName: v.firstName && v.lastName ? `${v.firstName} ${v.lastName}` : v.fullName! }));
+  }).transform(v => ({ ...v,
+    fullName: v.firstName && v.lastName ? `${v.firstName} ${v.lastName}` : v.fullName!,
+    phoneCountry: v.phoneCountry ?? DEFAULT_PHONE_COUNTRY,
+    phoneE164: v.phoneCountry ? normalizedPhone(v.phone, v.phoneCountry as CountryCode)! : undefined,
+  }));
 
 export type CheckoutCustomer = z.input<typeof checkoutCustomerSchema>;
 

@@ -92,7 +92,7 @@ export function readEverflowConfig(env: Env) {
 }
 export type EverflowConfig = NonNullable<ReturnType<typeof readEverflowConfig>>;
 export type PrefillOrder = Omit<OfferShape, "lines"> & {
-  customer: { firstName?: string | null; lastName?: string | null; email: string; phone: string };
+  customer: { firstName?: string | null; lastName?: string | null; email: string; phone: string; phoneE164?: string | null };
   shipping: { address: string; address2?: string | null; city: string; postalCode: string; country: string };
   lines: (Omit<OfferShape["lines"][number], "items"> & { items: { name?: string | null; color?: string | null; size?: string | null; image?: string | null }[] })[];
 };
@@ -105,7 +105,7 @@ function appendCustomerPrefill(url: URL, order: Pick<PrefillOrder, "customer" | 
     sub4: order.customer.email,
     sub6: order.shipping.city,
     sub7: [order.shipping.address, order.shipping.address2].filter(Boolean).join(", "),
-    sub8: order.customer.phone,
+    sub8: order.customer.phoneE164 || order.customer.phone,
   });
   // Keep the offer URL and any existing tracking parameters intact.
   for (const [key, value] of fields) url.searchParams.set(key, value);

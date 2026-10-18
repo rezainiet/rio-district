@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
 import { toInput, useStore } from "./StoreProvider";
@@ -18,6 +18,8 @@ import { eligibleOffer } from "@/lib/payments/everflow";
 import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
 import "./checkout.css";
+import { PhoneInput } from "./PhoneInput";
+import { DEFAULT_PHONE_COUNTRY, supportedPhoneCountry } from "@/lib/phone";
 
 const KEY_STORAGE = "rd.checkout.key";
 const volatileKeys = new Map<string, string>();
@@ -82,6 +84,8 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [optionalOpen, setOptionalOpen] = useState(false);
   const sending = useRef(false);
+  const manuallySelectedPhoneCountry = useRef(false);
+  const phoneEdited = useRef(false);
   const hosted = !!config.checkout && config.checkout.mode !== "request";
   const paymentAvailable = hosted && config.checkout?.available === true;
   const mock = config.checkout?.mode === "mock";
@@ -96,13 +100,30 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
 
   const {
     register,
+    control,
+    getValues,
+    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutCustomer, unknown, z.output<typeof checkoutCustomerSchema>>({
     resolver: zodResolver(checkoutCustomerSchema),
     mode: "onTouched",
-    defaultValues: { country: "FR", address2: "", notes: "" },
+    defaultValues: { country: "FR", phoneCountry: DEFAULT_PHONE_COUNTRY, address2: "", notes: "" },
   });
+  const selectedPhoneCountry = useWatch({ control, name: "phoneCountry" });
+  const phoneCountry = supportedPhoneCountry(selectedPhoneCountry) ? selectedPhoneCountry : DEFAULT_PHONE_COUNTRY;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/geo/country", { signal: controller.signal, credentials: "same-origin" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (supportedPhoneCountry(data?.country) && !manuallySelectedPhoneCountry.current && !phoneEdited.current && !getValues("phone")) {
+          setValue("phoneCountry", data.country);
+        }
+      }).catch(() => {});
+    return () => controller.abort();
+  }, [getValues, setValue]);
 
   // Ask the server for authoritative prices whenever the cart changes.
   useEffect(() => {
@@ -269,8 +290,13 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
                 <Field id="co-email" label="E-mail" error={errors.email?.message} className="checkout-contact-wide">
                   <input className="field" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" {...fieldProps("email")} />
                 </Field>
-                <Field id="co-phone" label="Téléphone" error={errors.phone?.message} className="checkout-contact-wide">
-                  <input className="field" type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" enterKeyHint="next" {...fieldProps("phone")} />
+                <Field id="co-phone" label="Téléphone" error={errors.phone?.message} className="checkout-contact-wide checkout-phone-field">
+                  <Controller name="phone" control={control} render={({ field }) => <PhoneInput
+                    country={phoneCountry} value={field.value ?? ""} onChange={value => { phoneEdited.current = true; field.onChange(value); }} onBlur={field.onBlur} inputRef={field.ref}
+                    invalid={Boolean(errors.phone)} onCountryChange={country => {
+                      manuallySelectedPhoneCountry.current = true;
+                      setValue("phoneCountry", country, { shouldValidate: true });
+                    }} /> } />
                 </Field>
               </div>
             </fieldset>

@@ -47,8 +47,11 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     const explicitName = { ...key, customer: { ...customer, fullName: "Élodie-Anne de la Fiction" } };
     assert.equal((await submit(explicitName)).status, 200);
     const legacyInput = orderRequestSchema.parse(key);
+    const legacyCustomer: Record<string, unknown> = { ...legacyInput.customer };
+    delete legacyCustomer.phoneCountry;
+    delete legacyCustomer.phoneE164;
     const legacyFingerprint = createHash("sha256").update(JSON.stringify({ lines: legacyInput.lines,
-      customer: legacyInput.customer, marketingConsent: legacyInput.marketingConsent, hosted: true })).digest("hex");
+      customer: legacyCustomer, marketingConsent: legacyInput.marketingConsent, hosted: true })).digest("hex");
     await Order.updateOne({ _id: order._id }, { $set: { requestFingerprint: legacyFingerprint } });
     assert.equal((await submit(explicitName)).status, 200);
     assert.equal((await submit(key)).status, 200);
