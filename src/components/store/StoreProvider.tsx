@@ -126,7 +126,14 @@ export function StoreProvider({
       }
       return [...prev, { ...line, key: uid() }];
     });
-  }, []);
+    const contentIds = line.kind === "single" ? [line.productId] : line.items.map(item => item.productId);
+    const unitPrice = line.kind === "single" ? productMap.get(line.productId)?.priceCents : config.bundle.priceCents;
+    if (unitPrice !== undefined && contentIds.every(id => productMap.has(id))) {
+      window.dispatchEvent(new CustomEvent("rio:cart-add", {
+        detail: { content_ids: contentIds, value: unitPrice * line.quantity / 100 },
+      }));
+    }
+  }, [productMap, config.bundle.priceCents]);
 
   const update = useCallback((key: string, line: CartLineInput) => {
     setLines((prev) => prev.map((l) => (l.key === key ? { ...line, key } : l)));

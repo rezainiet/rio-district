@@ -12,7 +12,7 @@ import { RETURNS_PATH, announcementText, storePlan } from "@/lib/storefront";
 import { rangeLong } from "@/lib/delivery-plan";
 import { formatEUR } from "@/lib/money";
 import { checkoutPresentation } from "@/lib/payments/hosted";
-import { SnapPixel } from "@/components/store/SnapPixel";
+import { MarketingPixels } from "@/components/store/MarketingPixels";
 
 
 export const dynamic = "force-dynamic";
@@ -76,7 +76,7 @@ export default async function StoreLayout({ children }: LayoutProps<"/">) {
         </div>
         <CartDrawer />
         <MarketingPopups popups={livePopups(settings.popups)} />
-        <SnapPixel />
+        <MarketingPixels />
       </div>
     </StoreProvider>
   );
