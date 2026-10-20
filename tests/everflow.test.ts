@@ -72,11 +72,12 @@ test("exact allowlist refuses open redirects, example URL, insecure and missing 
 test("all pixel encodings and consent gate, one explicit platform only", () => {
   assert.equal(pixelValue({}), null);
   for (const [platform, key, expected, label] of [
-    ["facebook", "FACEBOOK", "123", ""], ["tiktok", "TIKTOK", "_".repeat(3) + "123", ""],
+    ["facebook", "FACEBOOK", "1378153049835069", ""], ["tiktok", "TIKTOK", "_".repeat(3) + "123", ""],
     ["google", "GOOGLE", "_".repeat(6) + "123" + "_".repeat(3) + "label", "label"],
-    ["snapchat", "SNAPCHAT", "_".repeat(21) + "123", ""],
+    ["snapchat", "SNAPCHAT", "_".repeat(21) + "25924406-58d9-4767-9b28-e91773f5ba30", ""],
   ]) {
-    const env = { ...mockEnv, EVERFLOW_PIXEL_PLATFORM: platform, [`EVERFLOW_${key}_PIXEL_ID`]: "123", EVERFLOW_GOOGLE_PIXEL_LABEL: label, EVERFLOW_PIXEL_APPROVED: "true" };
+    const id = platform === "facebook" ? "1378153049835069" : platform === "snapchat" ? "25924406-58d9-4767-9b28-e91773f5ba30" : "123";
+    const env = { ...mockEnv, EVERFLOW_PIXEL_PLATFORM: platform, [`EVERFLOW_${key}_PIXEL_ID`]: id, EVERFLOW_GOOGLE_PIXEL_LABEL: label, EVERFLOW_PIXEL_APPROVED: "true" };
     assert.equal(pixelValue(env), expected);
     const config = readEverflowConfig(env)!;
     assert.equal(new URL(buildEverflowUrl(fixture(), config, "reference", false)).searchParams.has("sub5"), false);
@@ -84,6 +85,32 @@ test("all pixel encodings and consent gate, one explicit platform only", () => {
   }
   for (const env of [{ EVERFLOW_PIXEL_PLATFORM: "google", EVERFLOW_GOOGLE_PIXEL_ID: "123" }, { EVERFLOW_TIKTOK_PIXEL_ID: "123" },
     { EVERFLOW_PIXEL_PLATFORM: "tiktok", EVERFLOW_TIKTOK_PIXEL_ID: "123", EVERFLOW_FACEBOOK_PIXEL_ID: "456" }, { EVERFLOW_PIXEL_PLATFORM: "facebook" }]) assert.throws(() => pixelValue(env));
+});
+test("Meta and Snapchat share one sub5 on both approved offers only with customer consent", () => {
+  const meta = "1378153049835069";
+  const snap = "25924406-58d9-4767-9b28-e91773f5ba30";
+  const env = { ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true", EVERFLOW_VARIANTS_APPROVED: "true",
+    EVERFLOW_BUNDLE_METADATA_APPROVED: "true", EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
+    EVERFLOW_PIXEL_PLATFORM: "facebook,snapchat", EVERFLOW_FACEBOOK_PIXEL_ID: meta, EVERFLOW_SNAPCHAT_PIXEL_ID: snap,
+    EVERFLOW_PIXEL_APPROVED: "true" };
+  const expected = meta + "_".repeat(21) + snap;
+  assert.equal(pixelValue(env), expected);
+  assert.equal(pixelValue({ ...env, EVERFLOW_PIXEL_PLATFORM: "snapchat,facebook" }), expected);
+  const config = readEverflowConfig(env)!;
+  for (const bundle of [false, true]) {
+    const order = fixture(bundle);
+    const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
+    const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
+    assert.equal(withoutConsent.searchParams.has("sub5"), false);
+    assert.deepEqual(withConsent.searchParams.getAll("sub5"), [expected]);
+    assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
+    for (const field of ["sub10", "adv3", "sub3", "sub4", "sub6", "sub7", "sub8", "adv1", "adv2"])
+      assert.equal(withConsent.searchParams.get(field), withoutConsent.searchParams.get(field));
+  }
+  for (const patch of [{ EVERFLOW_FACEBOOK_PIXEL_ID: "EAAC-token" }, { EVERFLOW_SNAPCHAT_PIXEL_ID: "bad" },
+    { EVERFLOW_GOOGLE_PIXEL_ID: "123" }, { EVERFLOW_PIXEL_PLATFORM: "facebook,facebook" }])
+    assert.throws(() => pixelValue({ ...env, ...patch }));
+  assert.throws(() => readEverflowConfig({ ...env, EVERFLOW_PIXEL_APPROVED: "false" }));
 });
 test("disabled fallback, isolated mock guard, live approval and unapproved correlation", () => {
   assert.equal(readEverflowConfig({ ...mockEnv, EVERFLOW_ENABLED: "false" }), null);

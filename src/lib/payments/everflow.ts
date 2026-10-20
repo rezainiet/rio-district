@@ -41,10 +41,20 @@ export function pixelValue(env: Env): string | null {
   const platform = env.EVERFLOW_PIXEL_PLATFORM ?? "";
   const ids = [env.EVERFLOW_FACEBOOK_PIXEL_ID, env.EVERFLOW_TIKTOK_PIXEL_ID, env.EVERFLOW_GOOGLE_PIXEL_ID, env.EVERFLOW_SNAPCHAT_PIXEL_ID];
   if (!platform && !ids.some(Boolean) && !env.EVERFLOW_GOOGLE_PIXEL_LABEL) return null;
+  if (platform === "facebook,snapchat" || platform === "snapchat,facebook") {
+    if (!/^\d{10,20}$/.test(env.EVERFLOW_FACEBOOK_PIXEL_ID ?? "") ||
+      !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(env.EVERFLOW_SNAPCHAT_PIXEL_ID ?? "") ||
+      env.EVERFLOW_TIKTOK_PIXEL_ID || env.EVERFLOW_GOOGLE_PIXEL_ID || env.EVERFLOW_GOOGLE_PIXEL_LABEL) {
+      throw new HostedCheckoutError("Configure uniquement les identifiants Pixel Meta et Snapchat valides pour le suivi Everflow combiné.");
+    }
+    return encodeFacebook(env.EVERFLOW_FACEBOOK_PIXEL_ID!) + encodeSnapchat(env.EVERFLOW_SNAPCHAT_PIXEL_ID!);
+  }
   const index = ["facebook", "tiktok", "google", "snapchat"].indexOf(platform);
   if (index < 0 || ids.filter(Boolean).length !== 1 || !ids[index] || (index !== 2 && env.EVERFLOW_GOOGLE_PIXEL_LABEL)) {
     throw new HostedCheckoutError("Configure une seule plateforme publicitaire Everflow, ou désactive tous ses identifiants.");
   }
+  if (platform === "facebook" && !/^\d{10,20}$/.test(ids[index])) throw new HostedCheckoutError("Identifiant Pixel Meta invalide.");
+  if (platform === "snapchat" && !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(ids[index])) throw new HostedCheckoutError("Identifiant Pixel Snapchat invalide.");
   const id = trackingValue(ids[index]);
   return index === 0 ? encodeFacebook(id) : index === 1 ? encodeTikTok(id) : index === 2 ? encodeGoogle(id, trackingValue(env.EVERFLOW_GOOGLE_PIXEL_LABEL)) : encodeSnapchat(id);
 }

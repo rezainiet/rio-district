@@ -339,7 +339,7 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
             <p className="checkout-privacy text-muted">
               {hosted ? (mock ? "Utilise uniquement des coordonnées fictives pour cette simulation locale." : "En continuant, tes nom, coordonnées et adresse seront transmis au partenaire via un lien externe sur www.molipy8trk.com. Ces informations peuvent être conservées dans l’historique du navigateur et les journaux du partenaire. Consulte notre politique de confidentialité avant de continuer.") : "Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire n’est demandée."}
             </p>
-            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte le suivi publicitaire facultatif du partenaire pour ce paiement. Mon choix n’empêche pas de commander.</label>}
+            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que les identifiants publicitaires de la boutique soient transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">
