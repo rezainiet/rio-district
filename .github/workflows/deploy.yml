@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   checks:
-    runs-on: ubuntu-24.04
+    # MongoDB 8 exits on the newer 6.19 kernel currently used by Ubuntu 24.04 runners.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     services:
       mongo:
