@@ -88,7 +88,6 @@
 }
 .checkout-optional-toggle:hover { color: var(--color-brand); }
 .checkout-optional-fields:not([hidden]) { display: grid; gap: 12px; padding-top: 8px; }
-.checkout-privacy { font-size: 12px; line-height: 1.6; }
 .checkout-payment-card { padding: 18px; }
 .checkout-reassurance { margin-top: 16px; padding-top: 14px; }
 @media (min-width: 480px) {

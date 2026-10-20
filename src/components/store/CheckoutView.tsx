@@ -19,6 +19,7 @@ import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
 import "./checkout.css";
 import { PhoneInput } from "./PhoneInput";
+import { trackCheckoutPurchaseClick } from "./MarketingPixels";
 import { DEFAULT_PHONE_COUNTRY, supportedPhoneCountry } from "@/lib/phone";
 
 const KEY_STORAGE = "rd.checkout.key";
@@ -185,6 +186,10 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
           : destination.protocol === "https:" && destination.host === "www.molipy8trk.com" && ["/2J23GL9/TTF23GH/", "/2J23GL9/TRSKRX3/"].includes(destination.pathname);
         if (!valid) { setSubmitError("Destination de paiement refusée. Ta commande reste en attente."); return; }
         setNavigating(true);
+        if (data.checkout.mode === "live" && trackCheckoutPurchaseClick(data.order.totalCents, data.order.number)) {
+          // Give consented browser pixels a brief chance to send before cross-site navigation.
+          await new Promise(resolve => window.setTimeout(resolve, 300));
+        }
         window.location.assign(destination.href);
         return;
       }
@@ -336,9 +341,6 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
                 </div>
               </div>
             </fieldset>
-            <p className="checkout-privacy text-muted">
-              {hosted ? (mock ? "Utilise uniquement des coordonnées fictives pour cette simulation locale." : "En continuant, tes nom, coordonnées et adresse seront transmis au partenaire via un lien externe sur www.molipy8trk.com. Ces informations peuvent être conservées dans l’historique du navigateur et les journaux du partenaire. Consulte notre politique de confidentialité avant de continuer.") : "Tes informations servent uniquement à traiter ta commande et à te contacter à son sujet. Aucune donnée bancaire n’est demandée."}
-            </p>
             {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que les identifiants publicitaires de la boutique soient transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
           </div>
 

@@ -65,6 +65,19 @@ function startPixels() {
   }
 }
 
+/** The requested Purchase signal represents a click through to hosted checkout, not a verified payment. */
+export function trackCheckoutPurchaseClick(totalCents: number, orderNumber: string): boolean {
+  if (savedChoice() !== "accepted" || !Number.isInteger(totalCents) || totalCents <= 0 || !orderNumber) return false;
+  const key = `rd.pixel.purchase-click:${orderNumber}`;
+  try { if (sessionStorage.getItem(key)) return false; } catch {}
+  startPixels();
+  const value = totalCents / 100;
+  window.snaptr?.("track", "PURCHASE", { price: value.toFixed(2), currency: "EUR" });
+  window.fbq?.("trackSingle", META_PIXEL_ID, "Purchase", { value, currency: "EUR" });
+  try { sessionStorage.setItem(key, "1"); } catch {}
+  return true;
+}
+
 export function MarketingPixels() {
   const pathname = usePathname();
   const { products } = useStore();
@@ -127,7 +140,7 @@ export function MarketingPixels() {
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">Cookies publicitaires</p>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier, début de commande) pour nos campagnes. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier, début de commande et clic vers le paiement) pour nos campagnes. Le clic vers le paiement est envoyé comme événement Purchase, même si le paiement n’est pas encore confirmé. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
       </div>
       {choice !== null && <button type="button" aria-label="Fermer les paramètres des cookies" className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
     </div>
