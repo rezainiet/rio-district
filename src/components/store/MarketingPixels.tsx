@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "./StoreProvider";
+import { validFbclid } from "@/lib/fbclid";
 
 const SNAP_PIXEL_ID = "25924406-58d9-4767-9b28-e91773f5ba30";
 const META_PIXEL_ID = "1378153049835069";
@@ -10,6 +11,7 @@ const SNAP_SCRIPT_URL = "https://sc-static.net/scevent.min.js";
 const META_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
 // New choice: existing Snapchat consent did not cover Meta.
 const STORAGE_KEY = "rd.marketing-consent.v1";
+const FBCLID_STORAGE_KEY = "rd.meta.fbclid";
 const CHOICE_LIFETIME_MS = 180 * 24 * 60 * 60 * 1000;
 const OPEN_EVENT = "rio:marketing-consent-open";
 const CART_ADD_EVENT = "rio:cart-add";
@@ -29,6 +31,22 @@ function savedChoice(): Choice | null {
         typeof data.at === "number" && Date.now() - data.at < CHOICE_LIFETIME_MS && data.at <= Date.now()) return data.choice;
   } catch { /* Storage can be unavailable in private browsing. */ }
   return null;
+}
+
+/** Retain the original Meta click ID for this tab only after marketing consent. */
+export function rememberConsentedFbclid(search: string): void {
+  if (savedChoice() !== "accepted") return;
+  const value = new URLSearchParams(search).get("fbclid");
+  if (!validFbclid(value)) return;
+  try { sessionStorage.setItem(FBCLID_STORAGE_KEY, value); } catch {}
+}
+
+export function consentedFbclid(): string | null {
+  if (savedChoice() !== "accepted") return null;
+  try {
+    const value = sessionStorage.getItem(FBCLID_STORAGE_KEY);
+    return validFbclid(value) ? value : null;
+  } catch { return null; }
 }
 
 function startPixels() {
@@ -65,15 +83,15 @@ function startPixels() {
   }
 }
 
-/** The requested Purchase signal represents a click through to hosted checkout, not a verified payment. */
-export function trackCheckoutPurchaseClick(totalCents: number, orderNumber: string): boolean {
+/** Track the confirmed redirect to hosted checkout; the provider owns the Purchase event. */
+export function trackCheckoutClick(totalCents: number, orderNumber: string): boolean {
   if (savedChoice() !== "accepted" || !Number.isInteger(totalCents) || totalCents <= 0 || !orderNumber) return false;
-  const key = `rd.pixel.purchase-click:${orderNumber}`;
+  const key = `rd.pixel.checkout-click:${orderNumber}`;
   try { if (sessionStorage.getItem(key)) return false; } catch {}
   startPixels();
   const value = totalCents / 100;
-  window.snaptr?.("track", "PURCHASE", { price: value.toFixed(2), currency: "EUR" });
-  window.fbq?.("trackSingle", META_PIXEL_ID, "Purchase", { value, currency: "EUR" });
+  window.snaptr?.("track", "START_CHECKOUT", { price: value.toFixed(2), currency: "EUR" });
+  window.fbq?.("trackSingle", META_PIXEL_ID, "InitiateCheckout", { value, currency: "EUR" });
   try { sessionStorage.setItem(key, "1"); } catch {}
   return true;
 }
@@ -98,6 +116,7 @@ export function MarketingPixels() {
     // Confirmation and local payment-test URLs contain private order tokens.
     if (!ready || choice !== "accepted" || !pathname ||
         pathname.startsWith("/commande/confirmation/") || pathname.startsWith("/commande/paiement-test/")) return;
+    rememberConsentedFbclid(window.location.search);
     startPixels();
     if (trackedPath.current !== pathname) {
       window.snaptr?.("track", "PAGE_VIEW");
@@ -106,7 +125,6 @@ export function MarketingPixels() {
       if (product) window.fbq?.("trackSingle", META_PIXEL_ID, "ViewContent", {
         content_ids: [product.id], content_type: "product", value: product.priceCents / 100, currency: product.currency ?? "EUR",
       });
-      if (pathname === "/commande") window.fbq?.("trackSingle", META_PIXEL_ID, "InitiateCheckout");
       trackedPath.current = pathname;
     }
   }, [ready, choice, pathname, products]);
@@ -126,6 +144,8 @@ export function MarketingPixels() {
 
   function choose(next: Choice) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ choice: next, at: Date.now() })); } catch {}
+    if (next === "accepted") rememberConsentedFbclid(window.location.search);
+    else try { sessionStorage.removeItem(FBCLID_STORAGE_KEY); } catch {}
     if (next === "refused" && choice === "accepted") {
       // A fresh document drops any listeners installed by the already loaded external script.
       window.location.reload();
@@ -140,7 +160,7 @@ export function MarketingPixels() {
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">Cookies publicitaires</p>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier, début de commande et clic vers le paiement) pour nos campagnes. Le clic vers le paiement est envoyé comme événement Purchase, même si le paiement n’est pas encore confirmé. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et clic vers le paiement) pour nos campagnes. Si tu arrives d’une publicité Meta, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le clic vers le paiement est envoyé comme événement InitiateCheckout à Meta et START_CHECKOUT à Snapchat ; aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
       </div>
       {choice !== null && <button type="button" aria-label="Fermer les paramètres des cookies" className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
     </div>

@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 import { mockEnvironment, seedTestDatabase, assertTestUri } from "../../scripts/lib/everflow-fixture";
+import { buildEverflowUrl, readEverflowConfig } from "../../src/lib/payments/everflow";
 
 test("isolated order API: variants, duplicate/concurrent submissions, retry, fallback and refusal paths", async () => {
   const uri = `mongodb://127.0.0.1:27017/rio_everflow_test_${randomUUID().replaceAll("-", "")}`;
@@ -41,7 +42,11 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     assert.equal(attempt.status, "pending"); assert.equal(attempt.correlationSent, false);
     assert.match(simultaneous[0].data.checkout.redirectUrl, /^\/commande\/paiement-test\//);
     assert.equal((await submit({ ...key, customer: { ...customer, city: "Lyon" } })).status, 409);
-    for (let i = 0; i < 3; i++) assert.equal((await resume(request("/api/payments/checkout", { token }))).status, 200);
+    for (let i = 0; i < 3; i++) {
+      const response = await resume(request("/api/payments/checkout", { token }));
+      assert.equal(response.status, 200);
+      assert.deepEqual((await response.json()).order, { number: order.number, totalCents: 1999 });
+    }
     // A derived fullName and the form resolver's explicit equivalent must reuse
     // the same order, including orders carrying the previous fingerprint format.
     const explicitName = { ...key, customer: { ...customer, fullName: "Élodie-Anne de la Fiction" } };
@@ -69,6 +74,14 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
       assert.deepEqual(saved.lines[0].items.map(i => ({ productId: String(i.product), size: i.size })), expected.map(i => ({ productId: i.productId, size: i.size })));
       assert.equal(saved.totalCents, lines[0].kind === "single" ? 1999 : 2495);
     }
+    const attributed = await submit({ ...payload(single(2, "M")), marketingConsent: true, fbclid: "PAZXh0bgNhZW0CMTEAAa_sample-123" });
+    assert.equal(attributed.status, 201);
+    const attributedOrder = await Order.findOne({ publicToken: attributed.data.order.token }).lean(); assert.ok(attributedOrder);
+    assert.equal(attributedOrder.attribution?.fbclid, "PAZXh0bgNhZW0CMTEAAa_sample-123");
+    assert.equal(new URL(buildEverflowUrl(attributedOrder, readEverflowConfig(process.env)!, "reference", true)).searchParams.get("fbclid"), "PAZXh0bgNhZW0CMTEAAa_sample-123");
+    const withoutConsent = await submit({ ...payload(single(3, "M")), marketingConsent: false, fbclid: "PAZXh0bgNhZW0CMTEAAa_sample-123" });
+    assert.equal(withoutConsent.status, 201);
+    assert.equal((await Order.findOne({ publicToken: withoutConsent.data.order.token }).lean())?.attribution?.fbclid, undefined);
     const count = await Order.countDocuments();
     for (const lines of [[...single(), ...single(2)], [{ ...single()[0], quantity: 2 }], [...bundle(0, "M", 2, "L"), ...single()], [{ ...bundle(0, "M", 2, "L")[0], quantity: 2 }], [{ ...single()[0], productId: "f".repeat(24) }], [{ ...single()[0], size: "NO" }]]) assert.ok((await submit(payload(lines))).status >= 400);
     assert.equal(await Order.countDocuments(), count);

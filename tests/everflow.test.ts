@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { approvedDestination, buildEverflowUrl, eligibleOffer, EVERFLOW_OFFERS, pixelValue, publicImage, readEverflowConfig, type PrefillOrder } from "../src/lib/payments/everflow";
 import { checkoutCustomerSchema } from "../src/lib/validation";
+import { validFbclid } from "../src/lib/fbclid";
 
 export const mockEnv = {
   PAYMENT_PROVIDER: "everflow", EVERFLOW_ENABLED: "true", EVERFLOW_MODE: "mock", APP_ENV: "development",
@@ -111,6 +112,43 @@ test("Meta and Snapchat share one sub5 on both approved offers only with custome
     { EVERFLOW_GOOGLE_PIXEL_ID: "123" }, { EVERFLOW_PIXEL_PLATFORM: "facebook,facebook" }])
     assert.throws(() => pixelValue({ ...env, ...patch }));
   assert.throws(() => readEverflowConfig({ ...env, EVERFLOW_PIXEL_APPROVED: "false" }));
+});
+test("supplied Meta sub5 is added to both Rio offer links only with customer consent", () => {
+  const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
+    EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
+    EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
+    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1378153049835069",
+    EVERFLOW_PIXEL_APPROVED: "true" })!;
+  for (const bundle of [false, true]) {
+    const order = fixture(bundle);
+    const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
+    const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
+    assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
+    assert.equal(withoutConsent.searchParams.has("sub5"), false);
+    assert.deepEqual(withConsent.searchParams.getAll("sub5"), ["1378153049835069"]);
+  }
+});
+test("a consented Meta click ID survives in both offer links without replacing provider IDs", () => {
+  const fbclid = "PAZXh0bgNhZW0CMTEAAa_sample-123";
+  const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
+    EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
+    EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
+    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1378153049835069", EVERFLOW_PIXEL_APPROVED: "true",
+    EVERFLOW_SUB1_MODE: "provider", EVERFLOW_PROVIDER_CLICK_ID: "provider-click", EVERFLOW_SOURCE_ID: "rio-source" })!;
+  for (const bundle of [false, true]) {
+    const order = { ...fixture(bundle), attribution: { fbclid } };
+    const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
+    const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
+    assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
+    assert.equal(withConsent.searchParams.get("fbclid"), fbclid);
+    assert.equal(withConsent.searchParams.get("sub1"), "provider-click");
+    assert.equal(withConsent.searchParams.get("source_id"), "rio-source");
+    assert.equal(withConsent.searchParams.get("sub5"), "1378153049835069");
+    assert.equal(withoutConsent.searchParams.has("fbclid"), false);
+    assert.equal(withoutConsent.searchParams.has("sub5"), false);
+  }
+  assert.equal(validFbclid(fbclid), true);
+  assert.equal(validFbclid("invalid@value"), false);
 });
 test("disabled fallback, isolated mock guard, live approval and unapproved correlation", () => {
   assert.equal(readEverflowConfig({ ...mockEnv, EVERFLOW_ENABLED: "false" }), null);

@@ -16,6 +16,7 @@ async function main() {
   const results: string[] = [];
   const errors: string[] = [];
   let trackingRequests = 0;
+  const sampleFbclid = "PAZXh0bgNhZW0CMTEAAa_sample-123";
   await mkdir(".data/everflow-qa", { recursive: true });
   try {
     for (const width of [390, 1440]) {
@@ -28,14 +29,24 @@ async function main() {
         Storage.prototype.setItem = function(key: string, value: string) { if (key.startsWith("rd.checkout.")) throw new Error("QA: checkout storage unavailable"); return set.call(this, key, value); };
       });
       await context.route("**/*", async route => {
-        if (new URL(route.request().url()).hostname.includes("molipy8trk")) { trackingRequests++; await route.abort(); }
+        const host = new URL(route.request().url()).hostname;
+        if (host.includes("molipy8trk")) { trackingRequests++; await route.abort(); }
+        else if (host === "connect.facebook.net" || host === "sc-static.net") await route.abort();
         else await route.continue();
       });
       const page = await context.newPage();
       page.setDefaultNavigationTimeout(90_000);
       page.on("pageerror", error => errors.push(error.message));
-      await page.goto(`${base}/produit/veste-bresil-vert`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${base}/produit/veste-bresil-vert${width === 1440 ? `?fbclid=${sampleFbclid}` : ""}`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => localStorage.getItem("rd.cart.v1") !== null);
+      await page.getByRole("region", { name: "Choix des cookies publicitaires" })
+        .getByRole("button", { name: width === 1440 ? "Accepter" : "Refuser" }).click();
+      if (width === 1440) {
+        assert.equal(await page.evaluate(() => sessionStorage.getItem("rd.meta.fbclid")), sampleFbclid);
+        const events = await page.evaluate(() => window.fbq?.queue?.map(args => args[2]) ?? []);
+        assert.ok(events.includes("PageView")); assert.ok(events.includes("ViewContent"));
+        assert.ok(!events.includes("Purchase") && !events.includes("InitiateCheckout"));
+      }
       console.log(`${width}px: product hydrated`);
       if (width === 1440) {
         await page.getByText("Le duo · 2 vestes", { exact: true }).click();
@@ -52,6 +63,10 @@ async function main() {
       console.log(`${width}px: cart opened`);
       await page.getByRole("link", { name: /Commander ·/ }).click();
       await page.waitForURL(`${base}/commande`);
+      if (width === 1440) {
+        assert.equal(await page.evaluate(() => sessionStorage.getItem("rd.meta.fbclid")), sampleFbclid);
+        assert.ok(!(await page.evaluate(() => window.fbq?.queue?.map(args => args[2]) ?? [])).includes("InitiateCheckout"));
+      }
       console.log(`${width}px: checkout loaded`);
       await page.getByLabel("Prénom", { exact: true }).fill("Élodie-Anne");
       await page.getByLabel("Nom", { exact: true }).fill("de la Fiction");
@@ -90,6 +105,7 @@ async function main() {
       assert.ok(await page.getByRole("link", { name: /Commander ·/ }).isVisible());
       await page.goto(`${base}/commande/confirmation/${token}`);
       assert.ok(await page.getByText("En attente — paiement non vérifié", { exact: true }).isVisible());
+      if (width === 1440) assert.ok(!(await page.evaluate(() => window.fbq?.queue?.map(args => args[2]) ?? [])).includes("Purchase"));
       assert.equal(await page.getByText("Non payée — aucun montant prélevé", { exact: true }).count(), 0);
       await page.getByRole("button", { name: "Reprendre le paiement ↗", exact: true }).click();
       await page.waitForURL(/\/commande\/paiement-test\//);
@@ -111,6 +127,35 @@ async function main() {
     assert.equal(await page.getByRole("button", { name: /Continuer vers le paiement/ }).isDisabled(), true);
     results.push("Unsupported quantity: explanatory error, disabled payment CTA, no cart items discarded.");
     await context.close();
+    for (const offer of ["single", "bundle"] as const) {
+      const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const page = await context.newPage();
+      await page.goto(`${base}/produit/veste-bresil-vert`);
+      await page.getByRole("region", { name: "Choix des cookies publicitaires" }).getByRole("button", { name: "Refuser" }).click();
+      if (offer === "bundle") {
+        await page.getByText("Le duo · 2 vestes", { exact: true }).click();
+        await page.getByRole("combobox", { name: "Taille de la veste 1 — Vert", exact: true }).selectOption("M");
+        await page.getByRole("combobox", { name: "Taille de la veste 2 — Rose", exact: true }).selectOption("L");
+      } else await page.getByRole("combobox", { name: "Taille — Veste Brésil Vert", exact: true }).selectOption("M");
+      const quotePromise = page.waitForResponse(response => response.url().includes("/api/cart/quote") && response.request().method() === "POST");
+      await page.getByRole("button", { name: /Acheter maintenant/ }).click();
+      await page.waitForURL(/\/commande\?achat=/);
+      const quoteResponse = await quotePromise;
+      assert.equal((await quoteResponse.json()).quote.totalCents, offer === "bundle" ? 2495 : 1999);
+      assert.ok(await page.getByRole("button", { name: /Continuer vers le paiement/ }).isEnabled());
+      results.push(`Product Buy now (${offer}) → checkout form with correct EUR quote.`);
+      await context.close();
+    }
+    const cartContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await cartContext.addInitScript(id => localStorage.setItem("rd.cart.v1", JSON.stringify([{ key: "qa-cart-link", kind: "single", productId: id, size: "M", quantity: 1 }])), fixture.products[0].id);
+    const cartPage = await cartContext.newPage();
+    await cartPage.goto(`${base}/panier`);
+    await cartPage.getByRole("region", { name: "Choix des cookies publicitaires" }).getByRole("button", { name: "Refuser" }).click();
+    await cartPage.getByRole("link", { name: /Commander ·/ }).click();
+    await cartPage.waitForURL(`${base}/commande`);
+    assert.ok(await cartPage.getByRole("button", { name: /Continuer vers le paiement/ }).isEnabled());
+    results.push("Cart page checkout link → checkout form with the selected single offer.");
+    await cartContext.close();
     assert.equal(trackingRequests, 0); assert.deepEqual(errors, []);
     await writeFile(".data/everflow-qa/results.json", JSON.stringify({ results, trackingRequests, errors }, null, 2));
     results.forEach(result => console.log(result)); console.log("No tracking-domain requests; no browser runtime errors.");

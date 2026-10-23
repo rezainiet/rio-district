@@ -1,3 +1,5 @@
+import { validFbclid } from "../fbclid";
+
 /** Pure provider contract. No network calls, sessions or payment verification. */
 export const EVERFLOW_OFFERS = {
   single: { amount: 1999, url: "https://www.molipy8trk.com/2J23GL9/TTF23GH/" },
@@ -102,6 +104,7 @@ export function readEverflowConfig(env: Env) {
 }
 export type EverflowConfig = NonNullable<ReturnType<typeof readEverflowConfig>>;
 export type PrefillOrder = Omit<OfferShape, "lines"> & {
+  attribution?: { fbclid?: string | null } | null;
   customer: { firstName?: string | null; lastName?: string | null; email: string; phone: string; phoneE164?: string | null };
   shipping: { address: string; address2?: string | null; city: string; postalCode: string; country: string };
   lines: (Omit<OfferShape["lines"][number], "items"> & { items: { name?: string | null; color?: string | null; size?: string | null; image?: string | null }[] })[];
@@ -137,5 +140,9 @@ export function buildEverflowUrl(order: PrefillOrder, config: EverflowConfig, co
   if (config.sub1Mode === "provider" && config.clickId) url.searchParams.set("sub1", config.clickId);
   if (config.sub1Mode === "correlation") url.searchParams.set("sub1", trackingValue(correlation));
   if (consent && config.pixel) url.searchParams.set("sub5", config.pixel);
+  if (consent && order.attribution?.fbclid) {
+    if (!validFbclid(order.attribution.fbclid)) throw new HostedCheckoutError("Identifiant de clic Meta invalide.");
+    url.searchParams.set("fbclid", order.attribution.fbclid);
+  }
   return url.href;
 }

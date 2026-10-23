@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const order = await Order.findOne({ publicToken: body.data.token }).lean<OrderDoc>();
     if (!order) return errorJson(404, "Commande introuvable.");
-    return json({ ok: true, checkout: await issueHostedCheckout(order, config) });
+    return json({ ok: true, checkout: await issueHostedCheckout(order, config), order: { number: order.number, totalCents: order.totalCents } });
   } catch (error) {
     if (error instanceof HostedCheckoutError) return errorJson(409, error.message);
     return errorJson(500, "Connexion interrompue. Réessaie : la même commande sera conservée.");
