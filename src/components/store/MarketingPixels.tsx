@@ -21,7 +21,7 @@ const startedCheckouts = new Set<string>();
 
 type Choice = "accepted" | "refused";
 type Snaptr = ((...args: unknown[]) => void) & { queue?: unknown[][]; handleRequest?: (...args: unknown[]) => void };
-type Fbq = ((...args: unknown[]) => void) & { queue?: unknown[][]; callMethod?: (...args: unknown[]) => void; push?: Fbq; loaded?: boolean; version?: string };
+type Fbq = ((...args: unknown[]) => void) & { queue?: unknown[][]; callMethod?: (...args: unknown[]) => void; push?: Fbq; loaded?: boolean; version?: string; disablePushState?: boolean };
 
 declare global {
   interface Window { snaptr?: Snaptr; fbq?: Fbq; _fbq?: Fbq; }
@@ -76,7 +76,11 @@ function startPixels() {
     fbq.push = fbq;
     fbq.loaded = true;
     fbq.version = "2.0";
+    // Our pathname effect tracks real routes; Meta's history hook also counts size/offer URL edits.
+    fbq.disablePushState = true;
     window.fbq = window._fbq = fbq;
+    // All funnel events are explicit, so Meta's automatic button events add noise.
+    fbq("set", "autoConfig", false, META_PIXEL_ID);
     const script = document.createElement("script");
     script.src = META_SCRIPT_URL;
     script.async = true;
