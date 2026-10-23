@@ -45,7 +45,8 @@ const nextConfig: NextConfig = {
           // A nonce-based script-src is a possible later hardening step.
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+            // Meta Pixel uses a form POST fallback for /tr/ events in some browsers.
+            value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self' https://www.facebook.com",
           },
           // HTTPS is mandatory in production (admin cookies are Secure); browsers ignore HSTS over plain HTTP.
           ...(production ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
