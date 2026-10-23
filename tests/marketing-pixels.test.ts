@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { consentedFbclid, rememberConsentedFbclid, trackCheckoutClick } from "../src/components/store/MarketingPixels";
+import { consentedFbclid, rememberConsentedFbclid, trackCheckoutClick, trackCheckoutStart } from "../src/components/store/MarketingPixels";
+import type { CartQuote } from "../src/lib/types";
 
-test("hosted checkout click sends Meta InitiateCheckout once per consented order with the server amount", () => {
+test("checkout entry sends one consented Meta InitiateCheckout with the server cart, while redirect does not repeat it", () => {
   const calls: unknown[][] = [];
   const session = new Map<string, string>();
   let choice: "accepted" | "refused" = "refused";
@@ -20,9 +21,19 @@ test("hosted checkout click sends Meta InitiateCheckout once per consented order
     removeItem: (key: string) => { session.delete(key); },
   } });
   try {
+    const item = (productId: string) => ({ productId, slug: productId, name: productId,
+      color: productId, size: "M" as const, image: "", unitPriceCents: 1999 });
+    const quote: CartQuote = {
+      errors: [], itemsCount: 2, totalCents: 2495, subtotalCents: 3998,
+      discountCents: 1503, shippingCents: 0,
+      lines: [{ kind: "bundle", label: "Duo", quantity: 1, unitPriceCents: 2495,
+        compareAtCents: 3998, totalCents: 2495, savingsCents: 1503,
+        items: [item("green"), item("black")] }],
+    };
     const clickId = "PAZXh0bgNhZW0CMTEAAa_sample-123";
     rememberConsentedFbclid(`?fbclid=${clickId}`);
     assert.equal(consentedFbclid(), null);
+    assert.equal(trackCheckoutStart(quote, "bundle-1"), false);
     assert.equal(trackCheckoutClick(2495, "ORDER-1"), false);
     assert.equal(calls.length, 0);
     choice = "accepted";
@@ -30,14 +41,25 @@ test("hosted checkout click sends Meta InitiateCheckout once per consented order
     assert.equal(consentedFbclid(), clickId);
     rememberConsentedFbclid("?fbclid=invalid%40value");
     assert.equal(consentedFbclid(), clickId);
+    assert.equal(trackCheckoutStart(quote, "bundle-1"), true);
+    assert.deepEqual(calls, [["meta", "trackSingle", "1378153049835069", "InitiateCheckout", {
+      content_ids: ["green", "black"], contents: [{ id: "green", quantity: 1 }, { id: "black", quantity: 1 }],
+      content_type: "product", num_items: 2, value: 24.95, currency: "EUR",
+    }]]);
+    assert.equal(trackCheckoutStart(quote, "bundle-1"), false);
+    assert.equal(trackCheckoutStart({ ...quote, errors: [{ index: 0, message: "Invalid" }] }, "invalid"), false);
     assert.equal(trackCheckoutClick(2495, "ORDER-1"), true);
     assert.deepEqual(calls, [
+      ["meta", "trackSingle", "1378153049835069", "InitiateCheckout", {
+        content_ids: ["green", "black"], contents: [{ id: "green", quantity: 1 }, { id: "black", quantity: 1 }],
+        content_type: "product", num_items: 2, value: 24.95, currency: "EUR",
+      }],
       ["snap", "track", "START_CHECKOUT", { price: "24.95", currency: "EUR" }],
-      ["meta", "trackSingle", "1378153049835069", "InitiateCheckout", { value: 24.95, currency: "EUR" }],
     ]);
     assert.equal(trackCheckoutClick(2495, "ORDER-1"), false);
     assert.equal(trackCheckoutClick(1999, "ORDER-2"), true);
-    assert.equal(calls.length, 4);
+    assert.equal(calls.length, 3);
+    assert.equal(calls.filter(call => call[3] === "InitiateCheckout").length, 1);
     assert.equal(trackCheckoutClick(0, "ORDER-3"), false);
   } finally {
     for (const [name, descriptor] of originals) {

@@ -19,7 +19,7 @@ import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
 import "./checkout.css";
 import { PhoneInput } from "./PhoneInput";
-import { consentedFbclid, trackCheckoutClick } from "./MarketingPixels";
+import { consentedFbclid, MARKETING_CONSENT_CHANGED_EVENT, trackCheckoutClick, trackCheckoutStart } from "./MarketingPixels";
 import { DEFAULT_PHONE_COUNTRY, supportedPhoneCountry } from "@/lib/phone";
 
 const KEY_STORAGE = "rd.checkout.key";
@@ -155,6 +155,14 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
   if (!cartInvalid) {
     try { eligibleOffer(quote); } catch (error) { offerError = (error as Error).message; }
   }
+
+  useEffect(() => {
+    if (!config.acceptingOrders || !paymentAvailable || !serverQuote || cartInvalid || offerError) return;
+    const send = () => trackCheckoutStart(serverQuote, signature);
+    send();
+    window.addEventListener(MARKETING_CONSENT_CHANGED_EVENT, send);
+    return () => window.removeEventListener(MARKETING_CONSENT_CHANGED_EVENT, send);
+  }, [config.acceptingOrders, paymentAvailable, serverQuote, cartInvalid, offerError, signature]);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => handleSubmit(async (customer) => {
     if (sending.current || navigating) return;

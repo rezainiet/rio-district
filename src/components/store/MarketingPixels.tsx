@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "./StoreProvider";
 import { validFbclid } from "@/lib/fbclid";
+import type { CartQuote } from "@/lib/types";
 
 const SNAP_PIXEL_ID = "25924406-58d9-4767-9b28-e91773f5ba30";
 const META_PIXEL_ID = "1378153049835069";
@@ -15,6 +16,8 @@ const FBCLID_STORAGE_KEY = "rd.meta.fbclid";
 const CHOICE_LIFETIME_MS = 180 * 24 * 60 * 60 * 1000;
 const OPEN_EVENT = "rio:marketing-consent-open";
 const CART_ADD_EVENT = "rio:cart-add";
+export const MARKETING_CONSENT_CHANGED_EVENT = "rio:marketing-consent-changed";
+const startedCheckouts = new Set<string>();
 
 type Choice = "accepted" | "refused";
 type Snaptr = ((...args: unknown[]) => void) & { queue?: unknown[][]; handleRequest?: (...args: unknown[]) => void };
@@ -83,6 +86,32 @@ function startPixels() {
   }
 }
 
+/** Track a valid checkout once per cart in this tab, after marketing consent. */
+export function trackCheckoutStart(quote: CartQuote, cartKey: string): boolean {
+  if (savedChoice() !== "accepted" || !cartKey || quote.errors.length > 0 ||
+      !Number.isInteger(quote.totalCents) || quote.totalCents <= 0 || quote.itemsCount <= 0) return false;
+  const key = `rd.pixel.checkout-start:${cartKey}`;
+  if (startedCheckouts.has(key)) return false;
+  try { if (sessionStorage.getItem(key)) return false; } catch {}
+  const quantities = new Map<string, number>();
+  for (const line of quote.lines) for (const item of line.items) {
+    quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + line.quantity);
+  }
+  if (quantities.size === 0) return false;
+  startPixels();
+  window.fbq?.("trackSingle", META_PIXEL_ID, "InitiateCheckout", {
+    content_ids: [...quantities.keys()],
+    contents: [...quantities].map(([id, quantity]) => ({ id, quantity })),
+    content_type: "product",
+    num_items: quote.itemsCount,
+    value: quote.totalCents / 100,
+    currency: "EUR",
+  });
+  startedCheckouts.add(key);
+  try { sessionStorage.setItem(key, "1"); } catch {}
+  return true;
+}
+
 /** Track the confirmed redirect to hosted checkout; the provider owns the Purchase event. */
 export function trackCheckoutClick(totalCents: number, orderNumber: string): boolean {
   if (savedChoice() !== "accepted" || !Number.isInteger(totalCents) || totalCents <= 0 || !orderNumber) return false;
@@ -91,7 +120,6 @@ export function trackCheckoutClick(totalCents: number, orderNumber: string): boo
   startPixels();
   const value = totalCents / 100;
   window.snaptr?.("track", "START_CHECKOUT", { price: value.toFixed(2), currency: "EUR" });
-  window.fbq?.("trackSingle", META_PIXEL_ID, "InitiateCheckout", { value, currency: "EUR" });
   try { sessionStorage.setItem(key, "1"); } catch {}
   return true;
 }
@@ -153,6 +181,7 @@ export function MarketingPixels() {
     }
     setChoice(next);
     setOpen(false);
+    window.dispatchEvent(new Event(MARKETING_CONSENT_CHANGED_EVENT));
   }
 
   if (!ready || !open) return null;
@@ -160,7 +189,7 @@ export function MarketingPixels() {
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">Cookies publicitaires</p>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et clic vers le paiement) pour nos campagnes. Si tu arrives d’une publicité Meta, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le clic vers le paiement est envoyé comme événement InitiateCheckout à Meta et START_CHECKOUT à Snapchat ; aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et début de commande) pour nos campagnes. Si tu arrives d’une publicité Meta, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le début de commande est envoyé comme événement InitiateCheckout à Meta ; le clic vers le paiement est envoyé comme START_CHECKOUT à Snapchat. Aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
       </div>
       {choice !== null && <button type="button" aria-label="Fermer les paramètres des cookies" className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
     </div>

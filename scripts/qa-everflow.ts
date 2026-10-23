@@ -10,7 +10,7 @@ import { PaymentAttempt } from "../src/models/misc";
 async function main() {
   const fixture = JSON.parse(await readFile(".data/everflow-preview.json", "utf8"));
   assertTestUri(fixture.uri); await mongoose.connect(fixture.uri);
-  const base = "http://localhost:3001";
+  const base = process.env.RIO_EVERFLOW_QA_BASE_URL ?? "http://localhost:3001";
   const browser = await chromium.launch({ channel: "chrome", headless: true });
   // Next dev compiles cold routes on demand; do not wait for unrelated remote media.
   const results: string[] = [];
@@ -59,12 +59,23 @@ async function main() {
         await page.getByRole("combobox", { name: "Taille — Veste Brésil Vert", exact: true }).selectOption("M");
         await page.getByRole("button", { name: /Ajouter au panier/ }).first().click();
       }
+      if (width === 1440) {
+        const cartEvents = await page.evaluate(() => window.fbq?.queue?.filter(args => args[2] === "AddToCart") ?? []);
+        assert.equal(cartEvents.length, 1);
+        assert.equal((cartEvents[0][3] as { value: number }).value, 24.95);
+      }
       await page.screenshot({ path: `.data/everflow-qa/cart-${width}.png` });
       console.log(`${width}px: cart opened`);
       await page.getByRole("link", { name: /Commander ·/ }).click();
       await page.waitForURL(`${base}/commande`);
       if (width === 1440) {
         assert.equal(await page.evaluate(() => sessionStorage.getItem("rd.meta.fbclid")), sampleFbclid);
+        await page.waitForFunction(() => window.fbq?.queue?.some(args => args[2] === "InitiateCheckout"));
+        const checkoutEvents = await page.evaluate(() => window.fbq?.queue?.filter(args => args[2] === "InitiateCheckout") ?? []);
+        assert.equal(checkoutEvents.length, 1);
+        assert.equal((checkoutEvents[0][3] as { value: number }).value, 24.95);
+        assert.equal((checkoutEvents[0][3] as { num_items: number }).num_items, 2);
+      } else {
         assert.ok(!(await page.evaluate(() => window.fbq?.queue?.map(args => args[2]) ?? [])).includes("InitiateCheckout"));
       }
       console.log(`${width}px: checkout loaded`);
@@ -117,6 +128,29 @@ async function main() {
       assert.ok(await page.getByText("Veste Brésil Vert", { exact: true }).first().isVisible());
       if (width === 1440) assert.ok(await page.getByText("Veste Brésil Noir", { exact: true }).first().isVisible());
       results.push(`${width}px: ${width === 1440 ? "Green/M + Black/L bundle" : "Green/M single"} → cart → form → local redirect; retained cart, loading, pending recovery and admin visibility passed${width === 390 ? "; lost-response retry reused order even with checkout session storage blocked" : ""}.`);
+      await context.close();
+    }
+    // Consent accepted on checkout must send the start once, including after a reload.
+    {
+      const context = await browser.newContext();
+      await context.addInitScript(id => localStorage.setItem("rd.cart.v1", JSON.stringify([
+        { key: "qa-consent", kind: "single", productId: id, size: "M", quantity: 1 },
+      ])), fixture.products[0].id);
+      await context.route("**/*", async route => {
+        const host = new URL(route.request().url()).hostname;
+        if (host === "connect.facebook.net" || host === "sc-static.net") await route.abort();
+        else await route.continue();
+      });
+      const page = await context.newPage();
+      await page.goto(`${base}/commande`);
+      await page.getByRole("region", { name: "Choix des cookies publicitaires" }).getByRole("button", { name: "Accepter" }).click();
+      await page.waitForFunction(() => window.fbq?.queue?.some(args => args[2] === "InitiateCheckout"));
+      assert.equal(await page.evaluate(() => window.fbq?.queue?.filter(args => args[2] === "InitiateCheckout").length ?? 0), 1);
+      const quoteResponse = page.waitForResponse(response => response.url().endsWith("/api/cart/quote"));
+      await page.reload();
+      await quoteResponse;
+      assert.equal(await page.evaluate(() => window.fbq?.queue?.filter(args => args[2] === "InitiateCheckout").length ?? 0), 0);
+      results.push("Consent accepted on checkout sent one start; reloading the same cart sent no duplicate.");
       await context.close();
     }
     // Unsupported quantity remains visible, and cannot be redirected.
