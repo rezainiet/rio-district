@@ -137,11 +137,11 @@ export function buildEverflowUrl(order: PrefillOrder, config: EverflowConfig, co
   url.searchParams.set("adv1", name);
   url.searchParams.set("adv2", image);
   if (config.source) url.searchParams.set("source_id", config.source);
-  if (config.sub1Mode === "provider" && config.clickId) url.searchParams.set("sub1", config.clickId);
-  if (config.sub1Mode === "correlation") url.searchParams.set("sub1", trackingValue(correlation));
-  if (consent && config.pixel) url.searchParams.set("sub5", config.pixel);
+  // A checkout link must never enable a provider-side browser Purchase pixel.
+  // Retain legacy config fields for pending-attempt hash compatibility only.
   if (consent && order.attribution?.fbclid) {
     if (!validFbclid(order.attribution.fbclid)) throw new HostedCheckoutError("Identifiant de clic Meta invalide.");
+    url.searchParams.set("sub1", order.attribution.fbclid);
     url.searchParams.set("fbclid", order.attribution.fbclid);
   }
   return url.href;

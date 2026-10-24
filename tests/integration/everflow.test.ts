@@ -78,7 +78,10 @@ test("isolated order API: variants, duplicate/concurrent submissions, retry, fal
     assert.equal(attributed.status, 201);
     const attributedOrder = await Order.findOne({ publicToken: attributed.data.order.token }).lean(); assert.ok(attributedOrder);
     assert.equal(attributedOrder.attribution?.fbclid, "PAZXh0bgNhZW0CMTEAAa_sample-123");
-    assert.equal(new URL(buildEverflowUrl(attributedOrder, readEverflowConfig(process.env)!, "reference", true)).searchParams.get("fbclid"), "PAZXh0bgNhZW0CMTEAAa_sample-123");
+    const attributedUrl = new URL(buildEverflowUrl(attributedOrder, readEverflowConfig(process.env)!, "reference", true));
+    assert.equal(attributedUrl.searchParams.get("fbclid"), "PAZXh0bgNhZW0CMTEAAa_sample-123");
+    assert.equal(attributedUrl.searchParams.get("sub1"), "PAZXh0bgNhZW0CMTEAAa_sample-123");
+    assert.equal(attributedUrl.searchParams.has("sub5"), false);
     const withoutConsent = await submit({ ...payload(single(3, "M")), marketingConsent: false, fbclid: "PAZXh0bgNhZW0CMTEAAa_sample-123" });
     assert.equal(withoutConsent.status, 201);
     assert.equal((await Order.findOne({ publicToken: withoutConsent.data.order.token }).lean())?.attribution?.fbclid, undefined);

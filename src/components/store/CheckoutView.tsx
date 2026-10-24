@@ -350,7 +350,7 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
                 </div>
               </div>
             </fieldset>
-            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que l’identifiant de clic Meta (s’il existe) et les identifiants publicitaires de la boutique soient transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
+            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que mon identifiant de clic Meta (s’il existe) soit transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">

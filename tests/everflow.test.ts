@@ -50,7 +50,7 @@ test("live offer URLs carry the submitted customer fields and retain tracking pa
       sub7: `${order.shipping.address}, ${order.shipping.address2}`, sub8: order.customer.phone,
     });
     assert.equal(url.searchParams.get("source_id"), "approved-source");
-    assert.equal(url.searchParams.get("sub1"), "approved-click");
+    assert.equal(url.searchParams.has("sub1"), false);
     assert.match(url.search, /sub4=fiction%2Bqa%40example\.com/);
     assert.match(url.search, /sub8=%2B33\+6/);
     assert.match(url.search, /sub7=.*%26/);
@@ -70,7 +70,7 @@ test("exact allowlist refuses open redirects, example URL, insecure and missing 
     "https://evil.example/", EVERFLOW_OFFERS.single.url + "?next=https://evil.example", EVERFLOW_OFFERS.single.url + "#x",
     "https://www.molipy8trk.com.evil.example/2J23GL9/TTF23GH/", "https://user@www.molipy8trk.com/2J23GL9/TTF23GH/"]) assert.throws(() => approvedDestination(url, "single"));
 });
-test("all pixel encodings and consent gate, one explicit platform only", () => {
+test("legacy pixel settings never put sub5 on either checkout link", () => {
   assert.equal(pixelValue({}), null);
   for (const [platform, key, expected, label] of [
     ["facebook", "FACEBOOK", "1378153049835069", ""], ["tiktok", "TIKTOK", "_".repeat(3) + "123", ""],
@@ -82,12 +82,14 @@ test("all pixel encodings and consent gate, one explicit platform only", () => {
     assert.equal(pixelValue(env), expected);
     const config = readEverflowConfig(env)!;
     assert.equal(new URL(buildEverflowUrl(fixture(), config, "reference", false)).searchParams.has("sub5"), false);
-    assert.deepEqual(new URL(buildEverflowUrl(fixture(), config, "reference", true)).searchParams.getAll("sub5"), [expected]);
+    for (const bundle of [false, true]) {
+      assert.equal(new URL(buildEverflowUrl(fixture(bundle), config, "reference", true)).searchParams.has("sub5"), false);
+    }
   }
   for (const env of [{ EVERFLOW_PIXEL_PLATFORM: "google", EVERFLOW_GOOGLE_PIXEL_ID: "123" }, { EVERFLOW_TIKTOK_PIXEL_ID: "123" },
     { EVERFLOW_PIXEL_PLATFORM: "tiktok", EVERFLOW_TIKTOK_PIXEL_ID: "123", EVERFLOW_FACEBOOK_PIXEL_ID: "456" }, { EVERFLOW_PIXEL_PLATFORM: "facebook" }]) assert.throws(() => pixelValue(env));
 });
-test("Meta and Snapchat share one sub5 on both approved offers only with customer consent", () => {
+test("legacy combined Meta and Snapchat pixel setting cannot activate sub5", () => {
   const meta = "1378153049835069";
   const snap = "25924406-58d9-4767-9b28-e91773f5ba30";
   const env = { ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true", EVERFLOW_VARIANTS_APPROVED: "true",
@@ -103,7 +105,7 @@ test("Meta and Snapchat share one sub5 on both approved offers only with custome
     const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
     const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
     assert.equal(withoutConsent.searchParams.has("sub5"), false);
-    assert.deepEqual(withConsent.searchParams.getAll("sub5"), [expected]);
+    assert.equal(withConsent.searchParams.has("sub5"), false);
     assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
     for (const field of ["sub10", "adv3", "sub3", "sub4", "sub6", "sub7", "sub8", "adv1", "adv2"])
       assert.equal(withConsent.searchParams.get(field), withoutConsent.searchParams.get(field));
@@ -113,7 +115,7 @@ test("Meta and Snapchat share one sub5 on both approved offers only with custome
     assert.throws(() => pixelValue({ ...env, ...patch }));
   assert.throws(() => readEverflowConfig({ ...env, EVERFLOW_PIXEL_APPROVED: "false" }));
 });
-test("supplied Meta sub5 is added to both Rio offer links only with customer consent", () => {
+test("legacy Meta pixel setting cannot activate sub5 on either offer", () => {
   const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
     EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
     EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
@@ -125,10 +127,10 @@ test("supplied Meta sub5 is added to both Rio offer links only with customer con
     const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
     assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
     assert.equal(withoutConsent.searchParams.has("sub5"), false);
-    assert.deepEqual(withConsent.searchParams.getAll("sub5"), ["1378153049835069"]);
+    assert.equal(withConsent.searchParams.has("sub5"), false);
   }
 });
-test("a consented Meta click ID survives in both offer links without replacing provider IDs", () => {
+test("a consented Meta click ID fills both sub1 and fbclid without static IDs", () => {
   const fbclid = "PAZXh0bgNhZW0CMTEAAa_sample-123";
   const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
     EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
@@ -141,10 +143,11 @@ test("a consented Meta click ID survives in both offer links without replacing p
     const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
     assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
     assert.equal(withConsent.searchParams.get("fbclid"), fbclid);
-    assert.equal(withConsent.searchParams.get("sub1"), "provider-click");
+    assert.equal(withConsent.searchParams.get("sub1"), fbclid);
     assert.equal(withConsent.searchParams.get("source_id"), "rio-source");
-    assert.equal(withConsent.searchParams.get("sub5"), "1378153049835069");
+    assert.equal(withConsent.searchParams.has("sub5"), false);
     assert.equal(withoutConsent.searchParams.has("fbclid"), false);
+    assert.equal(withoutConsent.searchParams.has("sub1"), false);
     assert.equal(withoutConsent.searchParams.has("sub5"), false);
   }
   assert.equal(validFbclid(fbclid), true);
@@ -158,9 +161,9 @@ test("disabled fallback, isolated mock guard, live approval and unapproved corre
     { EVERFLOW_MODE: "live" }, { EVERFLOW_SINGLE_CHECKOUT_URL: "" }, { EVERFLOW_SUB1_MODE: "correlation" }, { EVERFLOW_SUB1_MODE: "disabled", EVERFLOW_PROVIDER_CLICK_ID: "issued" }]) assert.throws(() => readEverflowConfig({ ...mockEnv, ...patch }));
   const config = readEverflowConfig({ ...mockEnv, EVERFLOW_SUB1_MODE: "provider", EVERFLOW_PROVIDER_CLICK_ID: "issued-click", EVERFLOW_SOURCE_ID: "provided-affiliate" })!;
   const url = new URL(buildEverflowUrl(fixture(), config, "our-reference", false));
-  assert.equal(url.searchParams.get("sub1"), "issued-click"); assert.equal(url.searchParams.get("source_id"), "provided-affiliate");
+  assert.equal(url.searchParams.has("sub1"), false); assert.equal(url.searchParams.get("source_id"), "provided-affiliate");
   const approved = readEverflowConfig({ ...mockEnv, EVERFLOW_SUB1_MODE: "correlation", EVERFLOW_SUB1_CORRELATION_APPROVED: "true" })!;
-  assert.equal(new URL(buildEverflowUrl(fixture(), approved, "opaque-reference", false)).searchParams.get("sub1"), "opaque-reference");
+  assert.equal(new URL(buildEverflowUrl(fixture(), approved, "opaque-reference", false)).searchParams.has("sub1"), false);
 });
 test("images, country and name prerequisites; live bundle requires explicit metadata contract", () => {
   for (const [image, base] of [["/x.webp", "http://localhost:3000"], ["/x.webp", "https://127.0.0.1"], ["//evil.example/x.webp", "https://riodistrict.store"], ["/x.svg", "https://riodistrict.store"], ["https://evil.example/x.webp", "https://riodistrict.store"], ["/x.webp?secret=1", "https://riodistrict.store"]]) assert.throws(() => publicImage(image, base));

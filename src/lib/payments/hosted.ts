@@ -13,7 +13,7 @@ export function checkoutPresentation(settings: StoreSettings): CheckoutPresentat
   if (!selected) return { mode: "request", available: true, advertising: false };
   try {
     const config = readEverflowConfig(process.env)!;
-    return { mode: config.mode, available: true, advertising: Boolean(config.pixel) };
+    return { mode: config.mode, available: true, advertising: true };
   } catch (error) {
     return { mode: process.env.EVERFLOW_MODE === "mock" ? "mock" : "live", available: false, advertising: false,
       error: error instanceof HostedCheckoutError ? error.message : "Paiement externe indisponible." };
@@ -58,7 +58,7 @@ export async function issueHostedCheckout(order: OrderDoc, config: EverflowConfi
   // Mock never returns the PII-bearing URL to the browser or follows the provider.
   const redirectUrl = config.mode === "mock" ? `/commande/paiement-test/${current.publicToken}` : externalUrl;
   const issued = await PaymentAttempt.findByIdAndUpdate(attempt._id, { $inc: { redirectCount: 1 }, $set: {
-    redirectIssuedAt: new Date(), correlationSent: config.mode === "live" && config.sub1Mode === "correlation",
+    redirectIssuedAt: new Date(), correlationSent: false,
   } }, { returnDocument: "after" });
   if (issued?.redirectCount === 1) await Order.updateOne({ _id: current._id }, { $push: { history: { type: "checkout", by: "everflow",
     message: config.mode === "mock" ? "Redirection simulée localement ; aucun paiement réalisé." : "Redirection préparée ; arrivée chez le partenaire et paiement non vérifiés." } } });

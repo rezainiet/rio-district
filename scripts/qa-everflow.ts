@@ -3,7 +3,8 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { chromium } from "playwright-core";
-import { assertTestUri } from "./lib/everflow-fixture";
+import { assertTestUri, mockEnvironment } from "./lib/everflow-fixture";
+import { buildEverflowUrl, readEverflowConfig } from "../src/lib/payments/everflow";
 import { Order } from "../src/models/Order";
 import { PaymentAttempt } from "../src/models/misc";
 
@@ -75,6 +76,7 @@ async function main() {
         assert.equal(checkoutEvents.length, 1);
         assert.equal((checkoutEvents[0][3] as { value: number }).value, 24.95);
         assert.equal((checkoutEvents[0][3] as { num_items: number }).num_items, 2);
+        await page.getByRole("checkbox", { name: /identifiant de clic Meta/ }).check();
       } else {
         assert.ok(!(await page.evaluate(() => window.fbq?.queue?.map(args => args[2]) ?? [])).includes("InitiateCheckout"));
       }
@@ -106,6 +108,13 @@ async function main() {
       await page.waitForURL(/\/commande\/paiement-test\//);
       const token = page.url().split("/").pop()!;
       const order = await Order.findOne({ publicToken: token }).lean(); assert.ok(order);
+      if (width === 1440) {
+        assert.equal(order.attribution?.fbclid, sampleFbclid);
+        const partnerUrl = new URL(buildEverflowUrl(order, readEverflowConfig(mockEnvironment(fixture.uri))!, "test-reference", true));
+        assert.equal(partnerUrl.searchParams.get("sub1"), sampleFbclid);
+        assert.equal(partnerUrl.searchParams.get("fbclid"), sampleFbclid);
+        assert.equal(partnerUrl.searchParams.has("sub5"), false);
+      }
       assert.equal(await Order.countDocuments(), before + 1); assert.equal(order.paymentStatus, "pending");
       assert.equal(await PaymentAttempt.countDocuments({ order: order._id }), 1);
       assert.equal(order.lines[0].items[0].size, "M");
