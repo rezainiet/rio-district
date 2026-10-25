@@ -42,7 +42,7 @@ test("checkout entry sends one consented Meta InitiateCheckout with the server c
     rememberConsentedFbclid("?fbclid=invalid%40value");
     assert.equal(consentedFbclid(), clickId);
     assert.equal(trackCheckoutStart(quote, "bundle-1"), true);
-    assert.deepEqual(calls, [["meta", "trackSingle", "1378153049835069", "InitiateCheckout", {
+    assert.deepEqual(calls, [["meta", "trackSingle", "1306059791382915", "InitiateCheckout", {
       content_ids: ["green", "black"], contents: [{ id: "green", quantity: 1 }, { id: "black", quantity: 1 }],
       content_type: "product", num_items: 2, value: 24.95, currency: "EUR",
     }]]);
@@ -50,7 +50,7 @@ test("checkout entry sends one consented Meta InitiateCheckout with the server c
     assert.equal(trackCheckoutStart({ ...quote, errors: [{ index: 0, message: "Invalid" }] }, "invalid"), false);
     assert.equal(trackCheckoutClick(2495, "ORDER-1"), true);
     assert.deepEqual(calls, [
-      ["meta", "trackSingle", "1378153049835069", "InitiateCheckout", {
+      ["meta", "trackSingle", "1306059791382915", "InitiateCheckout", {
         content_ids: ["green", "black"], contents: [{ id: "green", quantity: 1 }, { id: "black", quantity: 1 }],
         content_type: "product", num_items: 2, value: 24.95, currency: "EUR",
       }],

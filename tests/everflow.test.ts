@@ -73,11 +73,11 @@ test("exact allowlist refuses open redirects, example URL, insecure and missing 
 test("legacy pixel settings never put sub5 on either checkout link", () => {
   assert.equal(pixelValue({}), null);
   for (const [platform, key, expected, label] of [
-    ["facebook", "FACEBOOK", "1378153049835069", ""], ["tiktok", "TIKTOK", "_".repeat(3) + "123", ""],
+    ["facebook", "FACEBOOK", "1306059791382915", ""], ["tiktok", "TIKTOK", "_".repeat(3) + "123", ""],
     ["google", "GOOGLE", "_".repeat(6) + "123" + "_".repeat(3) + "label", "label"],
     ["snapchat", "SNAPCHAT", "_".repeat(21) + "25924406-58d9-4767-9b28-e91773f5ba30", ""],
   ]) {
-    const id = platform === "facebook" ? "1378153049835069" : platform === "snapchat" ? "25924406-58d9-4767-9b28-e91773f5ba30" : "123";
+    const id = platform === "facebook" ? "1306059791382915" : platform === "snapchat" ? "25924406-58d9-4767-9b28-e91773f5ba30" : "123";
     const env = { ...mockEnv, EVERFLOW_PIXEL_PLATFORM: platform, [`EVERFLOW_${key}_PIXEL_ID`]: id, EVERFLOW_GOOGLE_PIXEL_LABEL: label, EVERFLOW_PIXEL_APPROVED: "true" };
     assert.equal(pixelValue(env), expected);
     const config = readEverflowConfig(env)!;
@@ -90,7 +90,7 @@ test("legacy pixel settings never put sub5 on either checkout link", () => {
     { EVERFLOW_PIXEL_PLATFORM: "tiktok", EVERFLOW_TIKTOK_PIXEL_ID: "123", EVERFLOW_FACEBOOK_PIXEL_ID: "456" }, { EVERFLOW_PIXEL_PLATFORM: "facebook" }]) assert.throws(() => pixelValue(env));
 });
 test("legacy combined Meta and Snapchat pixel setting cannot activate sub5", () => {
-  const meta = "1378153049835069";
+  const meta = "1306059791382915";
   const snap = "25924406-58d9-4767-9b28-e91773f5ba30";
   const env = { ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true", EVERFLOW_VARIANTS_APPROVED: "true",
     EVERFLOW_BUNDLE_METADATA_APPROVED: "true", EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
@@ -119,7 +119,7 @@ test("legacy Meta pixel setting cannot activate sub5 on either offer", () => {
   const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
     EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
     EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
-    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1378153049835069",
+    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1306059791382915",
     EVERFLOW_PIXEL_APPROVED: "true" })!;
   for (const bundle of [false, true]) {
     const order = fixture(bundle);
@@ -135,7 +135,7 @@ test("a consented Meta click ID fills both sub1 and fbclid without static IDs", 
   const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
     EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
     EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp",
-    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1378153049835069", EVERFLOW_PIXEL_APPROVED: "true",
+    EVERFLOW_PIXEL_PLATFORM: "facebook", EVERFLOW_FACEBOOK_PIXEL_ID: "1306059791382915", EVERFLOW_PIXEL_APPROVED: "true",
     EVERFLOW_SUB1_MODE: "provider", EVERFLOW_PROVIDER_CLICK_ID: "provider-click", EVERFLOW_SOURCE_ID: "rio-source" })!;
   for (const bundle of [false, true]) {
     const order = { ...fixture(bundle), attribution: { fbclid } };

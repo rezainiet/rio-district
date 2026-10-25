@@ -7,7 +7,7 @@ import { validFbclid } from "@/lib/fbclid";
 import type { CartQuote } from "@/lib/types";
 
 const SNAP_PIXEL_ID = "25924406-58d9-4767-9b28-e91773f5ba30";
-const META_PIXEL_ID = "1378153049835069";
+const META_PIXEL_ID = "1306059791382915";
 const SNAP_SCRIPT_URL = "https://sc-static.net/scevent.min.js";
 const META_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
 // New choice: existing Snapchat consent did not cover Meta.
