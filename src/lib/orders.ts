@@ -147,7 +147,8 @@ export async function createOrderRequest(input: OrderRequest, meta: { ip?: strin
       requestFingerprint: fingerprint,
       creationState: "preparing",
       marketingConsent: input.marketingConsent,
-      attribution: hosted && input.marketingConsent && input.fbclid ? { fbclid: input.fbclid } : undefined,
+      attribution: hosted && input.marketingConsent && (input.fbclid || input.sccid)
+        ? { ...(input.fbclid ? { fbclid: input.fbclid } : {}), ...(input.sccid ? { sccid: input.sccid } : {}) } : undefined,
       customer: { fullName: c.fullName, firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone,
         phoneCountry: c.phoneCountry, phoneE164: c.phoneE164 },
       shipping: {

@@ -162,6 +162,56 @@ async function main() {
       results.push("Consent accepted on checkout sent one start; reloading the same cart sent no duplicate.");
       await context.close();
     }
+    // Snapchat ad landing: consented PAGE_VIEW/VIEW_CONTENT, and the ScCid reaches the order and sub1.
+    {
+      const sampleSccid = "a1b2c3d4-e5f6-4a7b-8c9d-sample_ScCid";
+      const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      await context.route("**/*", async route => {
+        const host = new URL(route.request().url()).hostname;
+        if (host.includes("molipy8trk")) { trackingRequests++; await route.abort(); }
+        else if (host === "connect.facebook.net" || host === "sc-static.net") await route.abort();
+        else await route.continue();
+      });
+      const page = await context.newPage();
+      page.setDefaultNavigationTimeout(90_000);
+      page.on("pageerror", error => errors.push(error.message));
+      await page.goto(`${base}/produit/veste-bresil-vert?ScCid=${sampleSccid}`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => localStorage.getItem("rd.cart.v1") !== null);
+      await page.getByRole("region", { name: "Choix des cookies publicitaires" }).getByRole("button", { name: "Accepter" }).click();
+      await page.waitForFunction(() => window.snaptr?.queue?.some(args => args[1] === "VIEW_CONTENT"));
+      assert.equal(await page.evaluate(() => sessionStorage.getItem("rd.snap.sccid")), sampleSccid);
+      const snapEvents = await page.evaluate(() => window.snaptr?.queue?.map(args => [args[0], args[1]]) ?? []);
+      assert.deepEqual(snapEvents.filter(([kind]) => kind === "track").map(([, name]) => name), ["PAGE_VIEW", "VIEW_CONTENT"]);
+      assert.deepEqual(await page.evaluate(() => window.snaptr?.queue?.find(args => args[1] === "VIEW_CONTENT")?.[2]),
+        { item_ids: [fixture.products[0].id], price: "19.99", currency: "EUR" });
+      await page.getByRole("combobox", { name: "Taille — Veste Brésil Vert", exact: true }).selectOption("M");
+      await page.getByRole("button", { name: /Acheter maintenant/ }).click();
+      await page.waitForURL(/\/commande\?achat=/);
+      assert.equal(await page.evaluate(() => sessionStorage.getItem("rd.snap.sccid")), sampleSccid);
+      await page.getByRole("checkbox", { name: /identifiant de clic Meta ou Snapchat/ }).check();
+      await page.getByLabel("Prénom", { exact: true }).fill("Élodie-Anne");
+      await page.getByLabel("Nom", { exact: true }).fill("de la Fiction");
+      await page.getByLabel("E-mail", { exact: true }).fill("fiction+snap@example.com");
+      await page.getByLabel("Téléphone", { exact: true }).fill("+33 6 00 00 00 01");
+      await page.getByLabel("Adresse", { exact: true }).fill("14 rue de la Fiction");
+      await page.getByLabel("Code postal", { exact: true }).fill("75001");
+      await page.getByLabel("Ville", { exact: true }).fill("Paris");
+      const orderRequest = page.waitForRequest(request => request.url().endsWith("/api/orders") && request.method() === "POST");
+      await page.getByRole("button", { name: /Continuer vers le paiement/ }).click();
+      const body = (await orderRequest).postDataJSON();
+      assert.equal(body.sccid, sampleSccid); assert.equal(body.fbclid, undefined);
+      await page.waitForURL(/\/commande\/paiement-test\//);
+      const order = await Order.findOne({ publicToken: page.url().split("/").pop() }).lean(); assert.ok(order);
+      assert.equal(order.attribution?.sccid, sampleSccid);
+      const partnerUrl = new URL(buildEverflowUrl(order, readEverflowConfig(mockEnvironment(fixture.uri))!, "test-reference", true));
+      assert.equal(partnerUrl.searchParams.get("sub1"), sampleSccid);
+      assert.equal(partnerUrl.searchParams.get("ScCid"), sampleSccid);
+      assert.equal(partnerUrl.searchParams.has("fbclid"), false);
+      assert.ok(!(await page.evaluate(() => window.snaptr?.queue?.map(args => args[1]) ?? [])).includes("PURCHASE"));
+      await page.screenshot({ path: ".data/everflow-qa/snap-checkout-390.png" });
+      results.push("Snapchat landing: consented PAGE_VIEW + VIEW_CONTENT; ScCid kept across navigation, stored on the order and sent in sub1 and ScCid.");
+      await context.close();
+    }
     // Unsupported quantity remains visible, and cannot be redirected.
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await context.addInitScript(id => localStorage.setItem("rd.cart.v1", JSON.stringify([{ key: "qa-incompatible", kind: "single", productId: id, size: "M", quantity: 2 }])), fixture.products[0].id);

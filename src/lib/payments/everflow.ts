@@ -1,4 +1,5 @@
 import { validFbclid } from "../fbclid";
+import { validSccid } from "../sccid";
 
 /** Pure provider contract. No network calls, sessions or payment verification. */
 export const EVERFLOW_OFFERS = {
@@ -104,7 +105,7 @@ export function readEverflowConfig(env: Env) {
 }
 export type EverflowConfig = NonNullable<ReturnType<typeof readEverflowConfig>>;
 export type PrefillOrder = Omit<OfferShape, "lines"> & {
-  attribution?: { fbclid?: string | null } | null;
+  attribution?: { fbclid?: string | null; sccid?: string | null } | null;
   customer: { firstName?: string | null; lastName?: string | null; email: string; phone: string; phoneE164?: string | null };
   shipping: { address: string; address2?: string | null; city: string; postalCode: string; country: string };
   lines: (Omit<OfferShape["lines"][number], "items"> & { items: { name?: string | null; color?: string | null; size?: string | null; image?: string | null }[] })[];
@@ -139,10 +140,15 @@ export function buildEverflowUrl(order: PrefillOrder, config: EverflowConfig, co
   if (config.source) url.searchParams.set("source_id", config.source);
   // A checkout link must never enable a provider-side browser Purchase pixel.
   // Retain legacy config fields for pending-attempt hash compatibility only.
-  if (consent && order.attribution?.fbclid) {
-    if (!validFbclid(order.attribution.fbclid)) throw new HostedCheckoutError("Identifiant de clic Meta invalide.");
-    url.searchParams.set("sub1", order.attribution.fbclid);
-    url.searchParams.set("fbclid", order.attribution.fbclid);
-  }
+  // sub1 = click ID of the ad that brought the visitor: Meta fbclid, otherwise Snapchat ScCid (as on the Swiss shop).
+  // Everflow's Snapchat integration reads the named ScCid parameter ({ScCid}); the Meta one reads fbclid.
+  const fbclid = consent ? order.attribution?.fbclid : null;
+  const sccid = consent ? order.attribution?.sccid : null;
+  if (fbclid && !validFbclid(fbclid)) throw new HostedCheckoutError("Identifiant de clic Meta invalide.");
+  if (sccid && !validSccid(sccid)) throw new HostedCheckoutError("Identifiant de clic Snapchat invalide.");
+  const clickId = fbclid || sccid;
+  if (clickId) url.searchParams.set("sub1", clickId);
+  if (fbclid) url.searchParams.set("fbclid", fbclid);
+  if (sccid) url.searchParams.set("ScCid", sccid);
   return url.href;
 }

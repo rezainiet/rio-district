@@ -122,7 +122,7 @@ export function SettingsForm({ initial, paymentInfo }: { initial: StoreSettings;
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               {redirectFields.map(([parameter, field]) => <div key={parameter} className="contents"><dt className="font-mono">{parameter}</dt><dd>{field}</dd></div>)}
             </dl>
-            <p className="text-muted">Selon la configuration et le consentement : source_id peut être ajouté ; un vrai identifiant de clic Meta est transmis dans sub1 et fbclid. Aucun sub5 n’est envoyé. Les données personnelles figurent dans l’URL envoyée au partenaire.</p>
+            <p className="text-muted">Selon la configuration et le consentement : source_id peut être ajouté ; un vrai identifiant de clic Meta est transmis dans sub1 et fbclid ; à défaut, un identifiant de clic Snapchat est transmis dans sub1 et ScCid. Aucun sub5 n’est envoyé. Les données personnelles figurent dans l’URL envoyée au partenaire.</p>
           </div>
         </Card>
 

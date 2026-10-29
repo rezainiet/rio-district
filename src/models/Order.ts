@@ -76,7 +76,7 @@ const OrderSchema = new Schema(
     requestFingerprint: String,
     creationState: { type: String, enum: ["preparing", "ready"], default: "ready" },
     marketingConsent: { type: Boolean, default: false },
-    attribution: { fbclid: String },
+    attribution: { fbclid: String, sccid: String },
     customer: {
       firstName: String,
       lastName: String,

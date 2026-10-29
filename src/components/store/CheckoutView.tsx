@@ -19,7 +19,7 @@ import type { z } from "zod";
 import { ResumeCheckout } from "./ResumeCheckout";
 import "./checkout.css";
 import { PhoneInput } from "./PhoneInput";
-import { consentedFbclid, MARKETING_CONSENT_CHANGED_EVENT, trackCheckoutClick, trackCheckoutStart } from "./MarketingPixels";
+import { consentedFbclid, consentedSccid, MARKETING_CONSENT_CHANGED_EVENT, trackCheckoutClick, trackCheckoutStart } from "./MarketingPixels";
 import { DEFAULT_PHONE_COUNTRY, supportedPhoneCountry } from "@/lib/phone";
 
 const KEY_STORAGE = "rd.checkout.key";
@@ -177,7 +177,8 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(directLine ? `direct:${signature}` : signature), lines: inputs, customer, marketingConsent,
-        fbclid: marketingConsent ? consentedFbclid() ?? undefined : undefined, requireCheckout: true, website: "" }),
+        fbclid: marketingConsent ? consentedFbclid() ?? undefined : undefined,
+        sccid: marketingConsent ? consentedSccid() ?? undefined : undefined, requireCheckout: true, website: "" }),
     }).catch(() => null);
 
     if (!res) {
@@ -350,7 +351,7 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
                 </div>
               </div>
             </fieldset>
-            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que mon identifiant de clic Meta (s’il existe) soit transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
+            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que mon identifiant de clic Meta ou Snapchat (s’il existe) soit transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
           </div>
 
           <aside className="lg:col-span-5" aria-label="Ta commande">

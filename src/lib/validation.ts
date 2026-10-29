@@ -2,6 +2,7 @@ import { z } from "zod";
 import { SIZES } from "./sizes";
 import { DEFAULT_PHONE_COUNTRY, normalizedPhone, supportedPhoneCountry } from "./phone";
 import { validFbclid } from "./fbclid";
+import { validSccid } from "./sccid";
 import type { CountryCode } from "libphonenumber-js";
 
 // French default messages for any issue without a custom message.
@@ -84,6 +85,7 @@ export const orderRequestSchema = z.object({
   customer: checkoutCustomerSchema,
   marketingConsent: z.boolean().optional().default(false),
   fbclid: z.string().refine(validFbclid, "Identifiant de clic invalide.").optional(),
+  sccid: z.string().refine(validSccid, "Identifiant de clic invalide.").optional(),
   /** Payment checkout must never silently create a request-only order. */
   requireCheckout: z.boolean().optional().default(false),
   /** Honeypot: must stay empty. */

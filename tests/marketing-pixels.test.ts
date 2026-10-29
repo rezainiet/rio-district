@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { consentedFbclid, rememberConsentedFbclid, trackCheckoutClick, trackCheckoutStart } from "../src/components/store/MarketingPixels";
+import { consentedFbclid, consentedSccid, rememberConsentedFbclid, rememberConsentedSccid, trackCheckoutClick, trackCheckoutStart } from "../src/components/store/MarketingPixels";
 import type { CartQuote } from "../src/lib/types";
 
 test("checkout entry sends one consented Meta InitiateCheckout with the server cart, while redirect does not repeat it", () => {
@@ -54,13 +54,60 @@ test("checkout entry sends one consented Meta InitiateCheckout with the server c
         content_ids: ["green", "black"], contents: [{ id: "green", quantity: 1 }, { id: "black", quantity: 1 }],
         content_type: "product", num_items: 2, value: 24.95, currency: "EUR",
       }],
-      ["snap", "track", "START_CHECKOUT", { price: "24.95", currency: "EUR" }],
+      ["snap", "track", "START_CHECKOUT", { price: "24.95", currency: "EUR", client_dedup_id: "checkout-ORDER-1" }],
     ]);
     assert.equal(trackCheckoutClick(2495, "ORDER-1"), false);
     assert.equal(trackCheckoutClick(1999, "ORDER-2"), true);
     assert.equal(calls.length, 3);
     assert.equal(calls.filter(call => call[3] === "InitiateCheckout").length, 1);
     assert.equal(trackCheckoutClick(0, "ORDER-3"), false);
+  } finally {
+    for (const [name, descriptor] of originals) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else Reflect.deleteProperty(globalThis, name);
+    }
+  }
+});
+
+test("a Snapchat click ID is kept for this tab only after consent, and the latest Meta or Snapchat ad click wins", () => {
+  const session = new Map<string, string>();
+  let choice: "accepted" | "refused" = "refused";
+  const originals = ["localStorage", "sessionStorage"].map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)] as const);
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
+    getItem: () => JSON.stringify({ choice, at: Date.now() }),
+  } });
+  Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: {
+    getItem: (key: string) => session.get(key) ?? null,
+    setItem: (key: string, value: string) => { session.set(key, value); },
+    removeItem: (key: string) => { session.delete(key); },
+  } });
+  try {
+    const sccid = "a1b2c3d4-e5f6-4a7b-8c9d-sample_ScCid";
+    const fbclid = "PAZXh0bgNhZW0CMTEAAa_sample-123";
+    rememberConsentedSccid(`?ScCid=${sccid}`);
+    assert.equal(consentedSccid(), null);
+    assert.equal(session.size, 0);
+    choice = "accepted";
+    rememberConsentedSccid(`?utm_source=snapchat&ScCid=${sccid}`);
+    assert.equal(consentedSccid(), sccid);
+    rememberConsentedSccid("?ScCid=invalid%40value");
+    assert.equal(consentedSccid(), sccid);
+    rememberConsentedFbclid(`?fbclid=${fbclid}`);
+    assert.equal(consentedFbclid(), fbclid);
+    assert.equal(consentedSccid(), null);
+    rememberConsentedSccid(`?sccid=${sccid}`);
+    assert.equal(consentedSccid(), sccid);
+    assert.equal(consentedFbclid(), null);
+    // A landing carrying both IDs counts as Meta, whatever the parameter order.
+    for (const search of [`?ScCid=${sccid}&fbclid=${fbclid}`, `?fbclid=${fbclid}&ScCid=${sccid}`]) {
+      rememberConsentedFbclid(search);
+      rememberConsentedSccid(search);
+      assert.equal(consentedFbclid(), fbclid);
+      assert.equal(consentedSccid(), null);
+      rememberConsentedSccid(`?ScCid=${sccid}`);
+    }
+    choice = "refused";
+    assert.equal(consentedSccid(), null);
   } finally {
     for (const [name, descriptor] of originals) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { approvedDestination, buildEverflowUrl, eligibleOffer, EVERFLOW_OFFERS, pixelValue, publicImage, readEverflowConfig, type PrefillOrder } from "../src/lib/payments/everflow";
+import { approvedDestination, buildEverflowUrl, eligibleOffer, EVERFLOW_OFFERS, HostedCheckoutError, pixelValue, publicImage, readEverflowConfig, type PrefillOrder } from "../src/lib/payments/everflow";
 import { checkoutCustomerSchema } from "../src/lib/validation";
 import { validFbclid } from "../src/lib/fbclid";
+import { validSccid } from "../src/lib/sccid";
 
 export const mockEnv = {
   PAYMENT_PROVIDER: "everflow", EVERFLOW_ENABLED: "true", EVERFLOW_MODE: "mock", APP_ENV: "development",
@@ -152,6 +153,33 @@ test("a consented Meta click ID fills both sub1 and fbclid without static IDs", 
   }
   assert.equal(validFbclid(fbclid), true);
   assert.equal(validFbclid("invalid@value"), false);
+});
+test("a consented Snapchat click ID fills sub1 and ScCid unless a Meta click ID is present", () => {
+  const fbclid = "PAZXh0bgNhZW0CMTEAAa_sample-123";
+  const sccid = "a1b2c3d4-e5f6-4a7b-8c9d-sample_ScCid";
+  const config = readEverflowConfig({ ...mockEnv, EVERFLOW_MODE: "live", EVERFLOW_LIVE_APPROVED: "true",
+    EVERFLOW_VARIANTS_APPROVED: "true", EVERFLOW_BUNDLE_METADATA_APPROVED: "true",
+    EVERFLOW_BUNDLE_IMAGE_URL: "/products/reference/bundle-six-colors.webp", EVERFLOW_SOURCE_ID: "rio-source" })!;
+  for (const bundle of [false, true]) {
+    const order = { ...fixture(bundle), attribution: { sccid } };
+    const withConsent = new URL(buildEverflowUrl(order, config, "reference", true));
+    const withoutConsent = new URL(buildEverflowUrl(order, config, "reference", false));
+    assert.equal(withConsent.origin + withConsent.pathname, EVERFLOW_OFFERS[bundle ? "bundle" : "single"].url);
+    assert.equal(withConsent.searchParams.get("sub1"), sccid);
+    assert.equal(withConsent.searchParams.get("ScCid"), sccid);
+    assert.equal(withConsent.searchParams.has("fbclid"), false);
+    assert.equal(withConsent.searchParams.get("source_id"), "rio-source");
+    assert.equal(withConsent.searchParams.has("sub5"), false);
+    for (const key of ["sub1", "ScCid", "fbclid", "sub5"]) assert.equal(withoutConsent.searchParams.has(key), false);
+    const both = new URL(buildEverflowUrl({ ...order, attribution: { fbclid, sccid } }, config, "reference", true));
+    assert.equal(both.searchParams.get("sub1"), fbclid);
+    assert.equal(both.searchParams.get("fbclid"), fbclid);
+    assert.equal(both.searchParams.get("ScCid"), sccid);
+  }
+  assert.throws(() => buildEverflowUrl({ ...fixture(), attribution: { sccid: "invalid@value" } }, config, "reference", true), HostedCheckoutError);
+  assert.equal(validSccid(sccid), true);
+  assert.equal(validSccid("invalid@value"), false);
+  assert.equal(validSccid("x".repeat(501)), false);
 });
 test("disabled fallback, isolated mock guard, live approval and unapproved correlation", () => {
   assert.equal(readEverflowConfig({ ...mockEnv, EVERFLOW_ENABLED: "false" }), null);
