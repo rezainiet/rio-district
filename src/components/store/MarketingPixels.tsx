@@ -7,7 +7,7 @@ import { validFbclid } from "@/lib/fbclid";
 import { validSccid } from "@/lib/sccid";
 import type { CartQuote } from "@/lib/types";
 
-const SNAP_PIXEL_ID = "25924406-58d9-4767-9b28-e91773f5ba30";
+const SNAP_PIXEL_ID = "a1b5b51f-76da-4665-80a6-4c61498b3af4";
 const META_PIXEL_ID = "1306059791382915";
 const SNAP_SCRIPT_URL = "https://sc-static.net/scevent.min.js";
 const META_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
