@@ -21,6 +21,8 @@ import "./checkout.css";
 import { PhoneInput } from "./PhoneInput";
 import { consentedFbclid, consentedSccid, MARKETING_CONSENT_CHANGED_EVENT, trackCheckoutClick, trackCheckoutStart } from "./MarketingPixels";
 import { DEFAULT_PHONE_COUNTRY, supportedPhoneCountry } from "@/lib/phone";
+import type { CountryCode } from "libphonenumber-js";
+import { useT } from "@/i18n/client";
 
 const KEY_STORAGE = "rd.checkout.key";
 const volatileKeys = new Map<string, string>();
@@ -60,16 +62,17 @@ function Field({
   className?: string;
   children: React.ReactNode;
 }) {
+  const { t, tx } = useT();
   return (
     <div className={clsx("checkout-field", className)}>
       <label htmlFor={id} className="checkout-field-label">
         {label}
-        {optional && <span className="text-[13px] font-normal text-muted">Facultatif</span>}
+        {optional && <span className="text-[13px] font-normal text-muted">{t("Facultatif")}</span>}
       </label>
       {children}
       {error && (
         <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm font-medium text-danger">
-          {error}
+          {tx(error)}
         </p>
       )}
     </div>
@@ -78,6 +81,10 @@ function Field({
 
 export function CheckoutView({ directLine = null }: { directLine?: CartLineInput | null }) {
   const { lines, quote: cartQuote, hydrated, config, productMap } = useStore();
+  const { t, tx, href, locale } = useT();
+  // The Spanish checkout starts on Spain for delivery and phone; the French one keeps France.
+  const defaultCountry = locale === "es" ? "ES" : "FR";
+  const defaultPhoneCountry: CountryCode = locale === "es" ? "ES" : DEFAULT_PHONE_COUNTRY;
   const [serverResult, setServerResult] = useState<{ sig: string; quote: CartQuote | null } | null>(null);
   const [submitError, setSubmitError] = useState("");
   const [resumeToken, setResumeToken] = useState("");
@@ -109,22 +116,24 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
   } = useForm<CheckoutCustomer, unknown, z.output<typeof checkoutCustomerSchema>>({
     resolver: zodResolver(checkoutCustomerSchema),
     mode: "onTouched",
-    defaultValues: { country: "FR", phoneCountry: DEFAULT_PHONE_COUNTRY, address2: "", notes: "" },
+    defaultValues: { country: defaultCountry, phoneCountry: defaultPhoneCountry, address2: "", notes: "" },
   });
   const selectedPhoneCountry = useWatch({ control, name: "phoneCountry" });
-  const phoneCountry = supportedPhoneCountry(selectedPhoneCountry) ? selectedPhoneCountry : DEFAULT_PHONE_COUNTRY;
+  const phoneCountry = supportedPhoneCountry(selectedPhoneCountry) ? selectedPhoneCountry : defaultPhoneCountry;
 
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/geo/country", { signal: controller.signal, credentials: "same-origin" })
       .then(response => response.ok ? response.json() : null)
       .then(data => {
-        if (supportedPhoneCountry(data?.country) && !manuallySelectedPhoneCountry.current && !phoneEdited.current && !getValues("phone")) {
+        // The lookup answers "FR" when it cannot locate the visitor, so on the Spanish site "FR" keeps the Spanish default.
+        if (supportedPhoneCountry(data?.country) && !(locale === "es" && data.country === DEFAULT_PHONE_COUNTRY) &&
+          !manuallySelectedPhoneCountry.current && !phoneEdited.current && !getValues("phone")) {
           setValue("phoneCountry", data.country);
         }
       }).catch(() => {});
     return () => controller.abort();
-  }, [getValues, setValue]);
+  }, [getValues, setValue, locale]);
 
   // Ask the server for authoritative prices whenever the cart changes.
   useEffect(() => {
@@ -178,7 +187,7 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idempotencyKey: idempotencyKeyFor(directLine ? `direct:${signature}` : signature), lines: inputs, customer, marketingConsent,
         fbclid: marketingConsent ? consentedFbclid() ?? undefined : undefined,
-        sccid: marketingConsent ? consentedSccid() ?? undefined : undefined, requireCheckout: true, website: "" }),
+        sccid: marketingConsent ? consentedSccid() ?? undefined : undefined, requireCheckout: true, locale, website: "" }),
     }).catch(() => null);
 
     if (!res) {
@@ -200,7 +209,8 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
           // Give consented browser pixels a brief chance to send before cross-site navigation.
           await new Promise(resolve => window.setTimeout(resolve, 300));
         }
-        window.location.assign(destination.href);
+        // The local simulator is a storefront page: open it in the visitor's language.
+        window.location.assign(data.checkout.mode === "mock" ? href(destination.pathname) : destination.href);
         return;
       }
       setSubmitError("Le paiement est momentanément indisponible. Réessaie avec la même commande.");
@@ -225,9 +235,9 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
   if (inputs.length === 0) {
     return (
       <div className="container-x py-20 text-center">
-        <h1 className="display text-[30px] uppercase sm:text-[40px]">Commande</h1>
-        <p className="mt-4 text-muted">Ton panier est vide.</p>
-        <ButtonLink href="/#collection" className="mt-6">Voir la collection</ButtonLink>
+        <h1 className="display text-[30px] uppercase sm:text-[40px]">{t("Commande")}</h1>
+        <p className="mt-4 text-muted">{t("Ton panier est vide.")}</p>
+        <ButtonLink href={href("/#collection")} className="mt-6">{t("Voir la collection")}</ButtonLink>
       </div>
     );
   }
@@ -243,24 +253,29 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
   const selectionParams = new URLSearchParams();
   if (directLine?.kind === "bundle") selectionParams.set("offre", "pack");
   if (firstItem) selectionParams.set("taille", firstItem.size);
-  const selectionHref = directLine
+  const selectionHref = href(directLine
     ? firstItem ? `/produit/${firstItem.slug}?${selectionParams}` : "/#collection"
-    : "/panier";
-  const selectionLabel = directLine ? "Modifier la sélection" : "Modifier le panier";
+    : "/panier");
+  const selectionLabel = directLine ? t("Modifier la sélection") : t("Modifier le panier");
+  const itemsLabel = (n: number) => n > 1 ? t("Ta commande · {n} articles", { n }) : t("Ta commande · {n} article", { n });
+  // Names in the server quote come from the French catalogue; the local quote already uses the localized products.
+  const quoteText = (text: string) => (serverQuote && quote === serverQuote ? tx(text) : text);
+  const itemsText = (items: CartQuote["lines"][number]["items"]) => items.map((it) => `${quoteText(it.name)} · ${it.size}`).join(" + ");
+  const countries = locale === "es" ? [...COUNTRIES].sort((a, b) => Number(b.code === "ES") - Number(a.code === "ES")) : COUNTRIES;
 
   return (
     <div className="container-x checkout-page">
-      <nav aria-label="Étapes" className="checkout-steps flex flex-wrap items-center gap-2 text-muted">
-        <Link href={selectionHref} className="hover:text-ink">{directLine ? "Sélection" : "Panier"}</Link>
+      <nav aria-label={t("Étapes")} className="checkout-steps flex flex-wrap items-center gap-2 text-muted">
+        <Link href={selectionHref} className="hover:text-ink">{directLine ? t("Sélection") : t("Panier")}</Link>
         <span aria-hidden>→</span>
-        <span className="text-ink" aria-current="step">Coordonnées</span>
+        <span className="text-ink" aria-current="step">{t("Coordonnées")}</span>
         <span aria-hidden>→</span>
-        <span>Paiement</span>
+        <span>{t("Paiement")}</span>
       </nav>
-      <h1 className="display checkout-title">Finaliser ma commande</h1>
+      <h1 className="display checkout-title">{t("Finaliser ma commande")}</h1>
 
-      {hosted && config.checkout?.error && <p role="alert" className="mt-4 rounded-xl border border-danger p-4 text-danger">{config.checkout.error}</p>}
-      {hosted && resumeToken && <div className="mt-4 rounded-xl border border-line p-4"><p className="mb-3 text-sm text-ink-2">Une commande est déjà en attente. Vérifie son statut avant de lancer un autre paiement.</p><ResumeCheckout token={resumeToken} /><Link className="mt-3 block text-sm underline" href={`/commande/confirmation/${resumeToken}`}>Retrouver cette commande</Link></div>}
+      {hosted && config.checkout?.error && <p role="alert" className="mt-4 rounded-xl border border-danger p-4 text-danger">{tx(config.checkout.error)}</p>}
+      {hosted && resumeToken && <div className="mt-4 rounded-xl border border-line p-4"><p className="mb-3 text-sm text-ink-2">{t("Une commande est déjà en attente. Vérifie son statut avant de lancer un autre paiement.")}</p><ResumeCheckout token={resumeToken} /><Link className="mt-3 block text-sm underline" href={href(`/commande/confirmation/${resumeToken}`)}>{t("Retrouver cette commande")}</Link></div>}
       {!config.acceptingOrders ? (
         <p className="mt-8 rounded-[var(--radius-md)] border border-line p-6 text-muted">{config.closedMessage}</p>
       ) : (
@@ -269,7 +284,7 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
         <details className="checkout-mobile-summary faq group rounded-[var(--radius-md)] border border-line bg-paper-2 lg:hidden">
           <summary className="flex min-h-12 list-none items-center justify-between gap-3 px-4">
             <span className="flex items-center gap-2 text-sm font-semibold">
-              Ta commande · {quote.itemsCount} article{quote.itemsCount > 1 ? "s" : ""}
+              {itemsLabel(quote.itemsCount)}
               <span className="faq-icon text-lg leading-none text-muted transition-transform" aria-hidden>+</span>
             </span>
             <span className="price text-lg">{formatEUR(quote.totalCents)}</span>
@@ -278,9 +293,9 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
             {quote.lines.map((l, i) => (
               <li key={i} className="flex justify-between gap-3 py-3">
                 <span>
-                  <span className="font-semibold">{l.label}</span>
+                  <span className="font-semibold">{quoteText(l.label)}</span>
                   {l.quantity > 1 && <span className="text-muted"> × {l.quantity}</span>}
-                  <span className="block text-sm text-muted">{l.items.map((it) => `${it.name} · ${it.size}`).join(" + ")}</span>
+                  <span className="block text-sm text-muted">{itemsText(l.items)}</span>
                 </span>
                 <span className="price">{formatEUR(l.totalCents)}</span>
               </li>
@@ -294,18 +309,18 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
         <form onSubmit={onSubmit} noValidate className="checkout-form grid lg:grid-cols-12">
           <div className="checkout-fields lg:col-span-7">
             <fieldset>
-              <legend className="checkout-section-title">01 · Tes coordonnées</legend>
+              <legend className="checkout-section-title">{t("01 · Tes coordonnées")}</legend>
               <div className="checkout-contact-grid">
-                <Field id="co-firstName" label="Prénom" error={errors.firstName?.message}>
+                <Field id="co-firstName" label={t("Prénom")} error={errors.firstName?.message}>
                   <input className="field" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("firstName")} />
                 </Field>
-                <Field id="co-lastName" label="Nom" error={errors.lastName?.message}>
+                <Field id="co-lastName" label={t("Nom")} error={errors.lastName?.message}>
                   <input className="field" autoComplete="family-name" autoCapitalize="words" enterKeyHint="next" {...fieldProps("lastName")} />
                 </Field>
-                <Field id="co-email" label="E-mail" error={errors.email?.message} className="checkout-contact-wide">
+                <Field id="co-email" label={t("E-mail")} error={errors.email?.message} className="checkout-contact-wide">
                   <input className="field" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" {...fieldProps("email")} />
                 </Field>
-                <Field id="co-phone" label="Téléphone" error={errors.phone?.message} className="checkout-contact-wide checkout-phone-field">
+                <Field id="co-phone" label={t("Téléphone")} error={errors.phone?.message} className="checkout-contact-wide checkout-phone-field">
                   <Controller name="phone" control={control} render={({ field }) => <PhoneInput
                     country={phoneCountry} value={field.value ?? ""} onChange={value => { phoneEdited.current = true; field.onChange(value); }} onBlur={field.onBlur} inputRef={field.ref}
                     invalid={Boolean(errors.phone)} onCountryChange={country => {
@@ -317,47 +332,47 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
             </fieldset>
 
             <fieldset>
-              <legend className="checkout-section-title">02 · Livraison</legend>
+              <legend className="checkout-section-title">{t("02 · Livraison")}</legend>
               <div className="checkout-delivery-grid">
-                <Field id="co-address" label="Adresse" error={errors.address?.message} className="col-span-6">
-                  <input className="field" autoComplete="address-line1" placeholder="Numéro et rue" {...fieldProps("address")} />
+                <Field id="co-address" label={t("Adresse")} error={errors.address?.message} className="col-span-6">
+                  <input className="field" autoComplete="address-line1" placeholder={t("Numéro et rue")} {...fieldProps("address")} />
                 </Field>
-                <Field id="co-postalCode" label="Code postal" error={errors.postalCode?.message} className="col-span-2">
+                <Field id="co-postalCode" label={t("Code postal")} error={errors.postalCode?.message} className="col-span-2">
                   <input className="field" autoComplete="postal-code" inputMode="numeric" enterKeyHint="next" {...fieldProps("postalCode")} />
                 </Field>
-                <Field id="co-city" label="Ville" error={errors.city?.message} className="checkout-city">
+                <Field id="co-city" label={t("Ville")} error={errors.city?.message} className="checkout-city">
                   <input className="field" autoComplete="address-level2" autoCapitalize="words" enterKeyHint="next" {...fieldProps("city")} />
                 </Field>
-                <Field id="co-country" label="Pays" error={errors.country?.message} className="checkout-country">
+                <Field id="co-country" label={t("Pays")} error={errors.country?.message} className="checkout-country">
                   <select className="field" autoComplete="country" {...fieldProps("country")}>
-                    {COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>{c.label}</option>
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>{tx(c.label)}</option>
                     ))}
                   </select>
                 </Field>
                 <div className="col-span-6">
                   <button type="button" className="checkout-optional-toggle" aria-expanded={showOptional} aria-controls="checkout-optional-fields" onClick={() => setOptionalOpen(!showOptional)}>
-                    <span>Complément d’adresse ou note <span className="text-muted">· facultatif</span></span>
+                    <span>{t("Complément d’adresse ou note")} <span className="text-muted">{t("· facultatif")}</span></span>
                     <PlusIcon width={16} height={16} className={clsx("shrink-0 transition-transform", showOptional && "rotate-45")} />
                   </button>
                   <div id="checkout-optional-fields" className="checkout-optional-fields" hidden={!showOptional}>
-                    <Field id="co-address2" label="Complément d'adresse" optional error={errors.address2?.message}>
-                      <input className="field" autoComplete="address-line2" placeholder="Bâtiment, étage, digicode…" {...fieldProps("address2")} />
+                    <Field id="co-address2" label={t("Complément d'adresse")} optional error={errors.address2?.message}>
+                      <input className="field" autoComplete="address-line2" placeholder={t("Bâtiment, étage, digicode…")} {...fieldProps("address2")} />
                     </Field>
-                    <Field id="co-notes" label="Notes de commande" optional error={errors.notes?.message}>
-                      <textarea className="field resize-y" rows={2} placeholder="Une précision pour la livraison ?" {...fieldProps("notes")} />
+                    <Field id="co-notes" label={t("Notes de commande")} optional error={errors.notes?.message}>
+                      <textarea className="field resize-y" rows={2} placeholder={t("Une précision pour la livraison ?")} {...fieldProps("notes")} />
                     </Field>
                   </div>
                 </div>
               </div>
             </fieldset>
-            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> J’accepte que mon identifiant de clic Meta ou Snapchat (s’il existe) soit transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.</label>}
+            {hosted && config.checkout?.advertising && <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} /> {t("J’accepte que mon identifiant de clic Meta ou Snapchat (s’il existe) soit transmis à notre partenaire de paiement pour le suivi publicitaire. Mon choix est facultatif et n’empêche pas de commander.")}</label>}
           </div>
 
-          <aside className="lg:col-span-5" aria-label="Ta commande">
+          <aside className="lg:col-span-5" aria-label={t("Ta commande")}>
             <div className="checkout-payment-card rounded-[var(--radius-md)] border border-line bg-paper-2 lg:sticky lg:top-24">
               <div className="hidden lg:block">
-              <h2 className="checkout-section-title">03 · Ta commande</h2>
+              <h2 className="checkout-section-title">{t("03 · Ta commande")}</h2>
               <ul className="divide-y divide-line border-y border-line" aria-busy={quoteState === "loading"}>
                 {quote.lines.map((l, i) => (
                   <li key={i} className="flex gap-3 py-3">
@@ -372,9 +387,9 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
                     </div>
                     <div className="min-w-0 flex-1 text-[15px]">
                       <p className="font-semibold">
-                        {l.label} {l.quantity > 1 && <span className="text-muted">× {l.quantity}</span>}
+                        {quoteText(l.label)} {l.quantity > 1 && <span className="text-muted">× {l.quantity}</span>}
                       </p>
-                      <p className="text-sm text-muted">{l.items.map((it) => `${it.name} · ${it.size}`).join(" + ")}</p>
+                      <p className="text-sm text-muted">{itemsText(l.items)}</p>
                     </div>
                     <p className="price text-base">{formatEUR(l.totalCents)}</p>
                   </li>
@@ -385,34 +400,34 @@ export function CheckoutView({ directLine = null }: { directLine?: CartLineInput
               </div>
               </div>
               <div className="flex items-baseline justify-between lg:hidden" aria-busy={quoteState === "loading"}>
-                <span className="text-sm font-semibold">Total à régler <span className="font-normal text-muted">TTC</span></span>
+                <span className="text-sm font-semibold">{t("Total à régler")} <span className="font-normal text-muted">{t("TTC")}</span></span>
                 <span className="price text-[28px] leading-none">{formatEUR(quote.totalCents)}</span>
               </div>
               {quoteState === "error" && (
-                <p className="mt-2 text-sm text-warning">Vérification des prix impossible pour l&apos;instant : le total définitif sera calculé à l&apos;envoi.</p>
+                <p className="mt-2 text-sm text-warning">{t("Vérification des prix impossible pour l'instant : le total définitif sera calculé à l'envoi.")}</p>
               )}
               {cartInvalid && (
                 <p role="alert" className="mt-3 text-sm text-danger">
-                  {(serverQuote?.errors[0] ?? localQuote.errors[0])?.message}{" "}
+                  {tx((serverQuote?.errors[0] ?? localQuote.errors[0])?.message ?? "")}{" "}
                   <Link href={selectionHref} className="underline">{selectionLabel}</Link>
                 </p>
               )}
               {submitError && (
                 <p role="alert" className="mt-3 rounded-[var(--radius-sm)] bg-danger/10 p-3 text-sm text-danger">
-                  {submitError}
+                  {tx(submitError)}
                 </p>
               )}
-              {offerError && <p role="alert" className="mt-3 text-sm text-danger">{offerError} <Link href={selectionHref} className="underline">{selectionLabel}</Link></p>}
+              {offerError && <p role="alert" className="mt-3 text-sm text-danger">{tx(offerError)} <Link href={selectionHref} className="underline">{selectionLabel}</Link></p>}
               <Button type="submit" size="md" className="mt-4 w-full" disabled={isSubmitting || navigating || cartInvalid || Boolean(offerError) || !paymentAvailable}>
-                {isSubmitting || navigating ? "Préparation du paiement…" : "Continuer vers le paiement ↗"}
+                {isSubmitting || navigating ? t("Préparation du paiement…") : t("Continuer vers le paiement ↗")}
               </Button>
-              <p className="mt-2 text-center text-[13px] text-muted">{!paymentAvailable ? "Le paiement est momentanément indisponible." : mock ? "Mode test · aucun débit possible" : "Paiement sur le site de notre partenaire externe"}</p>
+              <p className="mt-2 text-center text-[13px] text-muted">{!paymentAvailable ? t("Le paiement est momentanément indisponible.") : mock ? t("Mode test · aucun débit possible") : t("Paiement sur le site de notre partenaire externe")}</p>
               <div className="checkout-reassurance border-t border-line">
                 <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[13px] text-ink-2">
-                  <li className="flex items-center gap-2"><TruckIcon width={16} height={16} className="text-brand" /> {config.shippingCents === 0 ? "Livraison offerte" : "Livraison suivie"}</li>
-                  <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="text-brand" /> Retours {config.returnsWindowDays} jours</li>
+                  <li className="flex items-center gap-2"><TruckIcon width={16} height={16} className="text-brand" /> {config.shippingCents === 0 ? t("Livraison offerte") : t("Livraison suivie")}</li>
+                  <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="text-brand" /> {t("Retours {n} jours", { n: config.returnsWindowDays })}</li>
                 </ul>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted">Livraison estimée {config.deliveryEstimate}. Expédition après vérification du paiement.</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-muted">{t("Livraison estimée {date}. Expédition après vérification du paiement.", { date: config.deliveryEstimate })}</p>
               </div>
             </div>
           </aside>

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { visitorPhoneCountry } from "../src/lib/visitor-country";
 import { formatPhoneInput, normalizedPhone, phoneDialCode, phonePlaceholder } from "../src/lib/phone";
-import { checkoutCustomerSchema } from "../src/lib/validation";
+import { checkoutCustomerSchema, orderRequestSchema } from "../src/lib/validation";
 import { buildEverflowUrl, EVERFLOW_OFFERS, readEverflowConfig } from "../src/lib/payments/everflow";
 import type { CountryCode } from "libphonenumber-js";
 
@@ -54,4 +54,27 @@ test("both Everflow offers send E.164 to sub8 and retain their configured URLs",
     assert.equal(result.origin + result.pathname, url);
     assert.equal(result.searchParams.get("sub8"), "+41791234567");
   }
+});
+
+test("Spain is a delivery country with a 5-digit postal code and a Spanish phone number", () => {
+  const base = { firstName: "Lucía", lastName: "Prueba", email: "fiction@example.com", address: "Calle de la Prueba 12",
+    postalCode: "28001", city: "Madrid", country: "ES", phoneCountry: "ES", phone: "612 34 56 78" };
+  const parsed = checkoutCustomerSchema.parse(base);
+  assert.equal(parsed.country, "ES");
+  assert.equal(parsed.phoneE164, "+34612345678");
+  for (const postalCode of ["2800", "280011", "28 001", "AB123"]) {
+    const result = checkoutCustomerSchema.safeParse({ ...base, postalCode });
+    assert.equal(result.success, false);
+    assert.ok(result.error?.issues.some(issue => issue.path[0] === "postalCode"));
+  }
+  assert.equal(checkoutCustomerSchema.safeParse({ ...base, postalCode: "2800" }).error?.issues[0].message, "Code postal espagnol à 5 chiffres.");
+});
+
+test("order requests keep their storefront language and default to French", () => {
+  const request = { idempotencyKey: "a".repeat(32), lines: [{ kind: "single", productId: "a".repeat(24), size: "M", quantity: 1 }],
+    customer: { firstName: "Camille", lastName: "Essai", email: "fiction@example.com", phone: "06 12 34 56 78", phoneCountry: "FR",
+      address: "12 rue du Test", postalCode: "75001", city: "Paris", country: "FR" } };
+  assert.equal(orderRequestSchema.parse(request).locale, "fr");
+  assert.equal(orderRequestSchema.parse({ ...request, locale: "es" }).locale, "es");
+  assert.equal(orderRequestSchema.safeParse({ ...request, locale: "de" }).success, false);
 });

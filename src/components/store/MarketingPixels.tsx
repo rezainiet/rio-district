@@ -6,6 +6,8 @@ import { useStore } from "./StoreProvider";
 import { validFbclid } from "@/lib/fbclid";
 import { validSccid } from "@/lib/sccid";
 import type { CartQuote } from "@/lib/types";
+import { useT } from "@/i18n/client";
+import { resolvePublicPath } from "@/i18n/config";
 
 const SNAP_PIXEL_ID = "a1b5b51f-76da-4665-80a6-4c61498b3af4";
 const META_PIXEL_ID = "1306059791382915";
@@ -153,6 +155,7 @@ export function trackCheckoutClick(totalCents: number, orderNumber: string): boo
 export function MarketingPixels() {
   const pathname = usePathname();
   const { products } = useStore();
+  const { t } = useT();
   const [choice, setChoice] = useState<Choice | null>(null);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
@@ -168,15 +171,17 @@ export function MarketingPixels() {
 
   useEffect(() => {
     // Confirmation and local payment-test URLs contain private order tokens.
-    if (!ready || choice !== "accepted" || !pathname ||
-        pathname.startsWith("/commande/confirmation/") || pathname.startsWith("/commande/paiement-test/")) return;
+    // Spanish URLs (/pedido/confirmacion/…) are mapped back to the internal French route first.
+    const route = pathname ? resolvePublicPath(pathname).path : null;
+    if (!ready || choice !== "accepted" || !pathname || !route ||
+        route.startsWith("/commande/confirmation/") || route.startsWith("/commande/paiement-test/")) return;
     rememberConsentedFbclid(window.location.search);
     rememberConsentedSccid(window.location.search);
     startPixels();
     if (trackedPath.current !== pathname) {
       window.snaptr?.("track", "PAGE_VIEW");
       window.fbq?.("trackSingle", META_PIXEL_ID, "PageView");
-      const product = products.find(item => pathname === `/produit/${item.slug}`);
+      const product = products.find(item => route === `/produit/${item.slug}`);
       if (product) {
         window.fbq?.("trackSingle", META_PIXEL_ID, "ViewContent", {
           content_ids: [product.id], content_type: "product", value: product.priceCents / 100, currency: product.currency ?? "EUR",
@@ -219,21 +224,22 @@ export function MarketingPixels() {
   }
 
   if (!ready || !open) return null;
-  return <section aria-label="Choix des cookies publicitaires" className="fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-xl rounded-2xl border border-line-strong bg-paper p-5 text-ink shadow-2xl sm:bottom-5 sm:p-6">
+  return <section aria-label={t("Choix des cookies publicitaires")} className="fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-xl rounded-2xl border border-line-strong bg-paper p-5 text-ink shadow-2xl sm:bottom-5 sm:p-6">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">Cookies publicitaires</p>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et début de commande) pour nos campagnes. Si tu arrives d’une publicité Meta ou Snapchat, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le début de commande est envoyé comme événement InitiateCheckout à Meta ; le clic vers le paiement est envoyé comme START_CHECKOUT à Snapchat. Aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande. <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">Confidentialité de Snap</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Confidentialité de Meta</a>.</p>
+        <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">{t("Cookies publicitaires")}</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">{t("Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et début de commande) pour nos campagnes. Si tu arrives d’une publicité Meta ou Snapchat, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le début de commande est envoyé comme événement InitiateCheckout à Meta ; le clic vers le paiement est envoyé comme START_CHECKOUT à Snapchat. Aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande.")} <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Snap")}</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Meta")}</a>.</p>
       </div>
-      {choice !== null && <button type="button" aria-label="Fermer les paramètres des cookies" className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
+      {choice !== null && <button type="button" aria-label={t("Fermer les paramètres des cookies")} className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
     </div>
     <div className="mt-4 grid grid-cols-2 gap-3">
-      <button type="button" className="min-h-11 rounded-full border border-line-strong px-3 text-sm font-semibold hover:border-brand" onClick={() => choose("refused")}>Refuser</button>
-      <button type="button" className="min-h-11 rounded-full border border-brand bg-brand px-3 text-sm font-semibold text-[#0b0b0c] hover:opacity-90" onClick={() => choose("accepted")}>Accepter</button>
+      <button type="button" className="min-h-11 rounded-full border border-line-strong px-3 text-sm font-semibold hover:border-brand" onClick={() => choose("refused")}>{t("Refuser")}</button>
+      <button type="button" className="min-h-11 rounded-full border border-brand bg-brand px-3 text-sm font-semibold text-[#0b0b0c] hover:opacity-90" onClick={() => choose("accepted")}>{t("Accepter")}</button>
     </div>
   </section>;
 }
 
 export function MarketingConsentSettingsButton() {
-  return <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))} className="hover:text-ink">Cookies publicitaires</button>;
+  const { t } = useT();
+  return <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))} className="hover:text-ink">{t("Cookies publicitaires")}</button>;
 }

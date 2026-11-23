@@ -9,10 +9,12 @@ import { CartSummary } from "./CartSummary";
 import { formatEUR } from "@/lib/money";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BagIcon, CheckIcon, CloseIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
+import { useT } from "@/i18n/client";
 
 export function CartDrawer() {
   const { drawerOpen, setDrawerOpen, lines, quote, config, lastAdded, productMap, products } = useStore();
   const pathname = usePathname();
+  const { t, href } = useT();
   const panelRef = useRef<HTMLDivElement>(null);
   // Kept mounted for the closing animation, then removed (CSS keyframes; reduced motion = instant).
   const [mounted, setMounted] = useState(drawerOpen);
@@ -58,7 +60,7 @@ export function CartDrawer() {
   const justAdded = lastAdded?.line ?? null;
   const addedText = justAdded
     ? justAdded.kind === "single"
-      ? `${productMap.get(justAdded.productId)?.name ?? "Veste"} · taille ${justAdded.size}`
+      ? t("{name} · taille {size}", { name: productMap.get(justAdded.productId)?.name ?? t("Veste"), size: justAdded.size })
       : `${config.bundle.label} · ${justAdded.items.map((i) => `${productMap.get(i.productId)?.color.name ?? ""} ${i.size}`).join(" + ")}`
     : "";
   // Honest pack suggestion: a single jacket in the cart, and the real price difference.
@@ -83,9 +85,9 @@ export function CartDrawer() {
           >
             <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <h2 id="cart-title" className="display text-[28px] uppercase">
-                Ton panier <span className="text-muted">({quote.itemsCount})</span>
+                {t("Ton panier")} <span className="text-muted">({quote.itemsCount})</span>
               </h2>
-              <button type="button" onClick={() => setDrawerOpen(false)} className="-mr-2 grid size-11 place-items-center rounded-full hover:bg-paper-2" aria-label="Fermer le panier">
+              <button type="button" onClick={() => setDrawerOpen(false)} className="-mr-2 grid size-11 place-items-center rounded-full hover:bg-paper-2" aria-label={t("Fermer le panier")}>
                 <CloseIcon />
               </button>
             </div>
@@ -96,7 +98,7 @@ export function CartDrawer() {
                   <CheckIcon width={14} height={14} />
                 </span>
                 <span>
-                  <span className="block font-semibold">Ajouté au panier</span>
+                  <span className="block font-semibold">{t("Ajouté au panier")}</span>
                   <span className="block text-sm text-ink-2">{addedText}</span>
                 </span>
               </p>
@@ -105,12 +107,14 @@ export function CartDrawer() {
             {lines.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
                 <span className="grid size-14 place-items-center rounded-full border border-line-strong text-muted"><BagIcon width={24} height={24} /></span>
-                <p className="display text-[30px] uppercase">Ton panier est vide.</p>
+                <p className="display text-[30px] uppercase">{t("Ton panier est vide.")}</p>
                 <p className="text-[15px] text-muted">
-                  Six coloris, du XS au 3XL{config.bundle.enabled ? ` — et ${formatEUR(config.bundle.priceCents)} les deux` : ""}.
+                  {config.bundle.enabled
+                    ? t("Six coloris, du XS au 3XL — et {price} les deux.", { price: formatEUR(config.bundle.priceCents) })
+                    : t("Six coloris, du XS au 3XL.")}
                 </p>
-                <ButtonLink href={products[0] ? `/produit/${products[0].slug}` : "/#collection"} size="lg" onClick={() => setDrawerOpen(false)}>
-                  Voir les vestes
+                <ButtonLink href={href(products[0] ? `/produit/${products[0].slug}` : "/#collection")} size="lg" onClick={() => setDrawerOpen(false)}>
+                  {t("Voir les vestes")}
                 </ButtonLink>
               </div>
             ) : (
@@ -123,13 +127,13 @@ export function CartDrawer() {
                   </div>
                   {packExtra > 0 && singleProduct && (
                     <Link
-                      href={`/produit/${singleProduct.slug}?offre=pack#acheter`}
+                      href={href(`/produit/${singleProduct.slug}?offre=pack#acheter`)}
                       onClick={() => setDrawerOpen(false)}
                       className="tap mb-4 flex items-center justify-between gap-3 rounded-xl border border-[#4a3f2a] bg-[#17140f] px-4 py-3 text-sm"
                     >
                       <span>
-                        <span className="block font-semibold">Une 2e veste pour {formatEUR(packExtra)} de plus</span>
-                        <span className="block text-ink-2">{config.bundle.label} : {formatEUR(config.bundle.priceCents)} les deux, coloris au choix</span>
+                        <span className="block font-semibold">{t("Une 2e veste pour {price} de plus", { price: formatEUR(packExtra) })}</span>
+                        <span className="block text-ink-2">{t("{label} : {price} les deux, coloris au choix", { label: config.bundle.label, price: formatEUR(config.bundle.priceCents) })}</span>
                       </span>
                       <span aria-hidden className="text-brand">→</span>
                     </Link>
@@ -138,12 +142,12 @@ export function CartDrawer() {
                 <div className="border-t border-line bg-paper-2 px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
                   <CartSummary quote={quote} />
                   <ul className="mt-2.5 grid gap-1 text-[13px] leading-snug text-ink-2">
-                    <li className="flex items-center gap-2"><TruckIcon width={16} height={16} className="shrink-0 text-brand" /> Livrée {config.deliveryEstimate} pour une commande aujourd&apos;hui</li>
-                    <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="shrink-0 text-brand" /> Retour possible sous {config.returnsWindowDays} jours après réception</li>
+                    <li className="flex items-center gap-2"><TruckIcon width={16} height={16} className="shrink-0 text-brand" /> {t("Livrée {date} pour une commande aujourd'hui", { date: config.deliveryEstimate })}</li>
+                    <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="shrink-0 text-brand" /> {t("Retour possible sous {n} jours après réception", { n: config.returnsWindowDays })}</li>
                   </ul>
                   <div className="mt-3 grid gap-1.5">
                     <ButtonLink
-                      href="/commande"
+                      href={href("/commande")}
                       size="lg"
                       className="h-14 w-full"
                       aria-disabled={hasErrors || !config.acceptingOrders}
@@ -151,17 +155,18 @@ export function CartDrawer() {
                         if (hasErrors) e.preventDefault();
                       }}
                     >
-                      Commander · {formatEUR(quote.totalCents)}
+                      {t("Commander · {total}", { total: formatEUR(quote.totalCents) })}
                     </ButtonLink>
                     <Button variant="ghost" className="h-11 w-full hover:bg-paper-3" onClick={() => setDrawerOpen(false)}>
-                      Continuer mes achats
+                      {t("Continuer mes achats")}
                     </Button>
                     <p className="text-center text-[13px] text-muted">
-                      {config.checkout && config.checkout.mode !== "request" ? "Paiement chez notre partenaire externe · " : "Demande de commande · rien à payer aujourd’hui · "}
-                      <Link href="/panier" className="underline underline-offset-4 hover:text-ink">panier détaillé</Link>
+                      {config.checkout && config.checkout.mode !== "request" ? t("Paiement chez notre partenaire externe") : t("Demande de commande · rien à payer aujourd’hui")}
+                      {" · "}
+                      <Link href={href("/panier")} className="underline underline-offset-4 hover:text-ink">{t("panier détaillé")}</Link>
                     </p>
                   </div>
-                  {hasErrors && <p className="mt-2 text-sm text-danger">Corrige les articles signalés pour continuer.</p>}
+                  {hasErrors && <p className="mt-2 text-sm text-danger">{t("Corrige les articles signalés pour continuer.")}</p>}
                 </div>
               </>
             )}

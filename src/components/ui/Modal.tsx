@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import clsx from "clsx";
+import { useT } from "@/i18n/client";
 
 /**
  * Accessible modal built on the native <dialog> element: focus trap, Escape
@@ -22,6 +23,7 @@ export function Modal({
   children: ReactNode;
   className?: string;
 }) {
+  const { t } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   // Unique per instance: several modals can live on the same page.
   const titleId = useId();
@@ -58,7 +60,7 @@ export function Modal({
           type="button"
           onClick={onClose}
           className="-mr-2 grid size-10 shrink-0 place-items-center rounded-full hover:bg-paper-2"
-          aria-label="Fermer"
+          aria-label={t("Fermer")}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
             <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" />

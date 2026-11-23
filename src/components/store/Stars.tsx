@@ -1,4 +1,7 @@
+"use client";
+
 import clsx from "clsx";
+import { useT } from "@/i18n/client";
 
 const PATH = "M12 2.8l2.75 5.7 6.25.9-4.5 4.4 1.05 6.2L12 17.05 6.45 20l1.05-6.2L3 9.4l6.25-.9z";
 
@@ -7,6 +10,7 @@ const PATH = "M12 2.8l2.75 5.7 6.25.9-4.5 4.4 1.05 6.2L12 17.05 6.45 20l1.05-6.2
  * filled layer; the empty layer stays as a faint outline.
  */
 export function Stars({ value, size = 16, className, label }: { value: number; size?: number; className?: string; label?: string }) {
+  const { t } = useT();
   const pct = Math.max(0, Math.min(100, (value / 5) * 100));
   const row = (filled: boolean) => (
     <span className="flex gap-[3px]">
@@ -27,7 +31,7 @@ export function Stars({ value, size = 16, className, label }: { value: number; s
   return (
     <span
       role="img"
-      aria-label={label ?? `${value.toLocaleString("fr-FR")} sur 5`}
+      aria-label={label ?? t("{value} sur 5", { value: value.toLocaleString("fr-FR") })}
       className={clsx("relative inline-flex text-brand", className)}
     >
       {row(false)}

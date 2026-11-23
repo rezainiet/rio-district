@@ -4,6 +4,7 @@ import { DEFAULT_PHONE_COUNTRY, normalizedPhone, supportedPhoneCountry } from ".
 import { validFbclid } from "./fbclid";
 import { validSccid } from "./sccid";
 import type { CountryCode } from "libphonenumber-js";
+import { LOCALES } from "../i18n/config";
 
 // French default messages for any issue without a custom message.
 z.config(z.locales.fr());
@@ -35,6 +36,7 @@ export const COUNTRIES = [
   { code: "CH", label: "Suisse" },
   { code: "LU", label: "Luxembourg" },
   { code: "MC", label: "Monaco" },
+  { code: "ES", label: "Espagne" },
 ] as const;
 
 const countryCodes = COUNTRIES.map((c) => c.code) as [string, ...string[]];
@@ -71,6 +73,9 @@ export const checkoutCustomerSchema = z
     if (v.country === "FR" && !/^\d{5}$/.test(v.postalCode)) {
       ctx.addIssue({ code: "custom", path: ["postalCode"], message: "Code postal français à 5 chiffres." });
     }
+    if (v.country === "ES" && !/^\d{5}$/.test(v.postalCode)) {
+      ctx.addIssue({ code: "custom", path: ["postalCode"], message: "Code postal espagnol à 5 chiffres." });
+    }
   }).transform(v => ({ ...v,
     fullName: v.firstName && v.lastName ? `${v.firstName} ${v.lastName}` : v.fullName!,
     phoneCountry: v.phoneCountry ?? DEFAULT_PHONE_COUNTRY,
@@ -88,6 +93,8 @@ export const orderRequestSchema = z.object({
   sccid: z.string().refine(validSccid, "Identifiant de clic invalide.").optional(),
   /** Payment checkout must never silently create a request-only order. */
   requireCheckout: z.boolean().optional().default(false),
+  /** Storefront language the order was placed in (older clients send nothing: French). */
+  locale: z.enum(LOCALES).optional().default("fr"),
   /** Honeypot: must stay empty. */
   website: z.string().max(0).optional().default(""),
 });

@@ -6,6 +6,7 @@ import { useStore } from "@/components/store/StoreProvider";
 import { percentOff } from "@/lib/money";
 import type { Size } from "@/lib/sizes";
 import type { CartLineInput, PublicProduct } from "@/lib/types";
+import { useT } from "@/i18n/client";
 
 export type Offer = "single" | "bundle";
 type Slot = { productId: string; size: Size | null };
@@ -35,6 +36,7 @@ export function usePurchase({
   basePath: string;
 }) {
   const router = useRouter();
+  const { t, href } = useT();
   const { add, config, setDrawerOpen } = useStore();
   const bundle = config.bundle;
   const bundleAvailable = bundle.enabled && product.bundleEligible && bundleOptions.length > 0;
@@ -120,7 +122,7 @@ export function usePurchase({
     if (size && p.sizes.some((s) => s.label === size && s.available)) params.set("taille", size);
     else params.delete("taille");
     const q = params.toString();
-    return `${basePath}/${p.slug}${q ? `?${q}` : ""}`;
+    return href(`${basePath}/${p.slug}${q ? `?${q}` : ""}`);
   };
 
   const goToColour = (p: PublicProduct) => {
@@ -133,8 +135,8 @@ export function usePurchase({
 
   const validate = () => {
     const next: Record<string, string> = {};
-    if (offer === "single" && !size) next.single = "Choisis ta taille.";
-    if (offer === "bundle") slots.forEach((s, i) => !s.size && (next[`slot${i}`] = `Choisis la taille de la veste ${i + 1}.`));
+    if (offer === "single" && !size) next.single = t("Choisis ta taille.");
+    if (offer === "bundle") slots.forEach((s, i) => !s.size && (next[`slot${i}`] = t("Choisis la taille de la veste {n}.", { n: i + 1 })));
     setErrors(next);
     const first = Object.keys(next)[0];
     if (first) {
@@ -159,7 +161,7 @@ export function usePurchase({
   const buyNow = () => {
     if (!config.acceptingOrders || buyingNow || !validate()) return;
     const params = new URLSearchParams({ achat: JSON.stringify(selectedLine()) });
-    startBuyNow(() => router.push(`/commande?${params}`));
+    startBuyNow(() => router.push(href(`/commande?${params}`)));
   };
 
   const state = {

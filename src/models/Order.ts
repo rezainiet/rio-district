@@ -76,6 +76,8 @@ const OrderSchema = new Schema(
     requestFingerprint: String,
     creationState: { type: String, enum: ["preparing", "ready"], default: "ready" },
     marketingConsent: { type: Boolean, default: false },
+    /** Storefront language of the order (orders created before Spanish have none: French). */
+    locale: { type: String, enum: ["fr", "es"], default: "fr" },
     attribution: { fbclid: String, sccid: String },
     customer: {
       firstName: String,

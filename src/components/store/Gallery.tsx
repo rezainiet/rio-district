@@ -6,17 +6,20 @@ import clsx from "clsx";
 import { Modal } from "@/components/ui/Modal";
 import { ZoomIcon } from "@/components/ui/icons";
 import type { PublicProduct } from "@/lib/types";
+import { useT } from "@/i18n/client";
 
 /** Visible on the image itself so it can never be mistaken for a product photo. */
 function PlaceholderTag() {
+  const { t } = useT();
   return (
     <span className="eyebrow pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-paper/90 px-2.5 py-1 text-[9.5px] text-ink-2 backdrop-blur">
-      Illustration provisoire
+      {t("Illustration provisoire")}
     </span>
   );
 }
 
 export function Gallery({ images, name }: { images: PublicProduct["images"]; name: string }) {
+  const { t } = useT();
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   const [lightbox, setLightbox] = useState(false);
@@ -42,7 +45,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
   };
 
   if (images.length === 0) {
-    return <div className="aspect-[4/5] rounded-[var(--radius-md)] bg-studio" aria-label="Pas d'image" />;
+    return <div className="aspect-[4/5] rounded-[var(--radius-md)] bg-studio" aria-label={t("Pas d'image")} />;
   }
 
   const current = images[Math.min(active, images.length - 1)];
@@ -53,13 +56,13 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
   return (
     <div className={clsx(multiple && "md:grid md:grid-cols-[72px_1fr] md:gap-4")}>
       {/* Thumbnails (desktop) */}
-      <ul className={clsx("hidden flex-col gap-3", multiple && "md:flex")} aria-label="Miniatures">
+      <ul className={clsx("hidden flex-col gap-3", multiple && "md:flex")} aria-label={t("Miniatures")}>
         {images.map((img, i) => (
           <li key={img.url}>
             <button
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Voir l'image ${i + 1} : ${img.alt}`}
+              aria-label={t("Voir l'image {n} : {alt}", { n: i + 1, alt: img.alt })}
               aria-current={i === active}
               className={clsx(
                 "relative block aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-sm)] bg-studio ring-offset-2 ring-offset-paper transition",
@@ -81,7 +84,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
           onClick={() => setLightbox(true)}
           role="button"
           tabIndex={0}
-          aria-label="Agrandir l'image"
+          aria-label={t("Agrandir l'image")}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -111,7 +114,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
           ref={trackRef}
           onScroll={onScroll}
           className="no-scrollbar relative -mx-4 flex snap-x snap-mandatory overflow-x-auto sm:-mx-6 md:hidden"
-          aria-label="Images du produit"
+          aria-label={t("Images du produit")}
         >
           {images.map((img, i) => (
             <button
@@ -122,7 +125,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
                 setLightbox(true);
               }}
               className="relative aspect-[4/5] w-full shrink-0 snap-center bg-studio"
-              aria-label={`Agrandir l'image ${i + 1}`}
+              aria-label={t("Agrandir l'image {n}", { n: i + 1 })}
             >
               {isPlaceholder && <PlaceholderTag />}
               <Image src={img.url} alt={img.alt || name} fill loading={i === 0 ? "eager" : "lazy"} sizes="(min-width: 768px) 1px, 100vw" className="object-cover" />
@@ -130,14 +133,14 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
           ))}
         </div>
         <div className={clsx("mt-3 items-center justify-between md:hidden", multiple ? "flex" : "hidden")}>
-          <div className="flex gap-1.5" role="tablist" aria-label="Choisir une image">
+          <div className="flex gap-1.5" role="tablist" aria-label={t("Choisir une image")}>
             {images.map((img, i) => (
               <button
                 key={img.url}
                 type="button"
                 role="tab"
                 aria-selected={i === active}
-                aria-label={`Image ${i + 1}`}
+                aria-label={t("Image {n}", { n: i + 1 })}
                 onClick={() => goTo(i)}
                 className={clsx("h-1.5 rounded-full transition-all", i === active ? "w-6 bg-ink" : "w-1.5 bg-line-strong")}
               />
@@ -160,7 +163,7 @@ export function Gallery({ images, name }: { images: PublicProduct["images"]; nam
               key={img.url}
               type="button"
               onClick={() => setActive(i)}
-              aria-label={`Image ${i + 1}`}
+              aria-label={t("Image {n}", { n: i + 1 })}
               className={clsx("relative size-14 overflow-hidden rounded-[var(--radius-sm)] bg-studio", i === active && "ring-2 ring-ink")}
             >
               <Image src={img.url} alt="" fill sizes="56px" className="object-cover" />

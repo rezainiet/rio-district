@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/i18n/client";
 
 // The three clips selected from the client's reference storefront. No embedded player SDK.
 const CLIPS = [12, 15, 13];
 export function CustomerVideos({ compact = false }: { compact?: boolean }) {
+  const { t } = useT();
   const rail = useRef<HTMLUListElement>(null);
   const section = useRef<HTMLElement>(null);
   const players = useRef<(HTMLVideoElement | null)[]>([]);
@@ -47,10 +49,10 @@ export function CustomerVideos({ compact = false }: { compact?: boolean }) {
     rail.current?.children[next]?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest", inline: "center" });
   };
   return <section ref={section} id="videos" className={compact ? "pdp-videos" : "container-x section-space"} aria-labelledby="videos-title">
-    <div className="section-heading"><div><p className="lab">Le mouvement Rio</p><h2 id="videos-title" className="display t-section mt-3">En vrai, ça donne ça.</h2><p className="mt-3 max-w-md text-sm text-muted">La veste en mouvement. À ta façon.</p></div>
-      <div className="flex gap-2"><button className="round-control" disabled={active === 0} onClick={() => select(active - 1)} aria-label="Vidéo précédente">←</button><button className="round-control" disabled={active === CLIPS.length - 1} onClick={() => select(active + 1)} aria-label="Vidéo suivante">→</button></div>
+    <div className="section-heading"><div><p className="lab">{t("Le mouvement Rio")}</p><h2 id="videos-title" className="display t-section mt-3">{t("En vrai, ça donne ça.")}</h2><p className="mt-3 max-w-md text-sm text-muted">{t("La veste en mouvement. À ta façon.")}</p></div>
+      <div className="flex gap-2"><button className="round-control" disabled={active === 0} onClick={() => select(active - 1)} aria-label={t("Vidéo précédente")}>←</button><button className="round-control" disabled={active === CLIPS.length - 1} onClick={() => select(active + 1)} aria-label={t("Vidéo suivante")}>→</button></div>
     </div>
-    <ul ref={rail} className="video-rail no-scrollbar" aria-label="Vidéos de la communauté" onScroll={() => {
+    <ul ref={rail} className="video-rail no-scrollbar" aria-label={t("Vidéos de la communauté")} onScroll={() => {
       const el = rail.current; if (!el) return;
       const center = el.getBoundingClientRect().left + el.clientWidth / 2;
       let nearest = 0, distance = Infinity;
@@ -58,11 +60,11 @@ export function CustomerVideos({ compact = false }: { compact?: boolean }) {
       if (el.scrollWidth > el.clientWidth + 2) { setActive(nearest); setMuted(true); }
     }}>
       {CLIPS.map((id,i) => <li key={id} className={`video-card ${active === i ? "is-active" : ""}`}>
-        <video ref={el => { players.current[i] = el; }} src={canLoad && active === i ? `https://kaltshop.club/temoignages/avis-${id}.mp4` : undefined} poster={`/videos/reference/avis-${id}.webp`} preload="none" playsInline loop muted={muted || active !== i} aria-label={`Veste Brésil en mouvement, vidéo ${i + 1}`} onError={() => setFailed(i)} onPlaying={() => setFailed(null)} />
+        <video ref={el => { players.current[i] = el; }} src={canLoad && active === i ? `https://kaltshop.club/temoignages/avis-${id}.mp4` : undefined} poster={`/videos/reference/avis-${id}.webp`} preload="none" playsInline loop muted={muted || active !== i} aria-label={t("Veste Brésil en mouvement, vidéo {n}", { n: i + 1 })} onError={() => setFailed(i)} onPlaying={() => setFailed(null)} />
         <span className="video-number">RIO IN REAL LIFE / 0{i + 1}</span>
-        <div className="video-controls"><button aria-label={active === i && playing && canLoad ? `Mettre la vidéo ${i + 1} en pause` : `Lire la vidéo ${i + 1}`} onClick={() => { setManual(true); setActive(i); setPlaying(active === i && canLoad ? !playing : true); }}>{active === i && playing && canLoad ? "Ⅱ" : "▶"}</button>
-          <button aria-label={muted ? `Activer le son de la vidéo ${i + 1}` : `Couper le son de la vidéo ${i + 1}`} onClick={() => { setActive(i); setManual(true); setPlaying(true); setMuted(active === i ? !muted : false); }}>{muted || active !== i ? "Son off" : "Son on"}</button></div>
-        {failed === i && <p className="video-error" role="status">Vidéo momentanément indisponible.</p>}
+        <div className="video-controls"><button aria-label={active === i && playing && canLoad ? t("Mettre la vidéo {n} en pause", { n: i + 1 }) : t("Lire la vidéo {n}", { n: i + 1 })} onClick={() => { setManual(true); setActive(i); setPlaying(active === i && canLoad ? !playing : true); }}>{active === i && playing && canLoad ? "Ⅱ" : "▶"}</button>
+          <button aria-label={muted ? t("Activer le son de la vidéo {n}", { n: i + 1 }) : t("Couper le son de la vidéo {n}", { n: i + 1 })} onClick={() => { setActive(i); setManual(true); setPlaying(true); setMuted(active === i ? !muted : false); }}>{muted || active !== i ? t("Son off") : t("Son on")}</button></div>
+        {failed === i && <p className="video-error" role="status">{t("Vidéo momentanément indisponible.")}</p>}
       </li>)}
     </ul>
     <div className="video-progress" aria-hidden="true">{CLIPS.map((id,i) => <span key={id} className={active === i ? "is-active" : ""} />)}</div>

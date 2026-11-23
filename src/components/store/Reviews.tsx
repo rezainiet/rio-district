@@ -7,6 +7,7 @@ import { MIN_REVIEWS_FOR_DISTRIBUTION, formatParisDate, type RatingSummary } fro
 import type { PublicReview } from "@/lib/reviews";
 import { Stars } from "./Stars";
 import { ReviewForm } from "./ReviewForm";
+import { useT } from "@/i18n/client";
 
 const PAGE = 6;
 
@@ -26,6 +27,7 @@ export function Reviews({
   variant: "product" | "home";
   product?: { id: string; name: string };
 }) {
+  const { t, tx, locale } = useT();
   const [shown, setShown] = useState(PAGE);
   const [writing, setWriting] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -39,12 +41,12 @@ export function Reviews({
       <div className="container-x">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="lab">Avis clients</p>
+            <p className="lab">{t("Avis clients")}</p>
             <h2 id="avis-title" className="display mt-3 text-[30px] uppercase sm:text-[44px] lg:text-[56px]">
-              {variant === "home" ? "Ce qu'ils en disent." : "Ils l'ont adoptée."}
+              {variant === "home" ? t("Ce qu'ils en disent.") : t("Ils l'ont adoptée.")}
             </h2>
             {variant === "product" && summary.count > 0 && (
-              <p className="mt-3 text-sm text-muted">Avis sur la Veste Brésil, tous coloris confondus.</p>
+              <p className="mt-3 text-sm text-muted">{t("Avis sur la Veste Brésil, tous coloris confondus.")}</p>
             )}
           </div>
 
@@ -57,11 +59,11 @@ export function Reviews({
                 </p>
                 <Stars value={summary.average} size={18} className="mt-3" />
                 <p className="mt-2 text-sm text-muted">
-                  {summary.count} avis publié{summary.count > 1 ? "s" : ""}
+                  {summary.count === 1 ? t("1 avis publié") : t("{n} avis publiés", { n: summary.count })}
                 </p>
               </div>
               {summary.count >= MIN_REVIEWS_FOR_DISTRIBUTION && (
-                <dl className="grid flex-1 gap-1.5 text-xs text-ink-2" aria-label="Répartition des notes">
+                <dl className="grid flex-1 gap-1.5 text-xs text-ink-2" aria-label={t("Répartition des notes")}>
                   {([5, 4, 3, 2, 1] as const).map((n) => {
                     const c = summary.distribution[n];
                     return (
@@ -82,14 +84,14 @@ export function Reviews({
 
         {summary.count === 0 ? (
           <div className="mt-10 rounded-[18px] border border-dashed border-line-strong px-6 py-14 text-center">
-            <Stars value={0} size={20} label="Aucune note pour le moment" />
-            <p className="mt-5 font-display text-lg font-bold uppercase">Aucun avis publié pour le moment.</p>
+            <Stars value={0} size={20} label={t("Aucune note pour le moment")} />
+            <p className="mt-5 font-display text-lg font-bold uppercase">{t("Aucun avis publié pour le moment.")}</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-              Les avis sont relus avant publication. Tu as reçu ta veste ? Partage ton ressenti avec la communauté.
+              {t("Les avis sont relus avant publication. Tu as reçu ta veste ? Partage ton ressenti avec la communauté.")}
             </p>
             {canWrite && (
               <Button size="lg" className="mt-7" onClick={() => setWriting(true)}>
-                Écrire un avis
+                {t("Écrire un avis")}
               </Button>
             )}
           </div>
@@ -100,7 +102,7 @@ export function Reviews({
                 <li key={r.id} className="flex flex-col rounded-[18px] border border-line bg-paper-2 p-6">
                   <div className="flex items-center justify-between gap-3">
                     <Stars value={r.rating} size={15} />
-                    {r.date && <time dateTime={r.date} className="text-xs text-muted">{formatParisDate(r.date)}</time>}
+                    {r.date && <time dateTime={r.date} className="text-xs text-muted">{formatParisDate(r.date, locale)}</time>}
                   </div>
                   {r.title && <h3 className="mt-4 font-display text-base font-bold uppercase leading-snug">{r.title}</h3>}
                   <p className="mt-2 whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-2">{r.text}</p>
@@ -112,7 +114,7 @@ export function Reviews({
                             type="button"
                             onClick={() => setPhoto(src)}
                             className="block size-16 overflow-hidden rounded-xl border border-line transition-opacity hover:opacity-80"
-                            aria-label={`Agrandir la photo ${i + 1} de ${r.author}`}
+                            aria-label={t("Agrandir la photo {n} de {name}", { n: i + 1, name: r.author })}
                           >
                             {/* Customer photos are served by a gated route, not the image optimizer. */}
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -124,13 +126,13 @@ export function Reviews({
                   )}
                   <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-5 text-sm">
                     <span className="font-semibold">{r.author}</span>
-                    {r.color && <span className="text-muted">Coloris {r.color}</span>}
+                    {r.color && <span className="text-muted">{t("Coloris {color}", { color: tx(r.color) })}</span>}
                     {r.verified && (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand">
                         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
                           <path d="M2 6.2l2.6 2.6L10 3.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
                         </svg>
-                        Achat vérifié
+                        {t("Achat vérifié")}
                       </span>
                     )}
                   </div>
@@ -140,12 +142,12 @@ export function Reviews({
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               {remaining > 0 && (
                 <Button size="lg" variant="ghost" className="w-full border border-line-strong hover:bg-paper-3 sm:w-auto" onClick={() => setShown((s) => s + PAGE)}>
-                  Voir plus d&apos;avis ({remaining})
+                  {t("Voir plus d'avis ({n})", { n: remaining })}
                 </Button>
               )}
               {canWrite && (
                 <Button size="lg" className="w-full sm:w-auto" onClick={() => setWriting(true)}>
-                  Écrire un avis
+                  {t("Écrire un avis")}
                 </Button>
               )}
             </div>
@@ -154,14 +156,14 @@ export function Reviews({
       </div>
 
       {canWrite && (
-        <Modal open={writing} onClose={() => setWriting(false)} title="Ton avis" description={product.name} className="max-w-xl">
+        <Modal open={writing} onClose={() => setWriting(false)} title={t("Ton avis")} description={product.name} className="max-w-xl">
           {writing && <ReviewForm productId={product.id} onDone={() => setWriting(false)} />}
         </Modal>
       )}
-      <Modal open={photo !== null} onClose={() => setPhoto(null)} title="Photo client" className="max-w-2xl">
+      <Modal open={photo !== null} onClose={() => setPhoto(null)} title={t("Photo client")} className="max-w-2xl">
         {photo && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt="Photo partagée par un client" className="max-h-[70dvh] w-full rounded-xl object-contain" />
+          <img src={photo} alt={t("Photo partagée par un client")} className="max-h-[70dvh] w-full rounded-xl object-contain" />
         )}
       </Modal>
     </section>

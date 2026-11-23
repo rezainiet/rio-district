@@ -8,11 +8,15 @@ import { formatEUR } from "@/lib/money";
 import { buttonClass } from "@/components/ui/Button";
 import { useStore } from "./StoreProvider";
 import { CartReminderPanel, PromoPanel } from "./PopupPanels";
+import { resolvePublicPath } from "@/i18n/config";
+import { useT } from "@/i18n/client";
+import { translator, type Translator } from "@/i18n/translate";
 
 type Kind = "welcome" | "exitIntent" | "cartReminder";
 
-export const popupEyebrow = (kind: "welcome" | "exitIntent", storeName: string) =>
-  kind === "welcome" ? `Bienvenue chez ${storeName}` : "Avant de partir";
+/** Pop-up eyebrow; French unless a translator is given (the admin previews stay French). */
+export const popupEyebrow = (kind: "welcome" | "exitIntent", storeName: string, t: Translator["t"] = translator("fr").t) =>
+  kind === "welcome" ? t("Bienvenue chez {store}", { store: storeName }) : t("Avant de partir");
 
 /* ---------- Frequency memory (per browser). Storage can be unavailable: fail closed. ---------- */
 
@@ -62,7 +66,9 @@ function overlayOpen() {
  * - the cart reminder only greets a RETURNING visit with items in the cart.
  */
 export function MarketingPopups({ popups }: { popups: LivePopups }) {
-  const pathname = usePathname();
+  const { t } = useT();
+  // Rules below compare internal (French) routes: /carrito → /panier.
+  const pathname = resolvePublicPath(usePathname()).path;
   const { lines, quote, hydrated, setDrawerOpen, config } = useStore();
   const [open, setOpen] = useState<Kind | null>(null);
   const pathRef = useRef(pathname);
@@ -159,7 +165,7 @@ export function MarketingPopups({ popups }: { popups: LivePopups }) {
         items={quote.lines.map((l, i) => ({
           key: `${i}`,
           label: l.kind === "bundle" ? l.label : l.items[0]?.name ?? "",
-          detail: `${l.items.map((it) => (l.kind === "bundle" ? `${it.color} ${it.size}` : `Taille ${it.size}`)).join(" + ")}${l.quantity > 1 ? ` · ×${l.quantity}` : ""}`,
+          detail: `${l.items.map((it) => (l.kind === "bundle" ? `${it.color} ${it.size}` : t("Taille {size}", { size: it.size }))).join(" + ")}${l.quantity > 1 ? ` · ×${l.quantity}` : ""}`,
           image: l.items[0]?.image ?? "",
         }))}
         count={quote.itemsCount}
@@ -172,6 +178,7 @@ export function MarketingPopups({ popups }: { popups: LivePopups }) {
 }
 
 function PromoDialog({ kind, popup, storeName, onClose }: { kind: "welcome" | "exitIntent"; popup: LivePopup; storeName: string; onClose: () => void }) {
+  const { t } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -197,7 +204,7 @@ function PromoDialog({ kind, popup, storeName, onClose }: { kind: "welcome" | "e
       className={`m-auto w-[calc(100%-24px)] bg-transparent p-0 backdrop:bg-black/70 motion-safe:animate-fade-up motion-safe:backdrop:backdrop-blur-sm ${popup.imageUrl ? "max-w-[760px]" : "max-w-[480px]"}`}
     >
       <PromoPanel
-        eyebrow={popupEyebrow(kind, storeName)}
+        eyebrow={popupEyebrow(kind, storeName, t)}
         title={popup.title}
         text={popup.text}
         ctaLabel={popup.ctaLabel}

@@ -13,6 +13,9 @@ import { PaymentAttempt } from "@/models/misc";
 
 export const metadata = { title: "Commande" };
 
+/** Storefront language of the order; orders created before the Spanish site have no locale (French). */
+const LANGUAGE_LABEL: Record<string, string> = { fr: "Français", es: "Espagnol" };
+
 const HISTORY_LABEL: Record<string, string> = {
   created: "Demande créée",
   status: "Statut modifié",
@@ -88,6 +91,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/comm
               <p className="font-semibold">{order.customer.fullName}</p>
               <p className="mt-1 text-sm"><a className="underline" href={`mailto:${order.customer.email}?subject=${encodeURIComponent(`Commande ${order.number}`)}`}>{order.customer.email}</a></p>
               <p className="text-sm"><a className="underline" href={`tel:${order.customer.phone.replace(/\s/g, "")}`}>{order.customer.phone}</a></p>
+              <p className="mt-2 text-sm text-muted">Langue : {LANGUAGE_LABEL[order.locale ?? "fr"] ?? order.locale}</p>
             </Card>
             <Card title="Livraison">
               <address className="text-sm not-italic leading-relaxed">

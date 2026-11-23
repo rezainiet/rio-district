@@ -8,7 +8,12 @@
  * the only source of truth.
  */
 
+import type { Locale } from "@/i18n/config";
+
 export const STORE_TZ = "Europe/Paris";
+
+/* Customer-facing wording below is French by default; pass "es" for the Spanish storefront. */
+const intlLocale = (locale: Locale) => (locale === "es" ? "es-ES" : "fr-FR");
 
 export type CountdownSettings = {
   enabled: boolean;
@@ -185,16 +190,17 @@ export function utcToParisLocal(iso: string | null): string {
   return `${p.y}-${pad(p.mo)}-${pad(p.d)}T${pad(p.h)}:${pad(p.mi)}`;
 }
 
-/** "dimanche 20 octobre à 23:59" in Paris time. */
-export function formatParisDeadline(iso: string) {
+/** "dimanche 20 octobre à 23:59" in Paris time · es: "domingo, 20 de octubre a las 23:59". */
+export function formatParisDeadline(iso: string, locale: Locale = "fr") {
   const d = new Date(iso);
-  const day = new Intl.DateTimeFormat("fr-FR", { timeZone: STORE_TZ, weekday: "long", day: "numeric", month: "long" }).format(d);
-  const time = new Intl.DateTimeFormat("fr-FR", { timeZone: STORE_TZ, hour: "2-digit", minute: "2-digit" }).format(d);
-  return `${day} à ${time}`;
+  const day = new Intl.DateTimeFormat(intlLocale(locale), { timeZone: STORE_TZ, weekday: "long", day: "numeric", month: "long" }).format(d);
+  const time = new Intl.DateTimeFormat(intlLocale(locale), { timeZone: STORE_TZ, hour: "2-digit", minute: "2-digit" }).format(d);
+  return locale === "es" ? `${day} a las ${time}` : `${day} à ${time}`;
 }
 
-export function formatParisDate(iso: string | Date) {
-  return new Intl.DateTimeFormat("fr-FR", { timeZone: STORE_TZ, day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+/** "20 octobre 2026" · es: "20 de octubre de 2026". */
+export function formatParisDate(iso: string | Date, locale: Locale = "fr") {
+  return new Intl.DateTimeFormat(intlLocale(locale), { timeZone: STORE_TZ, day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
 }
 
 /* ---------- Ratings ---------- */
@@ -215,15 +221,15 @@ export function summarizeRatings(ratings: number[]): RatingSummary {
 }
 
 /** Public reviewer name: first name + initial, whatever was typed. */
-// "jean dupont" → "Jean D." ; "Julien" → "Julien".
-export function displayName(raw: string) {
+// "jean dupont" → "Jean D." ; "Julien" → "Julien" ; "" → "Client" (es: "Cliente").
+export function displayName(raw: string, locale: Locale = "fr") {
   const parts = raw.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "Client";
-  const cap = (s: string) => s.charAt(0).toLocaleUpperCase("fr-FR") + s.slice(1);
+  if (parts.length === 0) return locale === "es" ? "Cliente" : "Client";
+  const cap = (s: string) => s.charAt(0).toLocaleUpperCase(intlLocale(locale)) + s.slice(1);
   const first = cap(parts[0]);
   if (parts.length === 1) return first;
   const last = parts[parts.length - 1].replace(/\.$/, "");
-  return `${first} ${last.charAt(0).toLocaleUpperCase("fr-FR")}.`;
+  return `${first} ${last.charAt(0).toLocaleUpperCase(intlLocale(locale))}.`;
 }
 
 /** The distribution bars are only meaningful with a handful of reviews. */

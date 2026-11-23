@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { getActiveProducts, getSettings } from "@/lib/catalog";
 
 import { formatEUR } from "@/lib/money";
@@ -17,6 +19,20 @@ import { MailIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import type { PublicProduct } from "@/lib/types";
 import "./collection.css";
 import { paymentsEnabled } from "@/lib/payments";
+import { alternates } from "@/i18n/config";
+import { localizeProducts, localizeSettings } from "@/i18n/content";
+import { getT } from "@/i18n/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await getT();
+  return { alternates: alternates("/", locale) };
+}
+
+/** Puts a node (a price in bold…) at the {name} placeholder of a translated sentence. */
+function rich(text: string, name: string, node: ReactNode) {
+  const [before, after = ""] = text.split(`{${name}}`);
+  return <>{before}{node}{after}</>;
+}
 
 /** Rounded, softly lit product photo used across the homepage. */
 function Shot({ product, className, sizes, priority }: { product?: PublicProduct; className: string; sizes: string; priority?: boolean }) {
@@ -29,8 +45,11 @@ function Shot({ product, className, sizes, priority }: { product?: PublicProduct
 }
 
 export default async function HomePage() {
-  const [settings, products] = await Promise.all([getSettings(), getActiveProducts()]);
-  const reviews = await homeReviews(products, 28);
+  const [frSettings, frProducts, tr] = await Promise.all([getSettings(), getActiveProducts(), getT()]);
+  const { t, href, locale } = tr;
+  const reviews = await homeReviews(frProducts, 28);
+  const settings = localizeSettings(frSettings, tr);
+  const products = localizeProducts(frProducts, tr);
 
   const plan = storePlan(settings);
   const { bundle } = settings;
@@ -40,12 +59,21 @@ export default async function HomePage() {
   const bundleFull = unit * bundle.quantity;
   const bundleSavings = Math.max(0, bundleFull - bundle.priceCents);
   const showBundle = bundle.enabled && products.some((p) => p.bundleEligible);
-  const packHref = lead ? `/produit/${lead.slug}?offre=pack#acheter` : "/#collection";
-  const faq = storeFaq(settings, plan, unit);
+  const packHref = href(lead ? `/produit/${lead.slug}?offre=pack#acheter` : "/#collection");
+  const faq = storeFaq(frSettings, plan, unit, locale);
+  const online = paymentsEnabled(frSettings);
   const promises = [
-    { icon: TruckIcon, title: settings.shipping.priceCents === 0 ? "Livraison offerte et suivie" : "Livraison suivie", text: `Commandée aujourd'hui, livrée ${rangeShort(plan.deliveryFrom, plan.deliveryTo)}` },
-    { icon: ReturnIcon, title: `Retour sous ${settings.returnsPolicy.windowDays} jours`, text: "Après réception, sur simple demande" },
-    { icon: MailIcon, title: paymentsEnabled(settings) ? "Paiement chez notre partenaire" : "Rien à payer aujourd'hui", text: paymentsEnabled(settings) ? "Ta sélection enregistrée avant le paiement externe" : "Commande confirmée par e-mail avant tout paiement" },
+    {
+      icon: TruckIcon,
+      title: settings.shipping.priceCents === 0 ? t("Livraison offerte et suivie") : t("Livraison suivie"),
+      text: t("Commandée aujourd'hui, livrée {range}", { range: rangeShort(plan.deliveryFrom, plan.deliveryTo, locale) }),
+    },
+    { icon: ReturnIcon, title: t("Retour sous {n} jours", { n: settings.returnsPolicy.windowDays }), text: t("Après réception, sur simple demande") },
+    {
+      icon: MailIcon,
+      title: online ? t("Paiement chez notre partenaire") : t("Rien à payer aujourd'hui"),
+      text: online ? t("Ta sélection enregistrée avant le paiement externe") : t("Commande confirmée par e-mail avant tout paiement"),
+    },
   ];
 
   return (
@@ -55,48 +83,50 @@ export default async function HomePage() {
       {/* ---------- HERO: the whole line-up, the prices and the way in, on the first screen ---------- */}
       <section aria-labelledby="hero-title" className="container-x grid gap-5 pb-10 pt-4 lg:grid-cols-[5fr_7fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-6 lg:pb-16 lg:pt-12">
         <div className="lg:col-start-1 lg:self-end">
-          <p className="lab">Collection Brésil · {products.length} coloris · XS → 3XL</p>
+          <p className="lab">{t("Collection Brésil · {n} coloris · XS → 3XL", { n: products.length })}</p>
           <h1 id="hero-title" className="display t-hero mt-2 uppercase">
-            La veste <span className="text-brand">Brésil.</span>
+            {t("La veste")} <span className="text-brand">{t("Brésil.")}</span>
           </h1>
         </div>
 
         <HeroCarousel products={products} />
 
         <div className="lg:col-start-1 lg:self-start">
-          <p className="max-w-md text-[16px] leading-relaxed text-ink-2">Coupe-vent léger, coupe ample, zip intégral. Celle que tu mets tous les jours.</p>
+          <p className="max-w-md text-[16px] leading-relaxed text-ink-2">{t("Coupe-vent léger, coupe ample, zip intégral. Celle que tu mets tous les jours.")}</p>
           {reviews.summary.count > 0 && (
             <a href="#avis" className="mt-2 inline-flex min-h-11 items-center gap-2 text-[15px]">
               <Stars value={reviews.summary.average} size={16} />
               <span className="font-semibold">{reviews.summary.average.toLocaleString("fr-FR", { minimumFractionDigits: 1 })}</span>
-              <span className="text-ink-2 underline decoration-line-strong underline-offset-4">{reviews.summary.count} avis clients</span>
+              <span className="text-ink-2 underline decoration-line-strong underline-offset-4">
+                {locale === "es" && reviews.summary.count === 1 ? t("1 avis client") : t("{n} avis clients", { n: reviews.summary.count })}
+              </span>
             </a>
           )}
           <dl className="mt-3 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-paper-2">
             <div className="p-4">
-              <dt className="text-sm text-ink-2">La veste</dt>
+              <dt className="text-sm text-ink-2">{t("La veste")}</dt>
               <dd className="price mt-0.5 text-[30px] leading-none">{formatEUR(unit)}</dd>
             </div>
             {showBundle && (
               <div className="border-l border-line bg-[#17140f] p-4">
-                <dt className="text-sm text-ink-2">Les deux, au choix</dt>
+                <dt className="text-sm text-ink-2">{t("Les deux, au choix")}</dt>
                 <dd className="price mt-0.5 text-[30px] leading-none text-brand">{formatEUR(bundle.priceCents)}</dd>
-                {bundleSavings > 0 && <dd className="mt-1 text-[13px] font-semibold text-[#8fd9ad]">{formatEUR(bundleSavings)} d&apos;économie</dd>}
+                {bundleSavings > 0 && <dd className="mt-1 text-[13px] font-semibold text-[#8fd9ad]">{t("{amount} d'économie", { amount: formatEUR(bundleSavings) })}</dd>}
               </div>
             )}
           </dl>
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-            <ButtonLink href="#collection" size="lg" className="h-14 w-full">Choisir ma veste</ButtonLink>
+            <ButtonLink href="#collection" size="lg" className="h-14 w-full">{t("Choisir ma veste")}</ButtonLink>
             {showBundle && (
               <ButtonLink href={packHref} size="lg" variant="ghost" className="h-14 w-full border border-line-strong hover:bg-paper-3">
-                Composer mon pack
+                {t("Composer mon pack")}
               </ButtonLink>
             )}
           </div>
         </div>
       </section>
 
-      <section aria-label="Nos engagements" className="benefits-marquee border-y border-line bg-paper-2" tabIndex={0}>
+      <section aria-label={t("Nos engagements")} className="benefits-marquee border-y border-line bg-paper-2" tabIndex={0}>
         <div className="benefits-track">{[0, 1].map(copy => <ul key={copy} aria-hidden={copy === 1}>
           {promises.map(({icon:Icon,title,text}) => <li key={title}><Icon width={22} height={22} className="shrink-0 text-brand" /><span><strong>{title}</strong><span>{text}</span></span><span className="benefit-star" aria-hidden="true">✦</span></li>)}
         </ul>)}</div>
@@ -105,13 +135,13 @@ export default async function HomePage() {
       {/* ---------- COLLECTION ---------- */}
       <Reveal><section id="collection" aria-labelledby="collection-title" className="container-x scroll-mt-32 section-space">
         <div className="rd-collection-invitation">
-          <p className="lab">{products.length} coloris · {showBundle ? "ton duo t’attend" : "à toi de choisir"}</p>
+          <p className="lab">{showBundle ? t("{n} coloris · ton duo t’attend", { n: products.length }) : t("{n} coloris · à toi de choisir", { n: products.length })}</p>
           <h2 id="collection-title" className="display t-section mt-4">
-            {showBundle ? <>Ton prochain duo<br /><span className="text-brand">commence ici.</span></> : <>Ton coup de cœur<br /><span className="text-brand">t’attend ici.</span></>}
+            {showBundle ? <>{t("Ton prochain duo")}<br /><span className="text-brand">{t("commence ici.")}</span></> : <>{t("Ton coup de cœur")}<br /><span className="text-brand">{t("t’attend ici.")}</span></>}
           </h2>
           <p className="rd-collection-copy">
-            Un coloris pour aujourd’hui. Un autre pour demain.
-            {showBundle && <span>Choisis tes deux coups de cœur pour <strong>{formatEUR(bundle.priceCents)}</strong>.</span>}
+            {t("Un coloris pour aujourd’hui. Un autre pour demain.")}
+            {showBundle && <span>{rich(t("Choisis tes deux coups de cœur pour {price}."), "price", <strong>{formatEUR(bundle.priceCents)}</strong>)}</span>}
           </p>
           <svg className="rd-collection-arrow" width="138" height="95" viewBox="0 0 160 110" fill="none" aria-hidden="true" focusable="false">
             <path d="M38 9c55-12 109 19 94 42-11 17-49 8-36-10 12-16 40 1 25 23-10 14-29 19-43 33" />
@@ -119,7 +149,7 @@ export default async function HomePage() {
           </svg>
         </div>
         {products.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-line-strong p-10 text-center text-muted">La collection arrive bientôt.</p>
+          <p className="rounded-2xl border border-dashed border-line-strong p-10 text-center text-muted">{t("La collection arrive bientôt.")}</p>
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
             {products.map((p) => (
@@ -136,12 +166,12 @@ export default async function HomePage() {
       {showBundle && (
         <Reveal><section id="pack" aria-labelledby="pack-title" className="pack-editorial scroll-mt-32">
           <div className="container-x section-space text-center">
-            <p className="lab">Deux fois plus de Rio</p>
-            <div className="pack-lineup" aria-label="Les six couleurs de la collection">{products.slice(0,6).map((p) => <Shot key={p.id} product={p} className="pack-lineup-shot" sizes="(min-width: 1024px) 22vw, 29vw" />)}</div>
-            <h2 id="pack-title" className="display mt-8 text-[clamp(36px,8vw,76px)]">Une seule couleur ?<br /><span className="text-brand">Dur de choisir.</span></h2>
-            <p className="mx-auto mt-5 max-w-lg text-[16px] text-ink-2">Mélange les couleurs, choisis chaque taille.<br />Le duo à <strong className="text-ink">{formatEUR(bundle.priceCents)}</strong>, c&apos;est toi qui le composes.</p>
-            <div className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm"><s className="text-muted">{formatEUR(bundleFull)}</s><span className="text-brand">{formatEUR(bundleSavings)} d&apos;économie sur le duo</span></div>
-            <ButtonLink href={packHref} size="lg" className="mt-7 h-14 gap-8">Créer mon pack <span aria-hidden="true">↗</span></ButtonLink>
+            <p className="lab">{t("Deux fois plus de Rio")}</p>
+            <div className="pack-lineup" aria-label={t("Les six couleurs de la collection")}>{products.slice(0,6).map((p) => <Shot key={p.id} product={p} className="pack-lineup-shot" sizes="(min-width: 1024px) 22vw, 29vw" />)}</div>
+            <h2 id="pack-title" className="display mt-8 text-[clamp(36px,8vw,76px)]">{t("Une seule couleur ?")}<br /><span className="text-brand">{t("Dur de choisir.")}</span></h2>
+            <p className="mx-auto mt-5 max-w-lg text-[16px] text-ink-2">{t("Mélange les couleurs, choisis chaque taille.")}<br />{rich(t("Le duo à {price}, c'est toi qui le composes."), "price", <strong className="text-ink">{formatEUR(bundle.priceCents)}</strong>)}</p>
+            <div className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm"><s className="text-muted">{formatEUR(bundleFull)}</s><span className="text-brand">{t("{amount} d'économie sur le duo", { amount: formatEUR(bundleSavings) })}</span></div>
+            <ButtonLink href={packHref} size="lg" className="mt-7 h-14 gap-8">{t("Créer mon pack")} <span aria-hidden="true">↗</span></ButtonLink>
           </div>
         </section></Reveal>
       )}
@@ -155,16 +185,16 @@ export default async function HomePage() {
               <Shot product={pick("jaune", 5)} className="mt-8 aspect-[4/5] overflow-hidden rounded-2xl" sizes="(min-width: 1024px) 24vw, 50vw" />
             </div>
             <div>
-              <p className="lab">La veste</p>
-              <h2 id="details-title" className="display t-section mt-2 uppercase">Légère. Ample. Zippée.</h2>
+              <p className="lab">{t("La veste")}</p>
+              <h2 id="details-title" className="display t-section mt-2 uppercase">{t("Légère. Ample. Zippée.")}</h2>
               <p className="mt-3 max-w-lg text-[16px] leading-relaxed text-ink-2">{lead.description}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {lead.details.map((d) => (
                   <li key={d} className="rounded-full border border-line-strong px-3.5 py-2 text-[14px] text-ink-2">{d}</li>
                 ))}
               </ul>
-              <ButtonLink href={`/produit/${lead.slug}`} size="lg" variant="ghost" className="mt-6 h-14 w-full border border-line-strong hover:bg-paper-3 sm:w-auto">
-                Voir la fiche et les tailles
+              <ButtonLink href={href(`/produit/${lead.slug}`)} size="lg" variant="ghost" className="mt-6 h-14 w-full border border-line-strong hover:bg-paper-3 sm:w-auto">
+                {t("Voir la fiche et les tailles")}
               </ButtonLink>
             </div>
           </div>
@@ -179,13 +209,13 @@ export default async function HomePage() {
         <div className="container-x grid gap-12 section-space lg:grid-cols-[7fr_5fr] lg:gap-16">
           <Faq items={faq} />
           <section id="contact" aria-labelledby="contact-title" className="scroll-mt-20 rounded-2xl border border-line bg-paper-2 p-5 sm:p-8">
-            <p className="lab">Contact</p>
-            <h2 id="contact-title" className="display t-sub mt-2 uppercase">Une question ?</h2>
+            <p className="lab">{t("Contact")}</p>
+            <h2 id="contact-title" className="display t-sub mt-2 uppercase">{t("Une question ?")}</h2>
             <p className="mb-5 mt-2 text-[15px] leading-relaxed text-ink-2">
-              Taille, commande, retour : écris-nous, on te répond par e-mail. Indique ton numéro de commande si tu en as un.
+              {t("Taille, commande, retour : écris-nous, on te répond par e-mail. Indique ton numéro de commande si tu en as un.")}
             </p>
             <ContactFormLazy />
-            <p className="mt-4 break-all text-sm text-muted">ou directement : <span className="text-ink-2">{settings.contactEmail}</span></p>
+            <p className="mt-4 break-all text-sm text-muted">{t("ou directement :")} <span className="text-ink-2">{settings.contactEmail}</span></p>
           </section>
         </div>
       </section></Reveal>

@@ -25,6 +25,8 @@ import { stockMessage, type StockInfo } from "@/lib/stock-status";
 import type { PublicProduct } from "@/lib/types";
 import type { PreviewData } from "./types";
 import type { Purchase } from "./usePurchase";
+import { useT } from "@/i18n/client";
+import type { Translator } from "@/i18n/translate";
 
 // The review form (and its validation library) loads only when its window opens.
 const ReviewForm = dynamic(() => import("@/components/store/ReviewForm").then((m) => m.ReviewForm));
@@ -44,6 +46,7 @@ export function PreviewTag({ children, className }: { children: ReactNode; class
 
 /** Renders "texte [point à confirmer]" with the bracketed part as a visible "À confirmer" marker. */
 export function WithPending({ text }: { text: string }) {
+  const { t } = useT();
   // Production never states an unconfirmed term: the marker is simply dropped.
   if (!SHOW_PENDING) return <>{text.replace(/\s*\[[^\]]+\]/g, "")}</>;
   const parts = text.split(/(\[[^\]]+\])/g).filter(Boolean);
@@ -52,7 +55,7 @@ export function WithPending({ text }: { text: string }) {
       {parts.map((part, i) =>
         part.startsWith("[") ? (
           <span key={i} className="ml-1 rounded-md border border-dashed border-[#7d6a43] px-1.5 py-0.5 text-[12px] text-[#d9bf86] [box-decoration-break:clone]">
-            <span className="font-semibold uppercase tracking-[0.08em]">À confirmer</span>{" "}
+            <span className="font-semibold uppercase tracking-[0.08em]">{t("À confirmer")}</span>{" "}
             <span className="text-[#bfae8a]">{part.slice(1, -1).replace(/^À confirmer\s*:?\s*/i, "")}</span>
           </span>
         ) : (
@@ -68,25 +71,29 @@ const fr1 = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 1,
 /* ---------- Rating summary (clickable, scrolls to the reviews) ---------- */
 
 export function RatingLink({ summary, className, size = 15, compact = false }: { summary: RatingSummary; className?: string; size?: number; compact?: boolean }) {
+  const { t } = useT();
   if (summary.count === 0) {
     return (
       <a href="#avis" className={clsx("inline-flex min-h-11 items-center gap-2 text-sm text-muted hover:text-ink", className)}>
-        <Stars value={0} size={size} label="Aucune note pour le moment" />
-        Nouveauté · aucun avis publié pour l&apos;instant
+        <Stars value={0} size={size} label={t("Aucune note pour le moment")} />
+        {t("Nouveauté · aucun avis publié pour l'instant")}
       </a>
     );
   }
+  const n = summary.count;
   return (
     <a
       href="#avis"
-      aria-label={`Note moyenne ${fr1(summary.average)} sur 5, ${summary.count} avis — voir les avis`}
+      aria-label={t("Note moyenne {avg} sur 5, {n} avis — voir les avis", { avg: fr1(summary.average), n })}
       className={clsx("group inline-flex min-h-11 flex-wrap items-center gap-x-2 gap-y-1 text-sm", className)}
     >
       <Stars value={summary.average} size={size} />
       <span className="font-semibold tabular-nums">{fr1(summary.average)}</span>
       <span className="text-muted" aria-hidden>·</span>
       <span className="text-ink-2 underline decoration-line-strong underline-offset-4 group-hover:decoration-ink">
-        {compact ? `${summary.count} avis` : `${summary.count} avis client${summary.count > 1 ? "s" : ""}`}
+        {compact
+          ? n === 1 ? t("1 avis") : t("{n} avis", { n })
+          : n > 1 ? t("{n} avis clients", { n }) : t("{n} avis client", { n })}
       </span>
     </a>
   );
@@ -102,7 +109,8 @@ const TONE = {
 } as const;
 
 export function StockLine({ info, size, className, pill = false }: { info: StockInfo; size: Size | null; className?: string; pill?: boolean }) {
-  const m = stockMessage(info, size);
+  const { locale } = useT();
+  const m = stockMessage(info, size, locale);
   const t = TONE[m.tone];
   return (
     <p role="status" className={clsx("flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-sm", pill && "w-fit rounded-full border border-line bg-paper-2 py-1.5 pl-3 pr-3.5", className)}>
@@ -653,20 +661,22 @@ export function Selection({ p, d, compact = false }: { p: Purchase; d: PreviewDa
 
 /* ---------- Main button + sticky mobile bar ---------- */
 
-export function ctaLabel(p: Purchase) {
-  if (!p.config.acceptingOrders) return "Commandes bientôt ouvertes";
-  return p.offer === "bundle" ? `Ajouter le pack · ${formatEUR(p.total)}` : `Ajouter au panier · ${formatEUR(p.total)}`;
+export function ctaLabel(p: Purchase, { t }: Pick<Translator, "t">) {
+  if (!p.config.acceptingOrders) return t("Commandes bientôt ouvertes");
+  const price = formatEUR(p.total);
+  return p.offer === "bundle" ? t("Ajouter le pack · {price}", { price }) : t("Ajouter au panier · {price}", { price });
 }
 
 export function CtaButton({ p, className }: { p: Purchase; className?: string }) {
+  const { t } = useT();
   return (
     <Button size="lg" className={clsx("h-[58px] w-full text-[14px]", className)} onClick={p.addToCart} disabled={!p.config.acceptingOrders}>
       {p.added ? (
         <>
-          <CheckIcon width={18} height={18} /> Ajouté au panier
+          <CheckIcon width={18} height={18} /> {t("Ajouté au panier")}
         </>
       ) : (
-        ctaLabel(p)
+        ctaLabel(p, { t })
       )}
     </Button>
   );
@@ -678,6 +688,7 @@ export function CtaButton({ p, className }: { p: Purchase; className?: string })
  * size picker instead of adding a default size.
  */
 export function StickyBar({ p, d, extra }: { p: Purchase; d: PreviewData; extra?: ReactNode }) {
+  const { t } = useT();
   const needsSize = p.missing.length > 0;
   const go = () => {
     if (needsSize) document.getElementById(`field-${p.missing[0]}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -707,7 +718,7 @@ export function StickyBar({ p, d, extra }: { p: Purchase; d: PreviewData; extra?
           </p>
         </div>
         <Button className="h-12 shrink-0 px-5" tabIndex={p.barHidden ? -1 : 0} onClick={go} disabled={!p.config.acceptingOrders}>
-          {needsSize ? "Choisir ma taille" : p.offer === "bundle" ? "Ajouter le pack" : "Ajouter"}
+          {needsSize ? t("Choisir ma taille") : p.offer === "bundle" ? t("Ajouter le pack") : t("Ajouter")}
         </Button>
       </div>
     </div>
@@ -717,9 +728,10 @@ export function StickyBar({ p, d, extra }: { p: Purchase; d: PreviewData; extra?
 /* ---------- Reviews ---------- */
 
 export function ReviewSourceNote({ d }: { d: PreviewData }) {
+  const { t } = useT();
   if (d.reviewSource === "manifest")
-    return <PreviewTag>Aperçu · les {d.summary.count} avis publiés en production</PreviewTag>;
-  if (d.reviewSource === "forced-empty") return <PreviewTag>Aperçu · état sans avis</PreviewTag>;
+    return <PreviewTag>{t("Aperçu · les {n} avis publiés en production", { n: d.summary.count })}</PreviewTag>;
+  if (d.reviewSource === "forced-empty") return <PreviewTag>{t("Aperçu · état sans avis")}</PreviewTag>;
   return null;
 }
 
@@ -789,16 +801,17 @@ export function ReviewCard({ r, onPhoto, photoTall = false }: { r: PublicReview;
 }
 
 export function useReviewModals(d: PreviewData) {
+  const { t } = useT();
   const [writing, setWriting] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const modals = (
     <>
-      <Modal open={writing} onClose={() => setWriting(false)} title="Ton avis" description={d.product.name} className="max-w-xl">
+      <Modal open={writing} onClose={() => setWriting(false)} title={t("Ton avis")} description={d.product.name} className="max-w-xl">
         {writing && <ReviewForm productId={d.product.id} onDone={() => setWriting(false)} />}
       </Modal>
-      <Modal open={photo !== null} onClose={() => setPhoto(null)} title="Photo client" className="max-w-2xl">
+      <Modal open={photo !== null} onClose={() => setPhoto(null)} title={t("Photo client")} className="max-w-2xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {photo && <img src={photo} alt="Photo partagée par un client" className="max-h-[70dvh] w-full rounded-xl object-contain" />}
+        {photo && <img src={photo} alt={t("Photo partagée par un client")} className="max-h-[70dvh] w-full rounded-xl object-contain" />}
       </Modal>
     </>
   );
@@ -806,12 +819,13 @@ export function useReviewModals(d: PreviewData) {
 }
 
 export function EmptyReviews({ onWrite }: { onWrite: () => void }) {
+  const { t } = useT();
   return (
     <div className="rounded-2xl border border-dashed border-line-strong px-6 py-12 text-center">
-      <Stars value={0} size={20} label="Aucune note pour le moment" />
-      <p className="mt-4 font-display text-lg font-bold uppercase">Aucun avis publié pour le moment.</p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted">Les avis sont relus avant publication. Tu as reçu ta veste ? Partage ton ressenti.</p>
-      <Button size="lg" className="mt-6" onClick={onWrite}>Écrire un avis</Button>
+      <Stars value={0} size={20} label={t("Aucune note pour le moment")} />
+      <p className="mt-4 font-display text-lg font-bold uppercase">{t("Aucun avis publié pour le moment.")}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted">{t("Les avis sont relus avant publication. Tu as reçu ta veste ? Partage ton ressenti.")}</p>
+      <Button size="lg" className="mt-6" onClick={onWrite}>{t("Écrire un avis")}</Button>
     </div>
   );
 }
@@ -902,6 +916,7 @@ export function VideoSlot({ className }: { className?: string }) {
 /* ---------- FAQ + customer service ---------- */
 
 export function FaqList({ d, className }: { d: PreviewData; className?: string }) {
+  const { t } = useT();
   return (
     <div className={clsx("faq divide-y divide-line border-y border-line", className)}>
       {d.faq.map((f) => (
@@ -912,10 +927,10 @@ export function FaqList({ d, className }: { d: PreviewData; className?: string }
           </summary>
           <p className="pb-5 text-[15px] leading-relaxed text-ink-2">
             <WithPending text={f.answer} />
-            {/returner/.test(f.question) && (
+            {/returner|devolver/.test(f.question) && (
               <>
                 {" "}
-                <Link href={d.returnsHref} className="underline underline-offset-4 hover:text-brand">Retours & remboursements</Link>
+                <Link href={d.returnsHref} className="underline underline-offset-4 hover:text-brand">{t("Retours & remboursements")}</Link>
               </>
             )}
           </p>
@@ -926,24 +941,25 @@ export function FaqList({ d, className }: { d: PreviewData; className?: string }
 }
 
 export function SupportCard({ d, className }: { d: PreviewData; className?: string }) {
+  const { t, href } = useT();
   return (
     <div className={clsx("rounded-2xl border border-line bg-paper-2 p-5 sm:p-6", className)}>
       <p className="flex items-center gap-3">
         <span className="grid size-10 place-items-center rounded-full border border-line-strong text-brand"><MailIcon width={18} height={18} /></span>
-        <span className="font-display text-base font-bold uppercase">Une question ?</span>
+        <span className="font-display text-base font-bold uppercase">{t("Une question ?")}</span>
       </p>
       <p className="mt-3 text-sm leading-relaxed text-ink-2">
-        Notre service client répond par e-mail, avant comme après ta commande (taille, livraison, retour). Indique ton numéro de commande si tu en as un.
+        {t("Notre service client répond par e-mail, avant comme après ta commande (taille, livraison, retour). Indique ton numéro de commande si tu en as un.")}
       </p>
-      {SHOW_PENDING && <p className="mt-2 text-sm text-ink-2"><WithPending text="[Délai de réponse et horaires du service client]" /></p>}
+      {SHOW_PENDING && <p className="mt-2 text-sm text-ink-2"><WithPending text={t("[Délai de réponse et horaires du service client]")} /></p>}
       <div className="mt-4 flex flex-col gap-2 text-sm">
         <a href={`mailto:${d.contactEmail}`} className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4 hover:text-brand">{d.contactEmail}</a>
-        <Link href="/#contact" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-brand">Formulaire de contact</Link>
+        <Link href={href("/#contact")} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-brand">{t("Formulaire de contact")}</Link>
       </div>
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-4 text-[13px] text-muted">
-        <li><Link href="/livraison-retours" className="inline-flex min-h-11 items-center hover:text-ink">Livraison</Link></li>
-        <li><Link href={d.returnsHref} className="inline-flex min-h-11 items-center hover:text-ink">Retours & remboursements</Link></li>
-        {SHOW_PENDING && <li className="py-3"><WithPending text="[CGV et mentions légales à créer]" /></li>}
+        <li><Link href={href("/livraison-retours")} className="inline-flex min-h-11 items-center hover:text-ink">{t("Livraison")}</Link></li>
+        <li><Link href={d.returnsHref} className="inline-flex min-h-11 items-center hover:text-ink">{t("Retours & remboursements")}</Link></li>
+        {SHOW_PENDING && <li className="py-3"><WithPending text={t("[CGV et mentions légales à créer]")} /></li>}
       </ul>
     </div>
   );
@@ -980,14 +996,15 @@ export function DetailsAccordion({ product, className, openFirst = true }: { pro
 
 export function RelatedColours({ d, basePath, className }: { d: PreviewData; basePath: string; className?: string }) {
   const { bundle } = useStore().config;
+  const { t, href } = useT();
   return (
     <ul className={clsx("no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-3 sm:px-0", className)}>
       {d.related.map((r) => (
         <li key={r.id} className="w-[38%] shrink-0 sm:w-auto">
-          <Link href={`${basePath}/${r.slug}`} className="group block">
+          <Link href={href(`${basePath}/${r.slug}`)} className="group block">
             <Thumb p={r} className="aspect-[4/5] w-full rounded-xl" />
             <span className="mt-2 block text-sm font-semibold">{r.color.name}</span>
-            <span className="block text-xs text-muted">{formatEUR(r.priceCents)}{bundle.enabled && ` · ou 2 pour ${formatEUR(bundle.priceCents)}`}</span>
+            <span className="block text-xs text-muted">{formatEUR(r.priceCents)}{bundle.enabled && ` · ${t("ou 2 pour {price}", { price: formatEUR(bundle.priceCents) })}`}</span>
           </Link>
         </li>
       ))}

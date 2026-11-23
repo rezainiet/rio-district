@@ -15,6 +15,9 @@ import { stockInfo, type StockInfo } from "./stock-status";
 import type { PublicProduct } from "./types";
 import { Product } from "@/models/Product";
 import type { PreviewData } from "@/components/store/pdp/types";
+import type { Locale } from "@/i18n/config";
+import { translate, translator } from "@/i18n/translate";
+import { localizeProduct } from "@/i18n/content";
 
 /**
  * Data for the customer-facing pages, shared by the live storefront and the
@@ -119,44 +122,53 @@ export function publicText(text: string) {
 }
 
 /** Customer FAQ built from the confirmed settings (returns policy, delivery plan, bundle, payment). */
-export function storeFaq(settings: StoreSettings, plan: DeliveryPlan, unitPriceCents: number): FaqItem[] {
+export function storeFaq(settings: StoreSettings, plan: DeliveryPlan, unitPriceCents: number, locale: Locale = "fr"): FaqItem[] {
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const policy = settings.returnsPolicy;
   const items: FaqItem[] = [
     {
-      question: "Quand vais-je recevoir ma commande ?",
-      answer: `La livraison est ${settings.shipping.priceCents === 0 ? "offerte et " : ""}suivie, en ${plan.minDays} à ${plan.maxDays} jours ouvrés après la confirmation de ta commande. Pour une commande aujourd'hui : livraison estimée ${rangeLong(plan.deliveryFrom, plan.deliveryTo)}. Tu reçois le numéro de suivi par e-mail à l'expédition.`,
+      question: t("Quand vais-je recevoir ma commande ?"),
+      answer: t(
+        settings.shipping.priceCents === 0
+          ? "La livraison est offerte et suivie, en {min} à {max} jours ouvrés après la confirmation de ta commande. Pour une commande aujourd'hui : livraison estimée {range}. Tu reçois le numéro de suivi par e-mail à l'expédition."
+          : "La livraison est suivie, en {min} à {max} jours ouvrés après la confirmation de ta commande. Pour une commande aujourd'hui : livraison estimée {range}. Tu reçois le numéro de suivi par e-mail à l'expédition.",
+        { min: plan.minDays, max: plan.maxDays, range: rangeLong(plan.deliveryFrom, plan.deliveryTo, locale) },
+      ),
     },
     {
-      question: "Comment choisir ma taille ?",
-      answer: "Les vestes vont du XS au 3XL avec une coupe ample. « Trouver ma taille » te donne une estimation à partir de ta taille et de ton poids, avec les mesures de chaque taille. Entre deux tailles, prends la plus grande.",
+      question: t("Comment choisir ma taille ?"),
+      answer: t("Les vestes vont du XS au 3XL avec une coupe ample. « Trouver ma taille » te donne une estimation à partir de ta taille et de ton poids, avec les mesures de chaque taille. Entre deux tailles, prends la plus grande."),
     },
     {
-      question: "Puis-je retourner ma commande ?",
-      answer: `Oui. Tu disposes de ${policy.windowDays} jours après la réception de ta commande pour demander un retour. ${returnsHowTo(policy)} Tes droits légaux de consommateur restent applicables en plus de ce délai.`,
+      question: t("Puis-je retourner ma commande ?"),
+      answer: `${t("Oui. Tu disposes de {n} jours après la réception de ta commande pour demander un retour.", { n: policy.windowDays })} ${returnsHowTo(policy, locale)} ${t("Tes droits légaux de consommateur restent applicables en plus de ce délai.")}`,
     },
     {
-      question: "Quand suis-je remboursé ?",
+      question: t("Quand suis-je remboursé ?"),
       answer: policy.refundDelayDays
-        ? `Le remboursement est effectué sous ${policy.refundDelayDays} jours après réception et vérification de l'article retourné.`
-        : "Le remboursement est effectué après réception et vérification de l'article retourné, sur le moyen de paiement utilisé. [Délai à confirmer par la boutique]",
+        ? t("Le remboursement est effectué sous {n} jours après réception et vérification de l'article retourné.", { n: policy.refundDelayDays })
+        : t("Le remboursement est effectué après réception et vérification de l'article retourné, sur le moyen de paiement utilisé. [Délai à confirmer par la boutique]"),
     },
     {
-      question: "La taille que je veux est-elle disponible ?",
-      answer: "La disponibilité affichée vient directement de notre stock, taille par taille. Une taille épuisée est barrée et ne peut pas être commandée.",
+      question: t("La taille que je veux est-elle disponible ?"),
+      answer: t("La disponibilité affichée vient directement de notre stock, taille par taille. Une taille épuisée est barrée et ne peut pas être commandée."),
     },
     {
-      question: "Comment fonctionne le pack 2 vestes ?",
-      answer: `Le pack réunit ${settings.bundle.quantity} vestes pour ${formatEUR(settings.bundle.priceCents)} au lieu de ${formatEUR(unitPriceCents * settings.bundle.quantity)}. Tu choisis la couleur et la taille de chacune (deux couleurs différentes ou la même). La remise s'applique automatiquement au panier.`,
+      question: t("Comment fonctionne le pack 2 vestes ?"),
+      answer: t(
+        "Le pack réunit {n} vestes pour {price} au lieu de {full}. Tu choisis la couleur et la taille de chacune (deux couleurs différentes ou la même). La remise s'applique automatiquement au panier.",
+        { n: settings.bundle.quantity, price: formatEUR(settings.bundle.priceCents), full: formatEUR(unitPriceCents * settings.bundle.quantity) },
+      ),
     },
     {
-      question: "Comment se passe le paiement ?",
+      question: t("Comment se passe le paiement ?"),
       answer: paymentsEnabled(settings)
-        ? "Tu complètes tes coordonnées sur Rio District, puis tu continues sur le site de notre partenaire externe. Le statut reste en attente jusqu’à vérification du paiement par la boutique."
-        : "Le paiement en ligne n'est pas encore ouvert. Tu envoies une demande de commande, nous la confirmons par e-mail et t'indiquons comment régler. Rien n'est débité sur le site.",
+        ? t("Tu complètes tes coordonnées sur Rio District, puis tu continues sur le site de notre partenaire externe. Le statut reste en attente jusqu’à vérification du paiement par la boutique.")
+        : t("Le paiement en ligne n'est pas encore ouvert. Tu envoies une demande de commande, nous la confirmons par e-mail et t'indiquons comment régler. Rien n'est débité sur le site."),
     },
     {
-      question: "Comment contacter le service client ?",
-      answer: `Écris-nous à ${settings.contactEmail} ou via le formulaire de contact, avec ton numéro de commande si tu en as un. [Délai de réponse à confirmer par la boutique]`,
+      question: t("Comment contacter le service client ?"),
+      answer: t("Écris-nous à {email} ou via le formulaire de contact, avec ton numéro de commande si tu en as un. [Délai de réponse à confirmer par la boutique]", { email: settings.contactEmail }),
     },
   ];
   return items.map((f) => ({ question: f.question, answer: publicText(f.answer) }));
@@ -174,6 +186,8 @@ export type ProductPageOptions = {
   demo?: boolean;
   /** Design review only: preview the "no review yet" state. */
   noReviews?: boolean;
+  /** Language of the page: product text, FAQ, policy and links come back in it (French by default). */
+  locale?: Locale;
 };
 
 export async function loadProductPage(slug: string, opts: ProductPageOptions = {}): Promise<PreviewData | null> {
@@ -208,25 +222,33 @@ export async function loadProductPage(slug: string, opts: ProductPageOptions = {
       : null;
 
   const plan = storePlan(settings);
+  const tr = translator(opts.locale ?? "fr");
+  const local = (p: PublicProduct) => localizeProduct(withStock(p), tr);
+  const policy = settings.returnsPolicy;
   return {
-    product: withStock(product),
-    siblings: siblings.map(withStock),
-    bundleOptions: bundleOptions.map(withStock),
-    related: all.filter((p) => p.id !== product.id).map(withStock),
+    product: local(product),
+    siblings: siblings.map(local),
+    bundleOptions: bundleOptions.map(local),
+    related: all.filter((p) => p.id !== product.id).map(local),
     stock,
     reviews: block.reviews,
     summary: block.summary,
     reviewSource: block.source,
-    countdown,
+    // Links are localized in both languages ("/" is the Spanish home page); tx() leaves French text as it is.
+    countdown: countdown && { ...countdown, title: tr.tx(countdown.title), text: tr.tx(countdown.text), ctaLabel: tr.tx(countdown.ctaLabel), ctaHref: countdown.ctaHref ? tr.href(countdown.ctaHref) : "" },
     plan,
     freeShipping: settings.shipping.priceCents === 0,
-    policy: settings.returnsPolicy,
+    policy: tr.locale === "fr" ? policy : {
+      ...policy,
+      damagedParcel: policy.damagedParcel === null ? null : tr.tx(policy.damagedParcel),
+      wrongItem: policy.wrongItem === null ? null : tr.tx(policy.wrongItem),
+    },
     payments: { online: paymentsEnabled(settings) },
     contactEmail: settings.contactEmail,
-    faq: storeFaq(settings, plan, product.priceCents),
+    faq: storeFaq(settings, plan, product.priceCents, tr.locale),
     sizeRules: settings.sizeRules,
     sizeChart: settings.sizeChart,
-    returnsHref: RETURNS_PATH,
+    returnsHref: tr.href(RETURNS_PATH),
   };
 }
 

@@ -2,13 +2,15 @@
 import type { ReactNode } from "react";
 import { buttonClass } from "@/components/ui/Button";
 import { CloseIcon } from "@/components/ui/icons";
+import { useT } from "@/i18n/client";
 
 function CloseButton({ onClose, className = "" }: { onClose?: () => void; className?: string }) {
+  const { t } = useT();
   return (
     <button
       type="button"
       onClick={onClose}
-      aria-label="Fermer"
+      aria-label={t("Fermer")}
       className={`grid size-11 place-items-center rounded-full border border-line-strong bg-paper/80 text-ink backdrop-blur transition-colors hover:bg-paper-3 ${className}`}
     >
       <CloseIcon width={18} height={18} />
@@ -41,6 +43,7 @@ export function PromoPanel({
   /** Lets the caller render the CTA (e.g. a client-side Link). */
   cta?: ReactNode;
 }) {
+  const { t } = useT();
   return (
     <div className={`relative grid overflow-hidden rounded-[18px] border border-line bg-paper-2 text-ink ${imageUrl ? "sm:grid-cols-[5fr_6fr]" : ""}`}>
       {/* First in DOM order so the dialog's initial focus lands on "Fermer", not on the offer. */}
@@ -67,7 +70,7 @@ export function PromoPanel({
           </div>
         )}
         <button type="button" onClick={onClose} className="mx-auto mt-3 min-h-11 px-4 text-sm text-muted underline-offset-4 hover:text-ink hover:underline">
-          Non merci
+          {t("Non merci")}
         </button>
       </div>
     </div>
@@ -96,11 +99,14 @@ export function CartReminderPanel({
   onOpenCart?: () => void;
   onClose?: () => void;
 }) {
+  const { t, locale } = useT();
   const shown = items.slice(0, 2);
   const more = items.length - shown.length;
+  // French uses the singular for 0 and 1, Spanish only for 1.
+  const oneItem = locale === "fr" ? count <= 1 : count === 1;
   return (
     <div className="relative rounded-[18px] border border-line-strong bg-paper-2 p-5 text-ink shadow-[0_30px_80px_-20px_#000]">
-      <p className="lab pr-12">Ton panier</p>
+      <p className="lab pr-12">{t("Ton panier")}</p>
       <h2 id={titleId} className="mt-2 pr-12 font-display text-lg font-extrabold uppercase leading-tight sm:text-xl">
         {title}
       </h2>
@@ -118,20 +124,20 @@ export function CartReminderPanel({
             </span>
           </li>
         ))}
-        {more > 0 && <li className="text-xs text-muted">+ {more} autre{more > 1 ? "s" : ""} article{more > 1 ? "s" : ""}</li>}
+        {more > 0 && <li className="text-xs text-muted">{more === 1 ? t("+ {n} autre article", { n: more }) : t("+ {n} autres articles", { n: more })}</li>}
       </ul>
       <p className="mt-4 flex items-baseline justify-between border-t border-line pt-3 text-sm">
         <span className="text-ink-2">
-          {count} article{count > 1 ? "s" : ""}
+          {oneItem ? t("{n} article", { n: count }) : t("{n} articles", { n: count })}
         </span>
         <span className="price text-lg">{totalLabel}</span>
       </p>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <button type="button" onClick={onOpenCart} className={buttonClass("primary", "md", "w-full")}>
-          Voir mon panier
+          {t("Voir mon panier")}
         </button>
         <button type="button" onClick={onClose} className={buttonClass("ghost", "md", "w-full border border-line-strong hover:bg-paper-3")}>
-          Continuer mes achats
+          {t("Continuer mes achats")}
         </button>
       </div>
       <CloseButton onClose={onClose} className="absolute right-3 top-3" />

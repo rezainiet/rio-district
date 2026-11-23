@@ -7,6 +7,9 @@
  * edited from Admin → Réglages without touching the code.
  */
 
+import type { Locale } from "@/i18n/config";
+import { translate } from "@/i18n/translate";
+
 export type ReturnsPolicy = {
   /** Confirmed by the client: 15 days. */
   windowDays: number;
@@ -41,74 +44,75 @@ export const DEFAULT_RETURNS_POLICY: ReturnsPolicy = {
 };
 
 /** Short, confirmed reassurance line used next to the buy button. */
-export function returnsHeadline(p: ReturnsPolicy) {
-  return `Retour possible sous ${p.windowDays} jours après réception.`;
+export function returnsHeadline(p: ReturnsPolicy, locale: Locale = "fr") {
+  return translate(locale, "Retour possible sous {n} jours après réception.", { n: p.windowDays });
 }
 
-export function returnsHowTo(p: ReturnsPolicy) {
+export function returnsHowTo(p: ReturnsPolicy, locale: Locale = "fr") {
   return p.requiresOrderNumber
-    ? "Contacte notre service client avec ton numéro de commande : on t'explique la marche à suivre."
-    : "Contacte notre service client : on t'explique la marche à suivre.";
+    ? translate(locale, "Contacte notre service client avec ton numéro de commande : on t'explique la marche à suivre.")
+    : translate(locale, "Contacte notre service client : on t'explique la marche à suivre.");
 }
 
 export type PolicySection = { title: string; body: string; pending?: string };
 
 /** Content of the dedicated Returns & Refunds page, built from the policy values. */
-export function returnsSections(p: ReturnsPolicy): PolicySection[] {
+export function returnsSections(p: ReturnsPolicy, locale: Locale = "fr"): PolicySection[] {
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const pending = (what: string) => ({ body: "", pending: what });
   return [
     {
-      title: "Délai de retour",
-      body: `Tu disposes de ${p.windowDays} jours à compter de la réception de ta commande pour demander un retour.`,
+      title: t("Délai de retour"),
+      body: t("Tu disposes de {n} jours à compter de la réception de ta commande pour demander un retour.", { n: p.windowDays }),
     },
     {
-      title: "Comment faire une demande",
-      body: `${returnsHowTo(p)} Nous te répondons avec la procédure et l'adresse de retour.`,
+      title: t("Comment faire une demande"),
+      body: `${returnsHowTo(p, locale)} ${t("Nous te répondons avec la procédure et l'adresse de retour.")}`,
     },
     {
-      title: "État de l'article",
+      title: t("État de l'article"),
       ...(p.itemMustBeUnused === null && p.packagingMustBeIntact === null
-        ? pending("Conditions d'état de l'article et de l'emballage")
+        ? pending(t("Conditions d'état de l'article et de l'emballage"))
         : {
             body: [
-              p.itemMustBeUnused ? "L'article doit être non porté, non lavé et avec ses étiquettes." : null,
-              p.packagingMustBeIntact === true ? "L'emballage d'origine doit être intact." : null,
+              p.itemMustBeUnused ? t("L'article doit être non porté, non lavé et avec ses étiquettes.") : null,
+              p.packagingMustBeIntact === true ? t("L'emballage d'origine doit être intact.") : null,
             ]
               .filter(Boolean)
               .join(" "),
-            pending: p.packagingMustBeIntact === null ? "Emballage d'origine exigé ou non" : undefined,
+            pending: p.packagingMustBeIntact === null ? t("Emballage d'origine exigé ou non") : undefined,
           }),
     },
     {
-      title: "Frais de retour",
+      title: t("Frais de retour"),
       ...(p.returnShippingPaidBy === null
-        ? pending("Qui paie l'envoi du retour (client ou boutique)")
+        ? pending(t("Qui paie l'envoi du retour (client ou boutique)"))
         : {
             body:
               p.returnShippingPaidBy === "boutique"
-                ? "Le retour est gratuit : nous te fournissons l'étiquette d'envoi."
-                : "Les frais d'envoi du retour sont à ta charge.",
+                ? t("Le retour est gratuit : nous te fournissons l'étiquette d'envoi.")
+                : t("Les frais d'envoi du retour sont à ta charge."),
           }),
     },
     {
-      title: "Remboursement",
+      title: t("Remboursement"),
       ...(p.refundDelayDays === null
-        ? pending("Délai de remboursement après réception du retour")
-        : { body: `Le remboursement est effectué sous ${p.refundDelayDays} jours après réception et vérification de l'article.` }),
+        ? pending(t("Délai de remboursement après réception du retour"))
+        : { body: t("Le remboursement est effectué sous {n} jours après réception et vérification de l'article.", { n: p.refundDelayDays }) }),
     },
     {
-      title: "Échange de taille",
+      title: t("Échange de taille"),
       ...(p.exchangesAllowed === null
-        ? pending("Échange de taille possible ou retour puis nouvelle commande")
-        : { body: p.exchangesAllowed ? "Tu peux échanger ta veste contre une autre taille, selon le stock disponible." : "Pour une autre taille, retourne l'article puis passe une nouvelle commande." }),
+        ? pending(t("Échange de taille possible ou retour puis nouvelle commande"))
+        : { body: p.exchangesAllowed ? t("Tu peux échanger ta veste contre une autre taille, selon le stock disponible.") : t("Pour une autre taille, retourne l'article puis passe une nouvelle commande.") }),
     },
     {
-      title: "Colis endommagé",
-      ...(p.damagedParcel === null ? pending("Procédure en cas de colis endommagé (photos, délai pour le signaler)") : { body: p.damagedParcel }),
+      title: t("Colis endommagé"),
+      ...(p.damagedParcel === null ? pending(t("Procédure en cas de colis endommagé (photos, délai pour le signaler)")) : { body: p.damagedParcel }),
     },
     {
-      title: "Erreur d'article",
-      ...(p.wrongItem === null ? pending("Procédure si tu reçois un mauvais article ou une mauvaise taille") : { body: p.wrongItem }),
+      title: t("Erreur d'article"),
+      ...(p.wrongItem === null ? pending(t("Procédure si tu reçois un mauvais article ou une mauvaise taille")) : { body: p.wrongItem }),
     },
   ];
 }

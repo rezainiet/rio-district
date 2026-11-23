@@ -3,10 +3,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCountries, type CountryCode } from "libphonenumber-js/max";
 import { formatPhoneInput, phoneDialCode, phonePlaceholder } from "@/lib/phone";
+import { useT } from "@/i18n/client";
+import type { Locale } from "@/i18n/config";
 
-const names = new Intl.DisplayNames(["fr"], { type: "region" });
-const countries = getCountries().map(code => ({ code, name: names.of(code) ?? code, dial: phoneDialCode(code) }))
-  .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+/** Country names and dial codes in the visitor's language, sorted by name (built once per language). */
+const byLocale = new Map<Locale, { names: Intl.DisplayNames; countries: { code: CountryCode; name: string; dial: string }[] }>();
+function countryList(locale: Locale) {
+  let list = byLocale.get(locale);
+  if (!list) {
+    const names = new Intl.DisplayNames([locale], { type: "region" });
+    const countries = getCountries().map(code => ({ code, name: names.of(code) ?? code, dial: phoneDialCode(code) }))
+      .sort((a, b) => a.name.localeCompare(b.name, locale));
+    list = { names, countries };
+    byLocale.set(locale, list);
+  }
+  return list;
+}
 
 function flag(code: string) {
   return String.fromCodePoint(...[...code].map(char => 0x1f1e6 + char.charCodeAt(0) - 65));
@@ -25,14 +37,17 @@ export function PhoneInput({ country, onCountryChange, value, onChange, onBlur, 
   inputRef: (element: HTMLInputElement | null) => void;
   invalid?: boolean;
 }) {
+  const { t, locale } = useT();
+  const { names } = countryList(locale);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const root = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const matches = useMemo(() => {
+    const { countries } = countryList(locale);
     const query = searchable(search);
     return query ? countries.filter(item => searchable(`${item.name} ${item.code} ${item.dial}`).includes(query)) : countries;
-  }, [search]);
+  }, [search, locale]);
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +62,7 @@ export function PhoneInput({ country, onCountryChange, value, onChange, onBlur, 
   return (
     <div className="checkout-phone" ref={root} onKeyDown={event => { if (event.key === "Escape") setOpen(false); }}>
       <div className="checkout-phone-control" data-invalid={invalid || undefined}>
-        <button type="button" className="checkout-phone-country-button" aria-label={`Indicatif téléphonique : ${names.of(country)} ${phoneDialCode(country)}. Changer le pays`}
+        <button type="button" className="checkout-phone-country-button" aria-label={t("Indicatif téléphonique : {country} {dial}. Changer le pays", { country: names.of(country) ?? country, dial: phoneDialCode(country) })}
           aria-expanded={open} aria-haspopup="listbox" onClick={() => { setSearch(""); setOpen(current => !current); }}>
           <span className="checkout-phone-flag" aria-hidden>{flag(country)}</span>
           <span>{phoneDialCode(country)}</span>
@@ -58,14 +73,14 @@ export function PhoneInput({ country, onCountryChange, value, onChange, onBlur, 
           placeholder={phonePlaceholder(country)} aria-invalid={invalid || undefined} aria-describedby={invalid ? "co-phone-error" : undefined} />
       </div>
       {open && <div className="checkout-phone-menu">
-        <input ref={searchInput} className="checkout-phone-search" type="search" autoComplete="off" aria-label="Rechercher un pays ou un indicatif"
-          placeholder="Rechercher un pays…" value={search} onChange={event => setSearch(event.target.value)} />
-        <div className="checkout-phone-options" role="listbox" aria-label="Pays du numéro de téléphone">
+        <input ref={searchInput} className="checkout-phone-search" type="search" autoComplete="off" aria-label={t("Rechercher un pays ou un indicatif")}
+          placeholder={t("Rechercher un pays…")} value={search} onChange={event => setSearch(event.target.value)} />
+        <div className="checkout-phone-options" role="listbox" aria-label={t("Pays du numéro de téléphone")}>
           {matches.map(item => <button key={item.code} type="button" role="option" aria-selected={country === item.code}
             className="checkout-phone-option" onClick={() => { onCountryChange(item.code); setOpen(false); }}>
             <span aria-hidden>{flag(item.code)}</span><span className="checkout-phone-option-name">{item.name}</span><span>{item.dial}</span>
           </button>)}
-          {matches.length === 0 && <p className="checkout-phone-no-results">Aucun pays trouvé.</p>}
+          {matches.length === 0 && <p className="checkout-phone-no-results">{t("Aucun pays trouvé.")}</p>}
         </div>
       </div>}
     </div>

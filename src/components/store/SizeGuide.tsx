@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { recommendSize, type Size, type SizeChartRow, type SizeRule } from "@/lib/sizes";
+import { useT } from "@/i18n/client";
 
 export function SizeGuide({
   open,
@@ -19,6 +20,7 @@ export function SizeGuide({
   /** Called when the customer applies the suggested size. */
   onPick?: (size: Size) => void;
 }) {
+  const { t } = useT();
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [result, setResult] = useState<Size | null | "invalid">(null);
@@ -29,7 +31,7 @@ export function SizeGuide({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Trouver ma taille" description="Indique ta taille et ton poids, on te donne une estimation." className="max-w-xl">
+    <Modal open={open} onClose={onClose} title={t("Trouver ma taille")} description={t("Indique ta taille et ton poids, on te donne une estimation.")} className="max-w-xl">
       <form
         className="rounded-[var(--radius-md)] border border-line bg-paper-2/60 p-4"
         onSubmit={(e) => {
@@ -39,7 +41,7 @@ export function SizeGuide({
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="sg-height" className="eyebrow mb-1.5 block text-muted">Taille (cm)</label>
+            <label htmlFor="sg-height" className="eyebrow mb-1.5 block text-muted">{t("Taille (cm)")}</label>
             <input
               id="sg-height"
               type="number"
@@ -54,7 +56,7 @@ export function SizeGuide({
             />
           </div>
           <div>
-            <label htmlFor="sg-weight" className="eyebrow mb-1.5 block text-muted">Poids (kg)</label>
+            <label htmlFor="sg-weight" className="eyebrow mb-1.5 block text-muted">{t("Poids (kg)")}</label>
             <input
               id="sg-weight"
               type="number"
@@ -69,16 +71,16 @@ export function SizeGuide({
             />
           </div>
         </div>
-        <Button type="submit" className="mt-3 w-full">Estimer ma taille</Button>
+        <Button type="submit" className="mt-3 w-full">{t("Estimer ma taille")}</Button>
 
         <div aria-live="polite" className="mt-3 min-h-6">
           {result === "invalid" && (
-            <p className="text-sm text-danger">Entre une taille entre 130 et 230 cm et un poids entre 30 et 200 kg.</p>
+            <p className="text-sm text-danger">{t("Entre une taille entre 130 et 230 cm et un poids entre 30 et 200 kg.")}</p>
           )}
           {result && result !== "invalid" && (
             <div className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-ink px-4 py-3 text-paper">
               <p>
-                <span className="eyebrow block text-paper/60">Taille suggérée</span>
+                <span className="eyebrow block text-paper/60">{t("Taille suggérée")}</span>
                 <span className="price text-3xl">{result}</span>
               </p>
               {onPick && (
@@ -90,28 +92,27 @@ export function SizeGuide({
                     onClose();
                   }}
                 >
-                  Choisir {result}
+                  {t("Choisir {size}", { size: result })}
                 </Button>
               )}
             </div>
           )}
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted">
-          Estimation indicative, basée sur un barème provisoire : elle ne garantit pas l&apos;ajustement. Entre deux tailles,
-          prends la plus grande pour une coupe ample. En cas de doute, écris-nous avant de commander.
+          {t("Estimation indicative, basée sur un barème provisoire : elle ne garantit pas l'ajustement. Entre deux tailles, prends la plus grande pour une coupe ample. En cas de doute, écris-nous avant de commander.")}
         </p>
       </form>
 
-      <h3 className="eyebrow mb-2 mt-6 text-muted">Mesures du vêtement (cm)</h3>
+      <h3 className="eyebrow mb-2 mt-6 text-muted">{t("Mesures du vêtement (cm)")}</h3>
       <div className="overflow-x-auto rounded-[var(--radius-md)] border border-line">
         <table className="w-full min-w-[420px] text-left text-sm">
           <thead className="bg-paper-2 text-xs text-muted">
             <tr>
-              <th scope="col" className="px-3 py-2 font-medium">Taille</th>
-              <th scope="col" className="px-3 py-2 font-medium">Poitrine</th>
-              <th scope="col" className="px-3 py-2 font-medium">Tour de taille</th>
-              <th scope="col" className="px-3 py-2 font-medium">Dos</th>
-              <th scope="col" className="px-3 py-2 font-medium">Manche</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("Taille")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("Poitrine")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("Tour de taille")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("Dos")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("Manche")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line tabular-nums">

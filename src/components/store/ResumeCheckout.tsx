@@ -2,8 +2,10 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { trackCheckoutClick } from "./MarketingPixels";
+import { useT } from "@/i18n/client";
 
 export function ResumeCheckout({ token }: { token: string }) {
+  const { t, tx, href } = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const lock = useRef(false);
@@ -21,7 +23,8 @@ export function ResumeCheckout({ token }: { token: string }) {
       if (data.checkout.mode === "live" && data.order && trackCheckoutClick(data.order.totalCents, data.order.number)) {
         await new Promise(resolve => window.setTimeout(resolve, 300));
       }
-      location.assign(url.href);
+      // The local simulator is a storefront page: open it in the visitor's language.
+      location.assign(data.checkout.mode === "mock" ? href(url.pathname) : url.href);
     } catch (e) { setError(e instanceof Error ? e.message : "Connexion interrompue. Réessaie sans recréer la commande."); setBusy(false); lock.current = false; }
-  }}>{busy ? "Préparation…" : "Reprendre le paiement ↗"}</Button>{error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}</div>;
+  }}>{busy ? t("Préparation…") : t("Reprendre le paiement ↗")}</Button>{error && <p role="alert" className="mt-2 text-sm text-danger">{tx(error)}</p>}</div>;
 }

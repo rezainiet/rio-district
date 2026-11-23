@@ -5,27 +5,34 @@ import { formatEUR } from "@/lib/money";
 import { isSize } from "@/lib/sizes";
 import { loadProductPage } from "@/lib/storefront";
 import { ProductView } from "@/components/store/pdp/ProductView";
+import { alternates } from "@/i18n/config";
+import { localizeProduct } from "@/i18n/content";
+import { getT } from "@/i18n/server";
+import { shareDefaults } from "@/i18n/share";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function generateMetadata({ params }: PageProps<"/produit/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product) return { title: "Produit introuvable" };
+  const [frProduct, settings, tr] = await Promise.all([getProductBySlug(slug), getSettings(), getT()]);
+  const { t, href, locale } = tr;
+  if (!frProduct) return { title: t("Produit introuvable") };
+  const product = localizeProduct(frProduct, tr);
   const title = product.name;
   const description =
     product.description.slice(0, 160) || `${product.name} — ${formatEUR(product.priceCents)}`;
   const image = product.images[0]?.url;
+  const productImage = image && !image.endsWith(".svg") ? image : null;
   return {
     title: `${title} — ${formatEUR(product.priceCents)}`,
     description,
-    alternates: { canonical: `/produit/${product.slug}` },
+    alternates: alternates(`/produit/${product.slug}`, locale),
     openGraph: {
+      ...shareDefaults(tr, settings.storeName || "Rio District").openGraph,
       title,
       description,
-      type: "website",
-      url: `/produit/${product.slug}`,
-      images: image && !image.endsWith(".svg") ? [{ url: image }] : undefined,
+      url: href(`/produit/${product.slug}`),
+      ...(productImage ? { images: [{ url: productImage }] } : {}),
     },
   };
 }
@@ -33,7 +40,8 @@ export async function generateMetadata({ params }: PageProps<"/produit/[slug]">)
 export default async function ProductPage({ params, searchParams }: PageProps<"/produit/[slug]">) {
   const { slug } = await params;
   const sp = await searchParams;
-  const [d, settings] = await Promise.all([loadProductPage(slug), getSettings()]);
+  const { locale, href } = await getT();
+  const [d, settings] = await Promise.all([loadProductPage(slug, { locale }), getSettings()]);
   if (!d) notFound();
   const { product, summary } = d;
 
@@ -53,7 +61,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
     image: product.images.map((i) => new URL(i.url, siteUrl).toString()),
     offers: {
       "@type": "Offer",
-      url: new URL(`/produit/${product.slug}`, siteUrl).toString(),
+      url: new URL(href(`/produit/${product.slug}`), siteUrl).toString(),
       priceCurrency: "EUR",
       price: (product.priceCents / 100).toFixed(2),
       availability: anyAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

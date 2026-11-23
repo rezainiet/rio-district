@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { useT } from "@/i18n/client";
 
 const MAX_PHOTOS = 3;
 const MAX_BYTES = 6 * 1024 * 1024;
-const RATING_LABELS = ["", "Décevante", "Moyenne", "Bien", "Très bien", "Excellente"];
 
 const fieldCls = "field rounded-xl border-transparent bg-paper-3";
 const labelCls = "mb-1.5 block text-sm font-semibold text-ink-2";
@@ -13,6 +13,8 @@ const errCls = "mt-1.5 text-xs text-[#f08a7b]";
 
 /** Customer review form. Submissions go to moderation; nothing is published automatically. */
 export function ReviewForm({ productId, onDone }: { productId: string; onDone: () => void }) {
+  const { t, tx } = useT();
+  const ratingLabels = ["", t("Décevante"), t("Moyenne"), t("Bien"), t("Très bien"), t("Excellente")];
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
@@ -33,12 +35,12 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
   if (done) {
     return (
       <div role="status" className="py-4 text-center">
-        <p className="display text-3xl uppercase text-brand">Merci !</p>
+        <p className="display text-3xl uppercase text-brand">{t("Merci !")}</p>
         <p className="mx-auto mt-3 max-w-sm text-sm text-ink-2">
-          Ton avis a bien été envoyé. Il sera publié après relecture par notre équipe.
-          {done.verified && " Ta commande a été retrouvée : il portera la mention « Achat vérifié »."}
+          {t("Ton avis a bien été envoyé. Il sera publié après relecture par notre équipe.")}
+          {done.verified && ` ${t("Ta commande a été retrouvée : il portera la mention « Achat vérifié ».")}`}
         </p>
-        <Button size="lg" className="mt-6 w-full" onClick={onDone}>Fermer</Button>
+        <Button size="lg" className="mt-6 w-full" onClick={onDone}>{t("Fermer")}</Button>
       </div>
     );
   }
@@ -47,7 +49,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
     if (!list) return;
     const next = [...files, ...Array.from(list)].slice(0, MAX_PHOTOS);
     const tooBig = next.find((f) => f.size > MAX_BYTES);
-    setErrors((e) => ({ ...e, photos: tooBig ? "6 Mo maximum par photo." : "" }));
+    setErrors((e) => ({ ...e, photos: tooBig ? t("6 Mo maximum par photo.") : "" }));
     setFiles(next.filter((f) => f.size <= MAX_BYTES));
   };
 
@@ -55,7 +57,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const local: Record<string, string> = {};
-    if (!rating) local.rating = "Choisis une note.";
+    if (!rating) local.rating = t("Choisis une note.");
     if (Object.keys(local).length) {
       setErrors(local);
       return;
@@ -74,19 +76,20 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
       return;
     }
     setErrors(data?.fields ?? {});
-    setServerError(data?.fields ? "" : data?.error ?? "Envoi impossible. Réessaie dans un instant.");
+    setServerError(data?.fields ? "" : data?.error ? tx(data.error) : t("Envoi impossible. Réessaie dans un instant."));
   };
 
-  const err = (k: string) => (errors[k] ? <p id={`rv-${k}-error`} className={errCls}>{errors[k]}</p> : null);
+  // Server and schema messages are French: tx() shows them in the visitor's language.
+  const err = (k: string) => (errors[k] ? <p id={`rv-${k}-error`} className={errCls}>{tx(errors[k])}</p> : null);
   const aria = (k: string) => (errors[k] ? { "aria-invalid": true, "aria-describedby": `rv-${k}-error` } : {});
   const shownRating = hover || rating;
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
       <fieldset>
-        <legend className={labelCls}>Ta note</legend>
+        <legend className={labelCls}>{t("Ta note")}</legend>
         <div className="flex items-center gap-3" onMouseLeave={() => setHover(0)}>
-          <div className="flex" role="radiogroup" aria-label="Note sur 5" {...aria("rating")}>
+          <div className="flex" role="radiogroup" aria-label={t("Note sur 5")} {...aria("rating")}>
             {[1, 2, 3, 4, 5].map((n) => (
               <label key={n} className="grid size-11 cursor-pointer place-items-center text-brand" onMouseEnter={() => setHover(n)}>
                 <input
@@ -96,7 +99,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
                   checked={rating === n}
                   onChange={() => { setRating(n); setErrors((e) => ({ ...e, rating: "" })); }}
                   className="peer sr-only"
-                  aria-label={`${n} étoile${n > 1 ? "s" : ""} sur 5`}
+                  aria-label={n === 1 ? t("1 étoile sur 5") : t("{n} étoiles sur 5", { n })}
                 />
                 <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden className="rounded-full peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-brand">
                   <path
@@ -111,49 +114,49 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
               </label>
             ))}
           </div>
-          <span className="text-sm text-muted" aria-live="polite">{RATING_LABELS[shownRating]}</span>
+          <span className="text-sm text-muted" aria-live="polite">{ratingLabels[shownRating]}</span>
         </div>
         {err("rating")}
       </fieldset>
 
       <div>
-        <label htmlFor="rv-title" className={labelCls}>Titre</label>
-        <input id="rv-title" name="title" maxLength={80} required className={fieldCls} placeholder="Ex. Parfaite pour la mi-saison" {...aria("title")} />
+        <label htmlFor="rv-title" className={labelCls}>{t("Titre")}</label>
+        <input id="rv-title" name="title" maxLength={80} required className={fieldCls} placeholder={t("Ex. Parfaite pour la mi-saison")} {...aria("title")} />
         {err("title")}
       </div>
 
       <div>
-        <label htmlFor="rv-text" className={labelCls}>Ton avis</label>
-        <textarea id="rv-text" name="text" rows={5} maxLength={1500} required className={`${fieldCls} resize-y`} placeholder="Coupe, taille choisie, matière, livraison…" {...aria("text")} />
+        <label htmlFor="rv-text" className={labelCls}>{t("Ton avis")}</label>
+        <textarea id="rv-text" name="text" rows={5} maxLength={1500} required className={`${fieldCls} resize-y`} placeholder={t("Coupe, taille choisie, matière, livraison…")} {...aria("text")} />
         {err("text")}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="rv-name" className={labelCls}>Prénom et nom</label>
+          <label htmlFor="rv-name" className={labelCls}>{t("Prénom et nom")}</label>
           <input id="rv-name" name="name" autoComplete="name" maxLength={40} required className={fieldCls} {...aria("name")} />
-          <p className="mt-1.5 text-xs text-muted">Affiché sous la forme « Prénom N. »</p>
+          <p className="mt-1.5 text-xs text-muted">{t("Affiché sous la forme « Prénom N. »")}</p>
           {err("name")}
         </div>
         <div>
-          <label htmlFor="rv-email" className={labelCls}>E-mail</label>
+          <label htmlFor="rv-email" className={labelCls}>{t("E-mail")}</label>
           <input id="rv-email" name="email" type="email" autoComplete="email" required className={fieldCls} {...aria("email")} />
-          <p className="mt-1.5 text-xs text-muted">Jamais publié.</p>
+          <p className="mt-1.5 text-xs text-muted">{t("Jamais publié.")}</p>
           {err("email")}
         </div>
       </div>
 
       <div>
         <label htmlFor="rv-order" className={labelCls}>
-          N° de commande <span className="font-normal text-muted">— facultatif</span>
+          {t("N° de commande")} <span className="font-normal text-muted">{t("— facultatif")}</span>
         </label>
         <input id="rv-order" name="orderNumber" maxLength={20} className={`${fieldCls} uppercase`} placeholder="RD-10012" {...aria("orderNumber")} />
-        <p className="mt-1.5 text-xs text-muted">Avec l&apos;e-mail de ta commande livrée, ton avis porte la mention « Achat vérifié ».</p>
+        <p className="mt-1.5 text-xs text-muted">{t("Avec l'e-mail de ta commande livrée, ton avis porte la mention « Achat vérifié ».")}</p>
         {err("orderNumber")}
       </div>
 
       <div>
-        <span className={labelCls}>Photos <span className="font-normal text-muted">— facultatif, {MAX_PHOTOS} max.</span></span>
+        <span className={labelCls}>{t("Photos")} <span className="font-normal text-muted">{t("— facultatif, {n} max.", { n: MAX_PHOTOS })}</span></span>
         <div className="flex flex-wrap items-center gap-2">
           {previews.map((src, i) => (
             <div key={src} className="relative size-16 overflow-hidden rounded-xl border border-line">
@@ -163,7 +166,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
                 type="button"
                 onClick={() => setFiles((f) => f.filter((_, j) => j !== i))}
                 className="absolute right-0.5 top-0.5 grid size-6 place-items-center rounded-full bg-paper/85 text-xs"
-                aria-label={`Retirer la photo ${i + 1}`}
+                aria-label={t("Retirer la photo {n}", { n: i + 1 })}
               >
                 ✕
               </button>
@@ -178,7 +181,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
                 accept="image/jpeg,image/png,image/webp,image/heic,image/avif"
                 multiple
                 className="sr-only"
-                aria-label="Ajouter des photos"
+                aria-label={t("Ajouter des photos")}
                 onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
               />
             </label>
@@ -189,7 +192,7 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
 
       <label className="flex items-start gap-3 text-sm text-ink-2">
         <input type="checkbox" name="consent" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-brand)]" {...aria("consent")} />
-        <span>J&apos;accepte que mon avis (prénom et initiale, note, texte et photos) soit publié après relecture.</span>
+        <span>{t("J'accepte que mon avis (prénom et initiale, note, texte et photos) soit publié après relecture.")}</span>
       </label>
       {err("consent")}
 
@@ -199,9 +202,9 @@ export function ReviewForm({ productId, onDone }: { productId: string; onDone: (
 
       {serverError && <p role="alert" className="text-sm text-[#f08a7b]">{serverError}</p>}
       <Button type="submit" size="lg" disabled={busy} className="w-full">
-        {busy ? "Envoi…" : "Envoyer mon avis"}
+        {busy ? t("Envoi…") : t("Envoyer mon avis")}
       </Button>
-      <p className="-mt-2 text-center text-xs text-muted">Les avis sont relus avant publication. Aucun avis n&apos;est modifié.</p>
+      <p className="-mt-2 text-center text-xs text-muted">{t("Les avis sont relus avant publication. Aucun avis n'est modifié.")}</p>
     </form>
   );
 }

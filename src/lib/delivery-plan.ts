@@ -121,31 +121,42 @@ export function deliveryPlan(s: DispatchSettings, now = new Date()): DeliveryPla
   };
 }
 
-/* ---------- French wording ---------- */
+/* ---------- Wording (French by default, Spanish on /es) ---------- */
 
+type WordingLocale = "fr" | "es";
 const d = (day: string) => new Date(`${day}T12:00:00Z`);
-const fmt = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", ...o });
+const fmt = (o: Intl.DateTimeFormatOptions, locale: WordingLocale = "fr") =>
+  new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "fr-FR", { timeZone: "UTC", ...o });
 
-/** "lun. 19 oct." */
-export function shortDay(day: string) {
-  return fmt({ weekday: "short", day: "numeric", month: "short" }).format(d(day));
+/** "lun. 19 oct." · es: "lun 19 oct" (Intl's "lun, 19 oct" reads oddly inside a sentence) */
+export function shortDay(day: string, locale: WordingLocale = "fr") {
+  const s = fmt({ weekday: "short", day: "numeric", month: "short" }, locale).format(d(day));
+  return locale === "es" ? s.replace(",", "") : s;
 }
 
-/** "entre le 20 et le 22 octobre" / "entre le 30 octobre et le 2 novembre" / "le 20 octobre". */
-export function rangeLong(from: string, to: string) {
-  const long = fmt({ day: "numeric", month: "long" });
-  if (from === to) return `le ${long.format(d(from))}`;
+/**
+ * "entre le 20 et le 22 octobre" / "entre le 30 octobre et le 2 novembre" / "le 20 octobre".
+ * es: "entre el 20 y el 22 de octubre" / "entre el 30 de octubre y el 2 de noviembre" / "el 20 de octubre".
+ */
+export function rangeLong(from: string, to: string, locale: WordingLocale = "fr") {
+  const long = fmt({ day: "numeric", month: "long" }, locale);
+  const day = fmt({ day: "numeric" }, locale);
   const sameMonth = from.slice(0, 7) === to.slice(0, 7);
+  if (locale === "es") {
+    if (from === to) return `el ${long.format(d(from))}`;
+    return sameMonth ? `entre el ${day.format(d(from))} y el ${long.format(d(to))}` : `entre el ${long.format(d(from))} y el ${long.format(d(to))}`;
+  }
+  if (from === to) return `le ${long.format(d(from))}`;
   return sameMonth
-    ? `entre le ${fmt({ day: "numeric" }).format(d(from))} et le ${long.format(d(to))}`
+    ? `entre le ${day.format(d(from))} et le ${long.format(d(to))}`
     : `entre le ${long.format(d(from))} et le ${long.format(d(to))}`;
 }
 
-/** "20 – 22 oct." */
-export function rangeShort(from: string, to: string) {
-  const short = fmt({ day: "numeric", month: "short" });
+/** "20 – 22 oct." · es: "20 – 22 oct" */
+export function rangeShort(from: string, to: string, locale: WordingLocale = "fr") {
+  const short = fmt({ day: "numeric", month: "short" }, locale);
   if (from === to) return short.format(d(from));
   return from.slice(0, 7) === to.slice(0, 7)
-    ? `${fmt({ day: "numeric" }).format(d(from))} – ${short.format(d(to))}`
+    ? `${fmt({ day: "numeric" }, locale).format(d(from))} – ${short.format(d(to))}`
     : `${short.format(d(from))} – ${short.format(d(to))}`;
 }

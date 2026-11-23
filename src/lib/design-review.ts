@@ -37,7 +37,7 @@ export type DesignConceptKey = (typeof DESIGN_CONCEPTS)[number]["key"];
 export const RETURNS_PREVIEW_PATH = RETURNS_PATH;
 export const DEFAULT_PREVIEW_SLUG = "veste-bresil-vert";
 
-export type PreviewOptions = Required<ProductPageOptions>;
+export type PreviewOptions = Required<Omit<ProductPageOptions, "locale">>;
 
 export function loadPreview(slug: string, opts: PreviewOptions): Promise<PreviewData | null> {
   return loadProductPage(slug, opts);
