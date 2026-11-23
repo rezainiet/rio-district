@@ -33,6 +33,28 @@ if [[ -f "$previous/REVISION" && $(cat "$previous/REVISION") == "$revision" ]]; 
   exit 0
 fi
 
+# Each release is a full install (~900 MB) and nothing else ever removes them. Before the
+# disk check, keep only the live release (this deployment's rollback target) and the newest
+# other complete release; this deployment then adds one, so at most three stay on disk.
+# Per-deployment backups: keep the 4 newest (this deployment adds a fifth). The daily backups
+# (db-*, uploads-*) keep their own 14-day rotation (deploy/backup.sh).
+prune_old_releases_and_backups() {
+  local spare="" entry
+  while IFS= read -r entry; do
+    if [[ "$entry" != "$previous" && -f "$entry/.next/BUILD_ID" ]]; then spare="$entry"; break; fi
+  done < <(find "$base/releases" -mindepth 1 -maxdepth 1 -type d | sort -r)
+  while IFS= read -r entry; do
+    [[ "$entry" == "$previous" || "$entry" == "$spare" ]] && continue
+    echo "Removing old release ${entry##*/}."
+    rm -rf -- "$entry"
+  done < <(find "$base/releases" -mindepth 1 -maxdepth 1 -type d | sort -r)
+  while IFS= read -r entry; do
+    echo "Removing old deployment backup ${entry##*/}."
+    rm -rf -- "$entry"
+  done < <(find /var/backups/rio-district -mindepth 1 -maxdepth 1 -type d -name 'actions-*' | sort -r | tail -n +5)
+}
+prune_old_releases_and_backups || echo 'Warning: pruning old releases failed; continuing.' >&2
+
 free_kb=$(df -Pk "$base" | awk 'NR==2 {print $4}')
 (( free_kb >= 2097152 )) || { echo 'Deployment requires 2 GiB free disk space.' >&2; exit 1; }
 test -z "$(ss -H -ltn 'sport = :3002')"
@@ -123,7 +145,8 @@ wait_health() {
   return 1
 }
 check_routes() {
-  for route in / /produit/veste-bresil-vert /panier /commande /retours-remboursements /admin/login; do
+  # French and Spanish storefront URLs (Spanish ones go through next.config rewrites).
+  for route in / /fr /produit/veste-bresil-vert /producto/veste-bresil-vert /panier /carrito /commande /pedido /retours-remboursements /devoluciones-reembolsos /admin/login; do
     curl -fsS --max-time 20 "$1$route" > /dev/null
   done
 }

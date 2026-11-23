@@ -1,12 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "./lib/session-cookie";
-import { LOCALE_HEADER, isLocale, resolvePublicPath } from "./i18n/config";
-
-/**
- * Set on the request of a language rewrite. A browser could send it too, but it would only change
- * the language of its own uncached response (storefront pages are private, no-store).
- */
-const REWRITE_HEADER = "x-store-locale-rewrite";
+import { LOCALE_HEADER, resolvePublicPath } from "./i18n/config";
 
 /** The admin is French: its pages get the French locale header (html lang). */
 function adminHeaders(req: NextRequest) {
@@ -32,27 +26,18 @@ function adminGate(req: NextRequest) {
 }
 
 /**
- * Storefront language (src/i18n/config.ts): Spanish URLs (/, /producto/…) are
- * rewritten to the French-named routes, French URLs (/produit/…, /fr) are served
- * as they are; the locale goes in a request header. Any locale header sent by
- * the browser itself is overwritten, so the URL alone decides the language.
+ * Storefront language (src/i18n/config.ts). The proxy only decides the locale
+ * from the public URL and passes it in a request header (any value sent by the
+ * browser is overwritten), and redirects non-canonical URLs. Mapping Spanish
+ * URLs (/producto/…) and /fr to their French-named routes is done by the
+ * rewrites in next.config.ts, which run after the proxy and are always
+ * internal (a NextResponse.rewrite here fails behind nginx).
  */
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return adminGate(req);
 
-  // `next start` runs the proxy again on the internal route of a rewrite (/producto/x → /produit/x,
-  // /fr → /): keep the language chosen from the public URL instead of reading the internal one.
-  const rewritten = req.headers.get(REWRITE_HEADER);
-  if (isLocale(rewritten)) {
-    const headers = new Headers(req.headers);
-    headers.set(LOCALE_HEADER, rewritten);
-    const res = NextResponse.next({ request: { headers } });
-    res.headers.set("Content-Language", rewritten);
-    return res;
-  }
-
-  const { locale, path, redirect } = resolvePublicPath(pathname);
+  const { locale, redirect } = resolvePublicPath(pathname);
   if (redirect !== undefined && redirect !== pathname) {
     const url = req.nextUrl.clone(); // keeps the query string (?offre=…, utm_…, fbclid…)
     url.pathname = redirect;
@@ -61,18 +46,7 @@ export function proxy(req: NextRequest) {
 
   const headers = new Headers(req.headers);
   headers.set(LOCALE_HEADER, locale);
-  if (path === pathname) {
-    const res = NextResponse.next({ request: { headers } });
-    res.headers.set("Content-Language", locale);
-    return res;
-  }
-
-  // A language prefix in front of /admin or /api is not a storefront page: let it 404.
-  if (path === "/admin" || path.startsWith("/admin/") || path.startsWith("/api/")) return NextResponse.next();
-  const url = req.nextUrl.clone();
-  url.pathname = path;
-  headers.set(REWRITE_HEADER, locale);
-  const res = NextResponse.rewrite(url, { request: { headers } });
+  const res = NextResponse.next({ request: { headers } });
   res.headers.set("Content-Language", locale);
   return res;
 }

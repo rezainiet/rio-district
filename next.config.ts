@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { localeRewrites, publicPrefixes } from "./src/i18n/config";
 
 // Extra image hosts allowed for product photos (comma-separated), e.g. a CDN.
 const remoteHosts = (process.env.IMAGE_REMOTE_HOSTS ?? "")
@@ -63,12 +64,17 @@ const nextConfig: NextConfig = {
         source: "/api/admin/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
-      ...["/commande/:path*", "/api/orders", "/api/payments/:path*"].map(source => ({ source, headers: [
+      // Order pages carry private tokens in their URL, in both languages (/commande/…, /pedido/…).
+      ...[...publicPrefixes("/commande").map((p) => `${p}/:path*`), "/api/orders", "/api/payments/:path*"].map(source => ({ source, headers: [
         { key: "Cache-Control", value: "no-store, private" },
         { key: "Referrer-Policy", value: "no-referrer" },
         { key: "X-Robots-Tag", value: "noindex, nofollow" },
       ] })),
     ];
+  },
+  // Spanish URLs and the French home page (/fr) are served by the French-named routes (src/i18n/config.ts).
+  async rewrites() {
+    return { beforeFiles: localeRewrites(), afterFiles: [], fallback: [] };
   },
 };
 

@@ -91,6 +91,29 @@ export function switchLocaleHref(publicHref: string, to: Locale): string {
   return localizePath(resolvePublicPath(path).path + rest, to);
 }
 
+/**
+ * next.config.ts `rewrites().beforeFiles`: serve each Spanish URL (and the French home /fr) from
+ * its internal French-named route. Done in the config, not with NextResponse.rewrite in the proxy:
+ * behind nginx (X-Forwarded-Proto: https, app on 127.0.0.1) Next.js treats a proxy rewrite URL as
+ * external and the request fails; config rewrites are always internal. The proxy only sets the
+ * locale header, from the public URL, before these rewrites run.
+ */
+export function localeRewrites(): { source: string; destination: string }[] {
+  return [
+    { source: FR_HOME, destination: "/" },
+    ...ES_ROUTES.flatMap(([fr, es]) => [
+      { source: es, destination: fr },
+      { source: `${es}/:path*`, destination: `${fr}/:path*` },
+    ]),
+  ];
+}
+
+/** Every public spelling of an internal route prefix (French and Spanish), e.g. for response headers. */
+export function publicPrefixes(internalPrefix: string): string[] {
+  const es = ES_ROUTES.find(([fr]) => fr === internalPrefix)?.[1];
+  return es ? [internalPrefix, es] : [internalPrefix];
+}
+
 /** Metadata `alternates` for an internal path: canonical in the page's language + <link rel="alternate" hreflang> for each. */
 export function alternates(internalPath: string, locale: Locale) {
   return {
