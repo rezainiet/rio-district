@@ -4,7 +4,7 @@ import { formatEUR } from "@/lib/money";
 import { useStore } from "./StoreProvider";
 import { CartLineView } from "./CartLineView";
 import { CartSummary } from "./CartSummary";
-import { ButtonLink } from "@/components/ui/Button";
+import { buttonClass, ButtonLink } from "@/components/ui/Button";
 import { InfoIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import { useT } from "@/i18n/client";
 
@@ -40,17 +40,17 @@ export function CartPageView() {
             <div className="rounded-[var(--radius-md)] border border-line bg-paper-2 p-5 lg:sticky lg:top-24 md:p-6">
               <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">{t("Récapitulatif")}</h2>
               <CartSummary quote={quote} />
-              <ButtonLink
+              <a
                 href={href("/commande")}
-                size="lg"
-                className="mt-6 h-14 w-full"
+
+                className={buttonClass("primary", "lg", "mt-6 h-14 w-full")}
                 aria-disabled={hasErrors || !config.acceptingOrders}
                 onClick={(e) => {
                   if (hasErrors || !config.acceptingOrders) e.preventDefault();
                 }}
               >
                 {t("Commander · {total}", { total: formatEUR(quote.totalCents) })}
-              </ButtonLink>
+              </a>
               {hasErrors && <p className="mt-2 text-sm text-danger">{t("Certains articles ne sont plus disponibles : modifie-les ou retire-les.")}</p>}
               {!config.acceptingOrders && <p className="mt-2 text-sm text-muted">{config.closedMessage}</p>}
               <ul className="mt-4 grid gap-2 text-sm text-ink-2">

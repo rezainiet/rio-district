@@ -161,7 +161,7 @@ export function usePurchase({
   const buyNow = () => {
     if (!config.acceptingOrders || buyingNow || !validate()) return;
     const params = new URLSearchParams({ achat: JSON.stringify(selectedLine()) });
-    startBuyNow(() => router.push(href(`/commande?${params}`)));
+    startBuyNow(() => window.location.assign(href(`/commande?${params}`)));
   };
 
   const state = {

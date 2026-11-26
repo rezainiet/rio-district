@@ -8,6 +8,7 @@ import { validSccid } from "@/lib/sccid";
 import type { CartQuote } from "@/lib/types";
 import { useT } from "@/i18n/client";
 import { resolvePublicPath } from "@/i18n/config";
+import { isRioTikTokStorefrontRoute, loadRioTikTokPixel } from "@/lib/rio-tiktok-pixel";
 
 const SNAP_PIXEL_ID = "a1b5b51f-76da-4665-80a6-4c61498b3af4";
 const META_PIXEL_ID = "1306059791382915";
@@ -15,6 +16,7 @@ const SNAP_SCRIPT_URL = "https://sc-static.net/scevent.min.js";
 const META_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
 // New choice: existing Snapchat consent did not cover Meta.
 const STORAGE_KEY = "rd.marketing-consent.v1";
+const TIKTOK_CONSENT_KEY = "rd.tiktok-consent.v1";
 const FBCLID_STORAGE_KEY = "rd.meta.fbclid";
 const SCCID_STORAGE_KEY = "rd.snap.sccid";
 const CHOICE_LIFETIME_MS = 180 * 24 * 60 * 60 * 1000;
@@ -22,6 +24,8 @@ const OPEN_EVENT = "rio:marketing-consent-open";
 const CART_ADD_EVENT = "rio:cart-add";
 export const MARKETING_CONSENT_CHANGED_EVENT = "rio:marketing-consent-changed";
 const startedCheckouts = new Set<string>();
+// A document that started in checkout must not load the SDK later on a soft navigation.
+let tikTokDocumentAllowed: boolean | undefined;
 
 type Choice = "accepted" | "refused";
 type Snaptr = ((...args: unknown[]) => void) & { queue?: unknown[][]; handleRequest?: (...args: unknown[]) => void };
@@ -31,9 +35,9 @@ declare global {
   interface Window { snaptr?: Snaptr; fbq?: Fbq; _fbq?: Fbq; }
 }
 
-function savedChoice(): Choice | null {
+function savedChoice(key = STORAGE_KEY): Choice | null {
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+    const data = JSON.parse(localStorage.getItem(key) ?? "null");
     if ((data?.choice === "accepted" || data?.choice === "refused") &&
         typeof data.at === "number" && Date.now() - data.at < CHOICE_LIFETIME_MS && data.at <= Date.now()) return data.choice;
   } catch { /* Storage can be unavailable in private browsing. */ }
@@ -162,8 +166,9 @@ export function MarketingPixels() {
   const trackedPath = useRef<string | null>(null);
 
   useEffect(() => {
+    tikTokDocumentAllowed ??= isRioTikTokStorefrontRoute(resolvePublicPath(window.location.pathname).path);
     const stored = savedChoice();
-    queueMicrotask(() => { setChoice(stored); setReady(true); setOpen(stored === null); });
+    queueMicrotask(() => { setChoice(stored); setReady(true); setOpen(stored === null || (stored === "accepted" && savedChoice(TIKTOK_CONSENT_KEY) === null)); });
     const showSettings = () => setOpen(true);
     window.addEventListener(OPEN_EVENT, showSettings);
     return () => window.removeEventListener(OPEN_EVENT, showSettings);
@@ -178,6 +183,9 @@ export function MarketingPixels() {
     rememberConsentedFbclid(window.location.search);
     rememberConsentedSccid(window.location.search);
     startPixels();
+    if (tikTokDocumentAllowed && isRioTikTokStorefrontRoute(route) && savedChoice(TIKTOK_CONSENT_KEY) === "accepted") {
+      loadRioTikTokPixel(window, document);
+    }
     if (trackedPath.current !== pathname) {
       window.snaptr?.("track", "PAGE_VIEW");
       window.fbq?.("trackSingle", META_PIXEL_ID, "PageView");
@@ -208,10 +216,18 @@ export function MarketingPixels() {
   }, [choice]);
 
   function choose(next: Choice) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ choice: next, at: Date.now() })); } catch {}
+    try {
+      const updated = JSON.stringify({ choice: next, at: Date.now() });
+      localStorage.setItem(STORAGE_KEY, updated);
+      localStorage.setItem(TIKTOK_CONSENT_KEY, updated);
+    } catch {}
     if (next === "accepted") {
       rememberConsentedFbclid(window.location.search);
       rememberConsentedSccid(window.location.search);
+      const route = pathname ? resolvePublicPath(pathname).path : null;
+      if (tikTokDocumentAllowed && route && isRioTikTokStorefrontRoute(route) && savedChoice(TIKTOK_CONSENT_KEY) === "accepted") {
+        loadRioTikTokPixel(window, document);
+      }
     } else try { sessionStorage.removeItem(FBCLID_STORAGE_KEY); sessionStorage.removeItem(SCCID_STORAGE_KEY); } catch {}
     if (next === "refused" && choice === "accepted") {
       // A fresh document drops any listeners installed by the already loaded external script.
@@ -228,7 +244,7 @@ export function MarketingPixels() {
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.12em] text-brand">{t("Cookies publicitaires")}</p>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">{t("Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et début de commande) pour nos campagnes. Si tu arrives d’une publicité Meta ou Snapchat, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le début de commande est envoyé comme événement InitiateCheckout à Meta ; le clic vers le paiement est envoyé comme START_CHECKOUT à Snapchat. Aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande.")} <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Snap")}</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Meta")}</a>.</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">{t("Avec ton accord, les pixels Snapchat et Meta mesurent les pages visitées et certaines actions (produit consulté, ajout au panier et début de commande) pour nos campagnes. Si tu arrives d’une publicité Meta ou Snapchat, son identifiant de clic est conservé dans cet onglet et transmis au partenaire de paiement seulement avec ton accord sur le formulaire de commande. Le début de commande est envoyé comme événement InitiateCheckout à Meta ; le clic vers le paiement est envoyé comme START_CHECKOUT à Snapchat. Aucun achat n’est déclaré par la boutique à ce stade. Ils peuvent utiliser des cookies et transmettre des données de navigation à Snap et Meta. Ton choix est facultatif et n’affecte pas ta commande.")} <a className="underline underline-offset-2" href="https://values.snap.com/privacy/privacy-policy" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Snap")}</a> · <a className="underline underline-offset-2" href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">{t("Confidentialité de Meta")}</a>. {t("Avec ton accord, TikTok mesure aussi les pages visitées dans la boutique.")} <a className="underline underline-offset-2" href="https://www.tiktok.com/legal/page/eea/privacy-policy/en" target="_blank" rel="noopener noreferrer">{t("Confidentialité de TikTok")}</a>.</p>
       </div>
       {choice !== null && <button type="button" aria-label={t("Fermer les paramètres des cookies")} className="text-xl leading-none text-muted hover:text-ink" onClick={() => setOpen(false)}>×</button>}
     </div>

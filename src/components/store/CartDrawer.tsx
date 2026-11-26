@@ -7,7 +7,7 @@ import { useStore } from "./StoreProvider";
 import { CartLineView } from "./CartLineView";
 import { CartSummary } from "./CartSummary";
 import { formatEUR } from "@/lib/money";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { buttonClass, Button, ButtonLink } from "@/components/ui/Button";
 import { BagIcon, CheckIcon, CloseIcon, ReturnIcon, TruckIcon } from "@/components/ui/icons";
 import { useT } from "@/i18n/client";
 
@@ -146,17 +146,17 @@ export function CartDrawer() {
                     <li className="flex items-center gap-2"><ReturnIcon width={16} height={16} className="shrink-0 text-brand" /> {t("Retour possible sous {n} jours après réception", { n: config.returnsWindowDays })}</li>
                   </ul>
                   <div className="mt-3 grid gap-1.5">
-                    <ButtonLink
+                    <a
                       href={href("/commande")}
-                      size="lg"
-                      className="h-14 w-full"
+
+                      className={buttonClass("primary", "lg", "h-14 w-full")}
                       aria-disabled={hasErrors || !config.acceptingOrders}
                       onClick={(e) => {
                         if (hasErrors) e.preventDefault();
                       }}
                     >
                       {t("Commander · {total}", { total: formatEUR(quote.totalCents) })}
-                    </ButtonLink>
+                    </a>
                     <Button variant="ghost" className="h-11 w-full hover:bg-paper-3" onClick={() => setDrawerOpen(false)}>
                       {t("Continuer mes achats")}
                     </Button>
