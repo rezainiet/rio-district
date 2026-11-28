@@ -9,7 +9,7 @@ import type { CartQuote } from "@/lib/types";
 import { useT } from "@/i18n/client";
 import { resolvePublicPath } from "@/i18n/config";
 
-const SNAP_PIXEL_ID = "a1b5b51f-76da-4665-80a6-4c61498b3af4";
+const SNAP_PIXEL_ID = "801365c6-5321-4ce3-a4f1-b322aebbefb4";
 const META_PIXEL_ID = "1306059791382915";
 const SNAP_SCRIPT_URL = "https://sc-static.net/scevent.min.js";
 const META_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
